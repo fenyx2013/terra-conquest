@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPA_URL = "https://yvgwtzjlchcjxoiquetg.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3d0empsY2hjanhvaXF1ZXRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTM2NjgsImV4cCI6MjA4ODM2OTY2OH0.cglCteLErmG23ryVVwVvYir_s4OroeRg9GdmNiurQ8c";
+const sb = createClient(SUPA_URL, SUPA_KEY);
 
 // ─── War Shop items ───────────────────────────────────────────────────────────
 const SHOP_ITEMS = [
@@ -531,30 +536,31 @@ export default function EarthConquest(){
   const svgRef=useRef(null);
 
   // All storage keys are scoped to the room code
-  const OWN_KEY= ()=>`tc7-own-${roomCode}`;
-  const PLR_KEY= ()=>`tc7-plr-${roomCode}`;
-  const INV_KEY= `tc7-inv-`;
+  // storage scoped per player username (Supabase)
 
   // Load shared world state (called after room code is set)
   const loadWorld=async(code)=>{
     try{
-      const od=await window.storage.get(`tc7-own-${code}`,true);
-      const pd=await window.storage.get(`tc7-plr-${code}`,true);
-      if(od)setOwnership(JSON.parse(od.value));
-      if(pd)setPlayers(JSON.parse(pd.value));
+      const {data}=await sb.from("world").select("ownership,players").eq("room_code",code).single();
+      if(data){
+        setOwnership(data.ownership||{});
+        setPlayers(data.players||{});
+      }
     }catch(e){}
   };
 
   const saveWorld=async(o,p)=>{
     try{
-      await window.storage.set(OWN_KEY(),JSON.stringify(o),true);
-      await window.storage.set(PLR_KEY(),JSON.stringify(p),true);
+      await sb.from("world").upsert({room_code:roomCode,ownership:o,players:p},{onConflict:"room_code"});
     }catch(e){}
   };
 
   // Save inventory (personal, not shared)
   const saveInv=async(inv,name)=>{
-    try{await window.storage.set(INV_KEY+(name||username),JSON.stringify(inv));}catch(e){}
+    try{
+      const key=(name||username);
+      await sb.from("inventory").upsert({username:key,data:inv},{onConflict:"username"});
+    }catch(e){}
   };
 
   const flash=(msg,type="info")=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3500);};
@@ -582,7 +588,7 @@ export default function EarthConquest(){
         const earned=periods*COIN_FACTORY_YIELD*factoryCount;
         const newInv={...inv,coins:inv.coins+earned,lastFactory:last+periods*COIN_FACTORY_INTERVAL_MS};
         // save async without blocking
-        (async()=>{try{await window.storage.set(`tc7-inv-${inv._name||""}`,JSON.stringify(newInv));}catch(e){}})();
+        (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
         // show notification
         setTimeout(()=>flash(`🏭 Coin Factory: +${earned.toLocaleString()} coins!`,"success"),0);
         return newInv;
@@ -617,17 +623,15 @@ export default function EarthConquest(){
     const name=inputName.trim()||rndName();
     let o={},p={};
     try{
-      const od=await window.storage.get(`tc7-own-${roomCode}`,true);
-      const pd=await window.storage.get(`tc7-plr-${roomCode}`,true);
-      if(od)o=JSON.parse(od.value);
-      if(pd)p=JSON.parse(pd.value);
+      const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
+      if(data){o=data.ownership||{};p=data.players||{};}
     }catch(e){}
 
     const defaultInv={coins:500,tank:0,bomb:0,plane:0,shield:0,spy:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,buildings:[],lastFactory:0,factoryCount:0,_name:name};
     let inv=defaultInv;
     try{
-      const id=await window.storage.get(INV_KEY+name);
-      if(id)inv={...defaultInv,...JSON.parse(id.value),_name:name};
+      const {data}=await sb.from("inventory").select("data").eq("username",name).single();
+      if(data)inv={...defaultInv,...data.data,_name:name};
     }catch(e){}
 
     if(p[name]){
