@@ -563,6 +563,30 @@ export default function EarthConquest(){
     }catch(e){}
   };
 
+  // ── Live sync: poll Supabase every 3 seconds while in game ──────────────────
+  useEffect(()=>{
+    if(!roomCode||screen!=="map")return;
+    const poll=setInterval(async()=>{
+      try{
+        const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
+        if(data){
+          setOwnership(prev=>{
+            const incoming=data.ownership||{};
+            // only update if something actually changed
+            if(JSON.stringify(prev)===JSON.stringify(incoming))return prev;
+            return incoming;
+          });
+          setPlayers(prev=>{
+            const incoming=data.players||{};
+            if(JSON.stringify(prev)===JSON.stringify(incoming))return prev;
+            return incoming;
+          });
+        }
+      }catch(e){}
+    },3000);
+    return()=>clearInterval(poll);
+  },[roomCode,screen]);
+
   const flash=(msg,type="info")=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3500);};
 
   useEffect(()=>{
