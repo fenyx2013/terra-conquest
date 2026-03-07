@@ -86,7 +86,56 @@ const BUILDING_LIMITS = {
   embassy: 99,
 };
 
-// ─── Win chance ───────────────────────────────────────────────────────────────
+
+// ─── Achievements ─────────────────────────────────────────────────────────────
+const ACHIEVEMENTS = [
+  { id:"first_blood",   name:"First Blood",      emoji:"⚔️",  desc:"Win your first attack.",                       xp:50  },
+  { id:"conqueror5",    name:"Conqueror",         emoji:"🗺️",  desc:"Own 5 territories at once.",                   xp:75  },
+  { id:"conqueror20",   name:"Empire Builder",    emoji:"👑",  desc:"Own 20 territories at once.",                  xp:150 },
+  { id:"conqueror50",   name:"World Dominator",   emoji:"🌍",  desc:"Own 50 territories at once.",                  xp:400 },
+  { id:"rich",          name:"War Chest",         emoji:"💰",  desc:"Accumulate 10,000 coins at once.",             xp:100 },
+  { id:"weapons10",     name:"Armed & Dangerous", emoji:"🔫",  desc:"Own 10+ weapons at the same time.",            xp:80  },
+  { id:"builder",       name:"Architect",         emoji:"🏗️",  desc:"Build your first building.",                   xp:60  },
+  { id:"factory3",      name:"Industrial Power",  emoji:"🏭",  desc:"Own 3 Coin Factories.",                        xp:120 },
+  { id:"spy_used",      name:"Shadow Operative",  emoji:"🕵️",  desc:"Use a spy in battle.",                         xp:90  },
+  { id:"bomber_used",   name:"Shock & Awe",       emoji:"💥",  desc:"Use a Bomber in an attack.",                   xp:70  },
+  { id:"daily7",        name:"Dedicated",         emoji:"📅",  desc:"Claim daily reward 7 times.",                  xp:200 },
+  { id:"survived",      name:"Survivor",          emoji:"🛡️",  desc:"Defend against 3 attacks successfully.",       xp:110 },
+];
+
+// ─── Terra Pass levels ────────────────────────────────────────────────────────
+const TERRA_PASS = [
+  { level:1,  xpNeeded:0,   reward:null },
+  { level:2,  xpNeeded:100, reward:{ type:"coins",    amount:500,   label:"500 Coins" }},
+  { level:3,  xpNeeded:250, reward:{ type:"weapon",   id:"bomb",    amount:3, label:"3 Bombs" }},
+  { level:4,  xpNeeded:450, reward:{ type:"coins",    amount:1000,  label:"1,000 Coins" }},
+  { level:5,  xpNeeded:700, reward:{ type:"weapon",   id:"missile", amount:2, label:"2 Missiles" }},
+  { level:6,  xpNeeded:1000,reward:{ type:"material", id:"gold",    amount:2, label:"2 Gold" }},
+  { level:7,  xpNeeded:1400,reward:{ type:"coins",    amount:3000,  label:"3,000 Coins" }},
+  { level:8,  xpNeeded:1900,reward:{ type:"weapon",   id:"bomber",  amount:1, label:"1 Bomber" }},
+  { level:9,  xpNeeded:2500,reward:{ type:"material", id:"iron",    amount:5, label:"5 Iron" }},
+  { level:10, xpNeeded:3200,reward:{ type:"coins",    amount:10000, label:"10,000 Coins 🎉" }},
+];
+
+// ─── Daily Missions (rotate by day) ───────────────────────────────────────────
+const ALL_MISSIONS = [
+  { id:"attack3",    name:"War Games",       emoji:"⚔️",  desc:"Win 3 attacks today.",          goal:3,  stat:"wins",       xp:80,  reward:{type:"coins",amount:500}  },
+  { id:"earn2000",   name:"Coin Collector",  emoji:"🪙",  desc:"Earn 2,000 coins today.",        goal:2000,stat:"coinsEarned",xp:60,  reward:{type:"coins",amount:300}  },
+  { id:"conquer5",   name:"Expansionist",    emoji:"🗺️",  desc:"Conquer 5 countries today.",     goal:5,  stat:"conquests",  xp:100, reward:{type:"weapon",id:"bomb",amount:2}},
+  { id:"build1",     name:"City Planner",    emoji:"🏗️",  desc:"Build 1 building today.",        goal:1,  stat:"builds",     xp:50,  reward:{type:"coins",amount:200}  },
+  { id:"buy5weapons",name:"Arms Dealer",     emoji:"🔫",  desc:"Buy 5 weapons today.",           goal:5,  stat:"weaponsBought",xp:70, reward:{type:"material",id:"iron",amount:2}},
+  { id:"usebomber",  name:"Air Superiority", emoji:"💥",  desc:"Use a Bomber in an attack.",     goal:1,  stat:"bombersUsed", xp:90, reward:{type:"weapon",id:"missile",amount:1}},
+  { id:"defend1",    name:"Hold The Line",   emoji:"🛡️",  desc:"Successfully defend a territory.",goal:1, stat:"defends",    xp:75,  reward:{type:"coins",amount:400}  },
+];
+
+function getTodayMissions(){
+  const day=Math.floor(Date.now()/(1000*60*60*24));
+  // use index-based rotation so no string arithmetic
+  const rotated=ALL_MISSIONS.map((m,i)=>({m,sort:(i+day)%ALL_MISSIONS.length}))
+    .sort((a,b)=>a.sort-b.sort)
+    .map(x=>x.m);
+  return rotated.slice(0,3);
+}
 function baseWinChance(area) {
   return Math.max(0.05, Math.min(0.68, 0.68 - ((area - 5) / 215) * 0.63));
 }
@@ -557,7 +606,16 @@ export default function EarthConquest(){
   const [showDaily,setShowDaily]=useState(false);
   const [attackPlan,setAttackPlan]=useState(null);
   const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0});
-  const [factoryTimer,setFactoryTimer]=useState(0); // ms until next payout
+  const [factoryTimer,setFactoryTimer]=useState(0);
+  const [tutStep,setTutStep]=useState(0);
+  const [isSingleplayer,setIsSingleplayer]=useState(false);
+  const [botInventories,setBotInventories]=useState({});
+  const [showTerraPass,setShowTerraPass]=useState(false);
+  const [playerXP,setPlayerXP]=useState(0);
+  const [achievements,setAchievements]=useState([]); // array of unlocked achievement ids
+  const [missionProgress,setMissionProgress]=useState({}); // {stat: count}
+  const [claimedMissions,setClaimedMissions]=useState([]); // mission ids claimed today
+  const [claimedPassLevels,setClaimedPassLevels]=useState([]); // pass level numbers claimed
   const svgRef=useRef(null);
 
   // All storage keys are scoped to the room code
@@ -586,6 +644,64 @@ export default function EarthConquest(){
       const key=(name||username);
       await sb.from("inventory").upsert({username:key,data:inv},{onConflict:"username"});
     }catch(e){}
+  };
+
+  // Add XP and check achievements/missions
+  const addXP=async(amount)=>{
+    setPlayerXP(prev=>prev+amount);
+    setMyInventory(inv=>{
+      const newInv={...inv,_xp:(inv._xp||0)+amount};
+      (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
+      return newInv;
+    });
+  };
+
+  const unlockAchievement=(id)=>{
+    setAchievements(prev=>{
+      if(prev.includes(id))return prev;
+      const ach=ACHIEVEMENTS.find(a=>a.id===id);
+      if(!ach)return prev;
+      const next=[...prev,id];
+      flash(`🏆 Achievement: ${ach.emoji} ${ach.name}! +${ach.xp} XP`,"success");
+      // update XP and save — done outside setState
+      setTimeout(()=>{
+        addXP(ach.xp);
+        setMyInventory(inv=>{
+          const newInv={...inv,_achievements:next};
+          (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
+          return newInv;
+        });
+      },0);
+      return next;
+    });
+  };
+
+  const progressMission=(stat,amount=1)=>{
+    setMissionProgress(prev=>{
+      const newP={...prev,[stat]:(prev[stat]||0)+amount};
+      setTimeout(()=>{
+        setMyInventory(inv=>{
+          const newInv={...inv,_missionProgress:newP,_missionDate:todayStr()};
+          (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
+          return newInv;
+        });
+      },0);
+      return newP;
+    });
+  };
+
+  const checkAchievements=(inv,ownerships)=>{
+    const mine=Object.keys(ownerships).filter(id=>ownerships[id]===(inv._name||username));
+    if(mine.length>=1) unlockAchievement("first_blood");
+    if(mine.length>=5) unlockAchievement("conqueror5");
+    if(mine.length>=20) unlockAchievement("conqueror20");
+    if(mine.length>=50) unlockAchievement("conqueror50");
+    if((inv.coins||0)>=10000) unlockAchievement("rich");
+    const weapons=(inv.tank||0)+(inv.bomb||0)+(inv.plane||0)+(inv.missile||0)+(inv.bomber||0);
+    if(weapons>=10) unlockAchievement("weapons10");
+    if((inv.buildings||[]).length>=1) unlockAchievement("builder");
+    if((inv.buildings||[]).filter(b=>b==="coin_factory").length>=3) unlockAchievement("factory3");
+    if((inv._dailyCount||0)>=7) unlockAchievement("daily7");
   };
 
   // ── Live sync: poll Supabase every 3 seconds while in game ──────────────────
@@ -677,6 +793,115 @@ export default function EarthConquest(){
     }
   },[ownership,username,screen]);
 
+  // ── Bot AI tick (singleplayer only) ─────────────────────────────────────────
+  const ownershipRef=useRef({});
+  const botInvRef=useRef({});
+  useEffect(()=>{ownershipRef.current=ownership;},[ownership]);
+  useEffect(()=>{botInvRef.current=botInventories;},[botInventories]);
+
+  useEffect(()=>{
+    if(!isSingleplayer||screen!=="map")return;
+    const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
+    const tick=setInterval(()=>{
+      const curOwn={...ownershipRef.current};
+      const curInv={...botInvRef.current};
+      const newOwn={...curOwn};
+      const newInv={...curInv};
+      let ownChanged=false;
+
+      BOT_NAMES.forEach(bot=>{
+        const inv={...(newInv[bot]||{coins:800,tank:5,bomb:3,plane:1,missile:1,bomber:0})};
+
+        // earn coins fast so bots stay active
+        inv.coins=(inv.coins||0)+50;
+
+        // always buy weapons if possible
+        while(inv.coins>=400){
+          const r=Math.random();
+          if(r<0.2&&inv.coins>=1800){inv.coins-=1800;inv.bomber=(inv.bomber||0)+1;}
+          else if(r<0.4&&inv.coins>=1200){inv.coins-=1200;inv.missile=(inv.missile||0)+1;}
+          else if(r<0.65&&inv.coins>=600){inv.coins-=600;inv.bomb=(inv.bomb||0)+1;}
+          else if(inv.coins>=400){inv.coins-=400;inv.tank=(inv.tank||0)+1;}
+          else break;
+          if(inv.coins<400)break;
+        }
+
+        // ALWAYS try to attack every tick
+        const myTerr=Object.keys(newOwn).filter(id=>newOwn[id]===bot);
+        if(myTerr.length===0){newInv[bot]=inv;return;}
+
+        const reach=getReachable(myTerr,2);
+        const targets=[...reach].filter(id=>newOwn[id]!==bot);
+        if(targets.length===0){newInv[bot]=inv;return;}
+
+        const totalWeapons=(inv.tank||0)+(inv.bomb||0)+(inv.plane||0)+(inv.missile||0)+(inv.bomber||0);
+        if(totalWeapons<1){newInv[bot]=inv;return;}
+
+        // pick smallest available target
+        const target=[...targets].sort((a,b)=>{
+          const ca=COUNTRIES.find(c=>c.id===a);
+          const cb=COUNTRIES.find(c=>c.id===b);
+          return (ca?.area||50)-(cb?.area||50);
+        })[0];
+
+        const country=COUNTRIES.find(c=>c.id===target);
+        if(!country){newInv[bot]=inv;return;}
+
+        // deploy weapons
+        const t=Math.min(inv.tank||0,4);
+        const b=Math.min(inv.bomb||0,3);
+        const p=Math.min(inv.plane||0,2);
+        const m=Math.min(inv.missile||0,1);
+        const bm=Math.min(inv.bomber||0,1);
+        const dmg=calcDamage(t,b,p,m,bm);
+        const chance=calcWinChance(country.area||20,dmg,0,0,0);
+
+        if(Math.random()<chance){
+          newOwn[target]=bot;
+          ownChanged=true;
+        }
+        inv.tank=Math.max(0,(inv.tank||0)-t);
+        inv.bomb=Math.max(0,(inv.bomb||0)-b);
+        inv.plane=Math.max(0,(inv.plane||0)-p);
+        inv.missile=Math.max(0,(inv.missile||0)-m);
+        inv.bomber=Math.max(0,(inv.bomber||0)-bm);
+        newInv[bot]=inv;
+      });
+
+      setBotInventories(newInv);
+      if(ownChanged)setOwnership(newOwn);
+    },2000); // every 2 seconds
+    return()=>clearInterval(tick);
+  },[isSingleplayer,screen]);
+
+  // ── Start Singleplayer ───────────────────────────────────────────────────────
+  const startSingleplayer=()=>{
+    const name=username;
+    const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
+    const BOT_COLORS=[1,2,3,4]; // cidx values for bots
+    const newOwn={};
+    const newPlayers={[name]:{cidx:0,joinedAt:Date.now()}};
+    // give player 2 starting territories
+    const playerTerr=startTerr({});
+    playerTerr.forEach(id=>{newOwn[id]=name;});
+    // give each bot 2 starting territories
+    BOT_NAMES.forEach((bot,i)=>{
+      newPlayers[bot]={cidx:BOT_COLORS[i],joinedAt:Date.now()};
+      const botTerr=startTerr(newOwn);
+      botTerr.forEach(id=>{newOwn[id]=bot;});
+    });
+    const initBotInv={};
+    BOT_NAMES.forEach(bot=>{initBotInv[bot]={coins:800,tank:5,bomb:3,plane:1,missile:1,bomber:0};});
+    setOwnership(newOwn);
+    setPlayers(newPlayers);
+    setMyInventory(inv=>({...inv,_name:name,coins:500}));
+    setBotInventories(initBotInv);
+    setIsSingleplayer(true);
+    setCidx(0);
+    setScreen("map");
+    flash("🤖 Singleplayer started! 4 AI bots are competing against you.","info");
+  };
+
   const handleRoom=async()=>{
     const code=roomInput.trim();
     if(!/^\d{6}$/.test(code)){setRoomError("Please enter exactly 6 digits.");return;}
@@ -746,17 +971,31 @@ export default function EarthConquest(){
       flash(`🌍 Welcome, ${name}! Room ${roomCode} · ${terr.length} starting territory!`,"success");
     }
     await saveInv(inv,name);
+    // load XP, achievements, missions
+    setPlayerXP(inv._xp||0);
+    setAchievements(inv._achievements||[]);
+    const savedDate=inv._missionDate||"";
+    if(savedDate===todayStr()){
+      setMissionProgress(inv._missionProgress||{});
+      setClaimedMissions(inv._claimedMissions||[]);
+    }else{
+      setMissionProgress({});
+      setClaimedMissions([]);
+    }
+    setClaimedPassLevels(inv._claimedPassLevels||[]);
     setScreen("map");
   };
 
   const claimDaily=async()=>{
     const vaultBonus=(myInventory.buildings||[]).filter(b=>b==="vault").length*500;
     const total=DAILY_REWARD+vaultBonus;
-    const newInv={...myInventory,coins:myInventory.coins+total,lastDaily:todayStr()};
+    const newInv={...myInventory,coins:myInventory.coins+total,lastDaily:todayStr(),_dailyCount:(myInventory._dailyCount||0)+1};
     setMyInventory(newInv);
     await saveInv(newInv);
     setShowDaily(false);
     flash(`🎁 Daily reward: +${total.toLocaleString()} coins${vaultBonus>0?` (🏦 +${vaultBonus} vault bonus!)`:""}!`,"success");
+    progressMission("coinsEarned",total);
+    checkAchievements(newInv,ownership);
   };
 
   const buyItem=async(item)=>{
@@ -775,6 +1014,8 @@ export default function EarthConquest(){
     setMyInventory(newInv);
     await saveInv(newInv);
     flash(`✅ Bought 1 ${item.name} for ${price.toLocaleString()} coins!`,"success");
+    progressMission("weaponsBought");
+    checkAchievements(newInv,ownership);
   };
 
   const buyMaterial=async(mat)=>{
@@ -803,6 +1044,8 @@ export default function EarthConquest(){
     setMyInventory(newInv);
     await saveInv(newInv);
     flash(`🏗️ Built ${bld.name}!${bld.id==="coin_factory"?" +5 coins/sec (more with Gold Vaults)!":bld.id==="spy_academy"?" Spy ready every 20 min, claim for 300 coins!":bld.id==="vault"?" +2 coins/sec to all factories + +500 daily reward!":""}`, "success");
+    progressMission("builds");
+    checkAchievements(newInv,ownership);
   };
 
   const claimAcademySpy=async()=>{
@@ -814,7 +1057,40 @@ export default function EarthConquest(){
     flash(`🕵️ Claimed academy spy for ${SPY_CLAIM_COST} coins! +1% win chance on next attack.`,"success");
   };
 
-  const handleClick=async(country)=>{
+  const claimMissionReward=async(mission)=>{
+    if(claimedMissions.includes(mission.id))return;
+    const prog=missionProgress[mission.stat]||0;
+    if(prog<mission.goal){flash("Mission not completed yet!","warn");return;}
+    const newClaimed=[...claimedMissions,mission.id];
+    setClaimedMissions(newClaimed);
+    let newInv={...myInventory,_claimedMissions:newClaimed};
+    if(mission.reward.type==="coins") newInv.coins=(newInv.coins||0)+mission.reward.amount;
+    if(mission.reward.type==="weapon") newInv[mission.reward.id]=(newInv[mission.reward.id]||0)+mission.reward.amount;
+    if(mission.reward.type==="material") newInv[mission.reward.id]=(newInv[mission.reward.id]||0)+mission.reward.amount;
+    setMyInventory(newInv);
+    await saveInv(newInv);
+    addXP(mission.xp);
+    flash(`✅ Mission complete: ${mission.name}! +${mission.xp} XP`,"success");
+  };
+
+  const claimPassReward=async(level)=>{
+    const passLevel=TERRA_PASS.find(p=>p.level===level);
+    if(!passLevel?.reward)return;
+    if(claimedPassLevels.includes(level)){flash("Already claimed!","warn");return;}
+    const curLevel=TERRA_PASS.findIndex(p=>p.xpNeeded>playerXP);
+    const reached=curLevel===-1?TERRA_PASS.length:curLevel;
+    if(level>reached){flash("Reach this level first!","warn");return;}
+    const newClaimed=[...claimedPassLevels,level];
+    setClaimedPassLevels(newClaimed);
+    let newInv={...myInventory,_claimedPassLevels:newClaimed};
+    const r=passLevel.reward;
+    if(r.type==="coins") newInv.coins=(newInv.coins||0)+r.amount;
+    if(r.type==="weapon") newInv[r.id]=(newInv[r.id]||0)+r.amount;
+    if(r.type==="material") newInv[r.id]=(newInv[r.id]||0)+r.amount;
+    setMyInventory(newInv);
+    await saveInv(newInv);
+    flash(`🎁 Terra Pass Level ${level}: ${r.label} claimed!`,"success");
+  };
     if(!attackMode)return;
     const owner=ownership[country.id];
     if(owner===username){flash("Already yours!","warn");return;}
@@ -866,8 +1142,15 @@ export default function EarthConquest(){
       const newO={...ownership,[country.id]:username};
       await saveWorld(newO,players);setOwnership(newO);
       flash(`⚔️ Conquered ${country.name}! ${damage} dmg → ${pct}%${usedSpy?" 🕵️":""}. Won!`,"success");
+      progressMission("wins");
+      progressMission("conquests");
+      if(usedSpy){unlockAchievement("spy_used");progressMission("spiesUsed");}
+      if((bomber||0)>0){unlockAchievement("bomber_used");progressMission("bombersUsed");}
+      checkAchievements(newInv,{...ownership,[country.id]:username});
+      addXP(20);
     }else{
       flash(`💀 Attack on ${country.name} failed. ${damage} dmg → ${pct}% — try more firepower!`,"error");
+      addXP(5);
     }
   };
 
@@ -895,7 +1178,7 @@ export default function EarthConquest(){
             <div style={{color:"rgba(255,255,255,.5)",fontSize:"13px"}}>{totalTerr} territories claimed by others</div>
           </div>
           <br/>
-          <button onClick={()=>{setScreen("menu");setRoomCode("");setRoomInput("");setOwnership({});setPlayers({});setMenuTab("multiplayer");}}
+          <button onClick={()=>{setScreen("menu");setRoomCode("");setRoomInput("");setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
             style={{padding:"14px 36px",background:"linear-gradient(135deg,#7f1d1d,#ef4444)",border:"none",
               borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",
               letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(239,68,68,.4)"}}>
@@ -980,7 +1263,6 @@ export default function EarthConquest(){
       {emoji:"🕵️",title:"Spies",text:"Build a Spy Academy and wait 20 min. Pay 300 coins to claim a spy. Each spy adds +1% win chance to your next attack. Stack academy spies for big advantages."},
       {emoji:"💀",title:"Elimination",text:"If all your territories are conquered, you are eliminated. There's no respawn — protect your lands! The last player standing wins."},
     ];
-    const [tutStep,setTutStep]=useState(0);
 
     return(
       <div style={bgStyle}>
@@ -1012,14 +1294,12 @@ export default function EarthConquest(){
             {/* ── MAIN TAB ── */}
             {menuTab==="main"&&(
               <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-                <button className="frbtn" onClick={()=>{
-                  const r=String(Math.floor(100000+Math.random()*900000));
-                  setRoomInput(r);setMenuTab("multiplayer");
-                }} style={{padding:"18px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"1px solid rgba(59,130,246,.4)",
-                  borderRadius:"14px",color:"white",fontSize:"15px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left"}}>
+                <button className="frbtn" onClick={startSingleplayer}
+                  style={{padding:"18px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"1px solid rgba(59,130,246,.4)",
+                    borderRadius:"14px",color:"white",fontSize:"15px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left"}}>
                   <div style={{fontSize:"28px",marginBottom:"6px"}}>🤖</div>
                   <div style={{letterSpacing:"2px",textTransform:"uppercase",marginBottom:"4px"}}>Singleplayer</div>
-                  <div style={{color:"rgba(255,255,255,.45)",fontSize:"11px",fontWeight:"normal"}}>Play against AI bots on your own map — coming soon!</div>
+                  <div style={{color:"rgba(255,255,255,.45)",fontSize:"11px",fontWeight:"normal"}}>Play against 4 AI bots. They buy weapons, expand and attack just like real players.</div>
                 </button>
                 <button className="frbtn" onClick={()=>setMenuTab("multiplayer")}
                   style={{padding:"18px",background:"linear-gradient(135deg,#1a3828,#16a34a)",border:"1px solid rgba(34,197,94,.4)",
@@ -1231,6 +1511,145 @@ export default function EarthConquest(){
               letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(212,160,23,.5)"}}>
               CLAIM REWARD
             </button>
+          </div>
+        </div>
+        );
+      })()}
+
+      {/* Terra Pass Modal */}
+      {showTerraPass&&(()=>{
+        const todayMissions=getTodayMissions();
+        const curLevelIdx=TERRA_PASS.findIndex(p=>p.xpNeeded>playerXP);
+        const curLevel=curLevelIdx===-1?TERRA_PASS.length:curLevelIdx;
+        const nextLevel=TERRA_PASS[curLevel];
+        const xpForNext=nextLevel?nextLevel.xpNeeded:TERRA_PASS[TERRA_PASS.length-1].xpNeeded;
+        const xpPrev=curLevel>0?TERRA_PASS[curLevel-1].xpNeeded:0;
+        const pct=Math.min(100,Math.round(((playerXP-xpPrev)/(xpForNext-xpPrev||1))*100));
+        return(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}
+          onClick={e=>{if(e.target===e.currentTarget)setShowTerraPass(false);}}>
+          <div style={{background:"linear-gradient(135deg,#0d0a1f,#1a0d38)",border:"1px solid rgba(139,92,246,.4)",
+            borderRadius:"20px",padding:"28px",width:"520px",maxHeight:"88vh",overflowY:"auto",
+            boxShadow:"0 40px 80px rgba(139,92,246,.2)",animation:"modalIn .3s ease"}}>
+
+            {/* Header */}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+              <div>
+                <h2 style={{color:"#c4b5fd",fontSize:"20px",margin:"0 0 3px",letterSpacing:"2px"}}>⭐ TERRA PASS</h2>
+                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Complete missions & earn XP to level up</p>
+              </div>
+              <button onClick={()=>setShowTerraPass(false)}
+                style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",
+                  padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>✕</button>
+            </div>
+
+            {/* XP Bar */}
+            <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(139,92,246,.2)",borderRadius:"12px",padding:"14px",marginBottom:"20px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"6px"}}>
+                <span style={{color:"#c4b5fd",fontWeight:"bold",fontSize:"13px"}}>Level {curLevel}</span>
+                <span style={{color:"rgba(255,255,255,.4)",fontSize:"11px"}}>{playerXP.toLocaleString()} XP {nextLevel?`/ ${nextLevel.xpNeeded.toLocaleString()} XP`:""}</span>
+              </div>
+              <div style={{height:"10px",background:"rgba(255,255,255,.08)",borderRadius:"5px",overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#7c3aed,#c4b5fd)",borderRadius:"5px",transition:"width .4s"}}/>
+              </div>
+              {nextLevel&&<p style={{color:"rgba(255,255,255,.25)",fontSize:"9px",margin:"5px 0 0"}}>{pct}% to Level {curLevel+1}</p>}
+            </div>
+
+            {/* Daily Missions */}
+            <div style={{marginBottom:"22px"}}>
+              <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"10px"}}>📋 Daily Missions — Resets at midnight</div>
+              {todayMissions.map(m=>{
+                const prog=Math.min(m.goal,missionProgress[m.stat]||0);
+                const done=prog>=m.goal;
+                const claimed=claimedMissions.includes(m.id);
+                const pctM=Math.round((prog/m.goal)*100);
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:"12px",
+                    background:done?"rgba(16,185,129,.08)":"rgba(255,255,255,.03)",
+                    border:`1px solid ${done?"rgba(16,185,129,.3)":"rgba(255,255,255,.07)"}`,
+                    borderRadius:"10px",padding:"10px 12px",marginBottom:"8px"}}>
+                    <div style={{fontSize:"24px"}}>{m.emoji}</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <span style={{color:"white",fontWeight:"bold",fontSize:"12px"}}>{m.name}</span>
+                        <span style={{color:"#c4b5fd",fontSize:"10px"}}>+{m.xp} XP</span>
+                      </div>
+                      <p style={{color:"rgba(255,255,255,.4)",fontSize:"10px",margin:"2px 0 5px"}}>{m.desc}</p>
+                      <div style={{height:"4px",background:"rgba(255,255,255,.08)",borderRadius:"2px",overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${pctM}%`,background:done?"#10b981":"#7c3aed",borderRadius:"2px"}}/>
+                      </div>
+                      <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",marginTop:"3px"}}>{prog}/{m.goal}</div>
+                    </div>
+                    <button onClick={()=>claimMissionReward(m)} disabled={!done||claimed}
+                      style={{padding:"6px 10px",flexShrink:0,
+                        background:claimed?"rgba(255,255,255,.05)":done?"linear-gradient(135deg,#059669,#10b981)":"rgba(255,255,255,.05)",
+                        border:"none",borderRadius:"7px",color:claimed?"rgba(255,255,255,.2)":done?"white":"rgba(255,255,255,.2)",
+                        cursor:done&&!claimed?"pointer":"not-allowed",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif"}}>
+                      {claimed?"✓ Done":done?"Claim!":"Locked"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Terra Pass Levels */}
+            <div style={{marginBottom:"22px"}}>
+              <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"10px"}}>🎁 Pass Rewards</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"6px"}}>
+                {TERRA_PASS.filter(p=>p.reward).map(p=>{
+                  const reached=p.level<=curLevel;
+                  const claimed=claimedPassLevels.includes(p.level);
+                  return(
+                    <div key={p.level} style={{display:"flex",alignItems:"center",gap:"10px",
+                      background:reached?"rgba(139,92,246,.1)":"rgba(255,255,255,.02)",
+                      border:`1px solid ${reached?"rgba(139,92,246,.3)":"rgba(255,255,255,.06)"}`,
+                      borderRadius:"9px",padding:"9px 12px"}}>
+                      <div style={{width:"28px",height:"28px",borderRadius:"50%",flexShrink:0,
+                        background:reached?"linear-gradient(135deg,#7c3aed,#c4b5fd)":"rgba(255,255,255,.08)",
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:"11px",fontWeight:"bold",color:reached?"white":"rgba(255,255,255,.2)"}}>
+                        {p.level}
+                      </div>
+                      <div style={{flex:1}}>
+                        <span style={{color:reached?"white":"rgba(255,255,255,.3)",fontSize:"12px",fontWeight:"bold"}}>{p.reward.label}</span>
+                        <div style={{color:"rgba(255,255,255,.25)",fontSize:"9px"}}>{p.xpNeeded} XP required</div>
+                      </div>
+                      <button onClick={()=>claimPassReward(p.level)} disabled={!reached||claimed}
+                        style={{padding:"5px 10px",flexShrink:0,
+                          background:claimed?"rgba(255,255,255,.05)":reached?"linear-gradient(135deg,#7c3aed,#c4b5fd)":"rgba(255,255,255,.04)",
+                          border:"none",borderRadius:"7px",
+                          color:claimed?"rgba(255,255,255,.2)":reached?"white":"rgba(255,255,255,.15)",
+                          cursor:reached&&!claimed?"pointer":"not-allowed",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif"}}>
+                        {claimed?"✓":"Claim"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Achievements */}
+            <div>
+              <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"10px"}}>🏆 Achievements ({achievements.length}/{ACHIEVEMENTS.length})</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px"}}>
+                {ACHIEVEMENTS.map(a=>{
+                  const unlocked=achievements.includes(a.id);
+                  return(
+                    <div key={a.id} style={{display:"flex",alignItems:"center",gap:"8px",
+                      background:unlocked?"rgba(212,160,23,.1)":"rgba(255,255,255,.02)",
+                      border:`1px solid ${unlocked?"rgba(212,160,23,.3)":"rgba(255,255,255,.06)"}`,
+                      borderRadius:"8px",padding:"8px 10px",opacity:unlocked?1:0.5}}>
+                      <span style={{fontSize:"18px",filter:unlocked?"none":"grayscale(1)"}}>{a.emoji}</span>
+                      <div>
+                        <div style={{color:unlocked?"#fcd34d":"rgba(255,255,255,.3)",fontSize:"10px",fontWeight:"bold"}}>{a.name}</div>
+                        <div style={{color:"rgba(255,255,255,.25)",fontSize:"8px"}}>{unlocked?`+${a.xp} XP earned`:a.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         </div>
         );
@@ -1678,7 +2097,7 @@ export default function EarthConquest(){
             fontSize:"11px",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":"none"}}>
             {attackMode?"⚔️ Cancel":"⚔️ Attack"}
           </button>
-          <button onClick={()=>{setAttackMode(false);setScreen("menu");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});setMenuTab("multiplayer");}} style={{padding:"4px 9px",background:"transparent",
+          <button onClick={()=>{setAttackMode(false);setScreen("menu");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}} style={{padding:"4px 9px",background:"transparent",
             border:"1px solid rgba(255,255,255,.09)",borderRadius:"7px",color:"rgba(255,255,255,.28)",
             cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>Exit</button>
         </div>
@@ -1889,6 +2308,11 @@ export default function EarthConquest(){
               border:"1px solid rgba(16,185,129,.4)",borderRadius:"8px",color:"#6ee7b7",
               cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif"}}>
               🏗️ Build Shop
+            </button>
+            <button onClick={()=>setShowTerraPass(true)} style={{padding:"8px",background:"linear-gradient(135deg,rgba(139,92,246,.25),rgba(139,92,246,.08))",
+              border:"1px solid rgba(139,92,246,.5)",borderRadius:"8px",color:"#c4b5fd",
+              cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif",fontWeight:"bold"}}>
+              ⭐ Terra Pass
             </button>
           </div>
 
