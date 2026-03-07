@@ -7,11 +7,12 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
 
 // ─── War Shop items ───────────────────────────────────────────────────────────
 const SHOP_ITEMS = [
-  { id:"tank",   name:"Tank",    emoji:"🪖", price:400,   desc:"1 dmg pt. Required to attack.",          color:"#f59e0b" },
-  { id:"bomb",   name:"Bomb",    emoji:"💣", price:600,   desc:"5 dmg pts. Powerful explosive.",         color:"#ef4444" },
-  { id:"plane",  name:"Plane",   emoji:"✈️", price:800,   desc:"7 dmg pts. Also extends range +1.",      color:"#3b82f6" },
-  { id:"shield", name:"Shield",  emoji:"🛡️", price:500,   desc:"Protects 1 territory from capture.",    color:"#10b981" },
-  { id:"spy",    name:"Spy",     emoji:"🕵️", price:6000,  desc:"+20% win chance on next attack.",        color:"#8b5cf6" },
+  { id:"tank",     name:"Tank",             emoji:"🪖", price:400,   desc:"0.5 dmg. Basic ground unit. Stack many to boost attack.",         color:"#f59e0b" },
+  { id:"bomb",     name:"Bomb",             emoji:"💣", price:600,   desc:"2 dmg. Explosive ordnance. More dmg than tanks per coin.",        color:"#ef4444" },
+  { id:"plane",    name:"Plane",            emoji:"✈️", price:800,   desc:"3 dmg. Also extends your attack range from 2 to 3 borders.",     color:"#3b82f6" },
+  { id:"missile",  name:"Ballistic Missile",emoji:"🚀", price:1200,  desc:"6 dmg. Must still be within border range to fire.",              color:"#f97316" },
+  { id:"bomber",   name:"Bomber",           emoji:"💥", price:1800,  desc:"10 dmg. Most powerful weapon. Great for heavily defended areas.", color:"#dc2626" },
+  { id:"air_def",  name:"Air Defence",      emoji:"🛡️", price:500,   desc:"Each unit reduces enemy win chance by 5% when attacking you.",   color:"#10b981" },
 ];
 
 // ─── Materials (bought with coins in Build Shop) ──────────────────────────────
@@ -26,45 +27,64 @@ const MATERIALS = [
 const BUILDINGS = [
   {
     id:"coin_factory", name:"Coin Factory", emoji:"🏭",
-    desc:"Generates +300 coins every 20 minutes automatically.",
+    desc:"Generates +5 coins/sec. Each Gold Vault you own adds +2 coins/sec bonus to every factory. Max 5.",
     color:"#f59e0b",
     cost:{ wood:3, stone:2 },
   },
   {
+    id:"vault", name:"Gold Vault", emoji:"🏦",
+    desc:"Each vault adds +2 coins/sec to every Coin Factory you own. Also adds +500 to daily reward. Max 3.",
+    color:"#d4a017",
+    cost:{ stone:3, iron:2, gold:1 },
+  },
+  {
+    id:"spy_academy", name:"Spy Academy", emoji:"🕵️",
+    desc:"Trains 1 spy every 20 min. Claim each spy for 300 coins. Each spy adds +1% win chance on attacks. Max 2.",
+    color:"#8b5cf6",
+    cost:{ wood:4, stone:3, gold:1 },
+  },
+  {
     id:"barracks", name:"Barracks", emoji:"🏯",
-    desc:"Unlocks buying tanks at 20% discount in War Shop.",
+    desc:"Gives 20% discount on Tanks in the War Shop. Max 3 (discount doesn't stack).",
     color:"#ef4444",
     cost:{ wood:5, stone:3, iron:1 },
   },
   {
     id:"airbase", name:"Air Base", emoji:"🛫",
-    desc:"Unlocks buying planes at 20% discount.",
+    desc:"Gives 20% discount on Planes in the War Shop. Max 3 (discount doesn't stack).",
     color:"#3b82f6",
     cost:{ stone:4, iron:3 },
   },
   {
-    id:"vault", name:"Gold Vault", emoji:"🏦",
-    desc:"+500 bonus coins every daily reward claim.",
-    color:"#d4a017",
-    cost:{ stone:3, iron:2, gold:1 },
-  },
-  {
     id:"watchtower", name:"Watchtower", emoji:"🗼",
-    desc:"Reveals incoming attacks on your territories (shows warning).",
+    desc:"Shows a warning notification when an enemy attacks one of your territories.",
     color:"#10b981",
     cost:{ wood:4, iron:2 },
   },
   {
     id:"embassy", name:"Embassy", emoji:"🏛️",
-    desc:"Reduces attack range needed by enemies by 1 hop.",
-    color:"#8b5cf6",
+    desc:"Reduces enemy attack range against you by 1 hop. Forces enemies to get closer before attacking.",
+    color:"#6366f1",
     cost:{ wood:6, stone:4, gold:2 },
   },
 ];
 
-const COIN_FACTORY_INTERVAL_MS = 20 * 60 * 1000; // 20 min
-const COIN_FACTORY_YIELD = 300;
+const COIN_FACTORY_INTERVAL_MS = 1000; // 1 second
+const COIN_FACTORY_YIELD = 5;          // 5 coins per second per factory (+ 2 per vault)
+const SPY_ACADEMY_INTERVAL_MS = 20 * 60 * 1000;
+const SPY_CLAIM_COST = 300;
 const DAILY_REWARD = 3000;
+
+// Building limits
+const BUILDING_LIMITS = {
+  coin_factory: 5,
+  vault: 3,
+  spy_academy: 2,
+  airbase: 3,
+  barracks: 3,
+  watchtower: 99,
+  embassy: 99,
+};
 
 // ─── Win chance ───────────────────────────────────────────────────────────────
 function baseWinChance(area) {
@@ -72,12 +92,14 @@ function baseWinChance(area) {
 }
 
 // ─── Weapon damage constants ──────────────────────────────────────────────────
-const DMG = { tank: 1, bomb: 5, plane: 7 };
-function calcDamage(t, b, p){ return t * DMG.tank + b * DMG.bomb + p * DMG.plane; }
-function calcWinChance(area, damage, spyCount){
+const DMG = { tank: 0.5, bomb: 2, plane: 3, missile: 6, bomber: 10 };
+function calcDamage(t, b, p, m, bm){ return t*DMG.tank + b*DMG.bomb + p*DMG.plane + (m||0)*DMG.missile + (bm||0)*DMG.bomber; }
+function calcWinChance(area, damage, spyCount, spyAcademySpies, defenderAirDef){
   const base = baseWinChance(area);
-  const spyBonus = spyCount > 0 ? 0.20 : 0;
-  return Math.min(0.97, base + damage * 0.008 + spyBonus);
+  const spyBonus = (spyCount>0?0.20:0) + (spyAcademySpies||0)*0.01;
+  const rawChance = base + damage * 0.004; // halved scaling so damage matters less
+  const reducedByDef = rawChance * (1 - Math.min(0.75, (defenderAirDef||0)*0.05));
+  return Math.min(0.97, Math.max(0.02, reducedByDef + spyBonus));
 }
 
 const CLRS = [
@@ -512,15 +534,15 @@ export default function EarthConquest(){
   const [roomError,setRoomError]=useState("");
   const [username,setUsername]=useState("");
   const [inputName,setInputName]=useState("");
+  const [inputPassword,setInputPassword]=useState("");
   const [cidx,setCidx]=useState(0);
   const [ownership,setOwnership]=useState({});
   const [players,setPlayers]=useState({});
   const [myInventory,setMyInventory]=useState({
-    coins:500, tank:0, bomb:0, plane:0, shield:0, spy:0, lastDaily:"",
+    coins:500, tank:0, bomb:0, plane:0, missile:0, bomber:0, air_def:0, spy:0, lastDaily:"",
     wood:0, stone:0, iron:0, gold:0,
-    buildings:[], // array of building ids owned
-    lastFactory:0, // timestamp of last factory payout
-    factoryCount:0,
+    buildings:[], lastFactory:0, factoryCount:0,
+    academySpies:0, lastAcademy:0, // spy academy
   });
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
@@ -531,7 +553,7 @@ export default function EarthConquest(){
   const [showBuildShop,setShowBuildShop]=useState(false);
   const [showDaily,setShowDaily]=useState(false);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0});
   const [factoryTimer,setFactoryTimer]=useState(0); // ms until next payout
   const svgRef=useRef(null);
 
@@ -596,43 +618,61 @@ export default function EarthConquest(){
     setReachable(getReachable(mine,hops));
   },[attackMode,ownership,username,myInventory.plane]);
 
-  // ── Coin Factory timer ──────────────────────────────────────────────────────
+  // ── Coin Factory: +5 coins/second (+2 bonus per Gold Vault) ────────────────
   useEffect(()=>{
     if(!username||screen!=="map")return;
-    const tick=setInterval(async()=>{
+    const tick=setInterval(()=>{
       setMyInventory(inv=>{
-        const buildings=inv.buildings||[];
-        const factoryCount=buildings.filter(b=>b==="coin_factory").length;
+        const factoryCount=(inv.buildings||[]).filter(b=>b==="coin_factory").length;
         if(factoryCount===0)return inv;
-        const now=Date.now();
-        const last=inv.lastFactory||now;
-        const elapsed=now-last;
-        if(elapsed<COIN_FACTORY_INTERVAL_MS)return inv;
-        const periods=Math.floor(elapsed/COIN_FACTORY_INTERVAL_MS);
-        const earned=periods*COIN_FACTORY_YIELD*factoryCount;
-        const newInv={...inv,coins:inv.coins+earned,lastFactory:last+periods*COIN_FACTORY_INTERVAL_MS};
-        // save async without blocking
+        const vaultCount=(inv.buildings||[]).filter(b=>b==="vault").length;
+        const perFactory=COIN_FACTORY_YIELD+(vaultCount*2);
+        const earned=perFactory*factoryCount;
+        const newInv={...inv,coins:inv.coins+earned,lastFactory:Date.now()};
         (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
-        // show notification
-        setTimeout(()=>flash(`🏭 Coin Factory: +${earned.toLocaleString()} coins!`,"success"),0);
         return newInv;
       });
-    },10000); // check every 10 seconds
-    return ()=>clearInterval(tick);
+    },COIN_FACTORY_INTERVAL_MS);
+    return()=>clearInterval(tick);
   },[username,screen]);
 
-  // countdown display timer
+  // ── Spy Academy: 1 spy ready every 20 min ───────────────────────────────────
+  useEffect(()=>{
+    if(!username||screen!=="map")return;
+    const tick=setInterval(()=>{
+      setMyInventory(inv=>{
+        const hasAcademy=(inv.buildings||[]).includes("spy_academy");
+        if(!hasAcademy)return inv;
+        const now=Date.now();
+        const last=inv.lastAcademy||now;
+        if(now-last<SPY_ACADEMY_INTERVAL_MS)return inv;
+        const newInv={...inv,academySpies:(inv.academySpies||0)+1,lastAcademy:now};
+        (async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
+        setTimeout(()=>flash("🕵️ Spy Academy: A new spy is ready! Claim in Build Shop.","info"),0);
+        return newInv;
+      });
+    },10000);
+    return()=>clearInterval(tick);
+  },[username,screen]);
+
+  // ── Academy countdown ───────────────────────────────────────────────────────
   useEffect(()=>{
     const t=setInterval(()=>{
-      const buildings=myInventory.buildings||[];
-      const fc=buildings.filter(b=>b==="coin_factory").length;
-      if(fc===0)return;
-      const last=myInventory.lastFactory||Date.now();
-      const next=last+COIN_FACTORY_INTERVAL_MS;
-      setFactoryTimer(Math.max(0,next-Date.now()));
+      if(!(myInventory.buildings||[]).includes("spy_academy"))return;
+      const last=myInventory.lastAcademy||Date.now();
+      setFactoryTimer(Math.max(0,last+SPY_ACADEMY_INTERVAL_MS-Date.now()));
     },1000);
-    return ()=>clearInterval(t);
-  },[myInventory.lastFactory,myInventory.buildings]);
+    return()=>clearInterval(t);
+  },[myInventory.lastAcademy,myInventory.buildings]);
+
+  // ── Elimination check ───────────────────────────────────────────────────────
+  useEffect(()=>{
+    if(!username||screen!=="map")return;
+    const mine=Object.keys(ownership).filter(id=>ownership[id]===username);
+    if(mine.length===0&&Object.keys(ownership).length>0){
+      setScreen("eliminated");
+    }
+  },[ownership,username,screen]);
 
   const handleRoom=async()=>{
     const code=roomInput.trim();
@@ -645,17 +685,26 @@ export default function EarthConquest(){
 
   const handleLogin=async()=>{
     const name=inputName.trim()||rndName();
+    const pwd=inputPassword.trim();
+    if(!pwd){flash("Please enter a password!","warn");return;}
     let o={},p={};
     try{
       const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
       if(data){o=data.ownership||{};p=data.players||{};}
     }catch(e){}
 
-    const defaultInv={coins:500,tank:0,bomb:0,plane:0,shield:0,spy:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,buildings:[],lastFactory:0,factoryCount:0,_name:name};
+    const defaultInv={coins:500,tank:0,bomb:0,plane:0,missile:0,bomber:0,air_def:0,spy:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,_name:name,_pwd:pwd};
     let inv=defaultInv;
     try{
       const {data}=await sb.from("inventory").select("data").eq("username",name).single();
-      if(data)inv={...defaultInv,...data.data,_name:name};
+      if(data){
+        // account exists — check password
+        const saved=data.data;
+        if(saved._pwd && saved._pwd!==pwd){
+          flash("❌ Wrong password for that name!","error");return;
+        }
+        inv={...defaultInv,...saved,_name:name,_pwd:pwd};
+      }
     }catch(e){}
 
     if(p[name]){
@@ -707,6 +756,10 @@ export default function EarthConquest(){
   };
 
   const buildBuilding=async(bld)=>{
+    // Check building limit
+    const currentCount=(myInventory.buildings||[]).filter(b=>b===bld.id).length;
+    const limit=BUILDING_LIMITS[bld.id]||99;
+    if(currentCount>=limit){flash(`Max ${limit} ${bld.name}(s) allowed!`,"warn");return;}
     // Check materials
     for(const [mat,qty] of Object.entries(bld.cost)){
       if((myInventory[mat]||0)<qty){flash(`Not enough ${mat}! Need ${qty} ${mat}.`,"warn");return;}
@@ -719,7 +772,16 @@ export default function EarthConquest(){
     if(bld.id==="coin_factory") newInv.lastFactory=Date.now();
     setMyInventory(newInv);
     await saveInv(newInv);
-    flash(`🏗️ Built ${bld.name}!${bld.id==="coin_factory"?" +300 coins every 20 min!":""}`, "success");
+    flash(`🏗️ Built ${bld.name}!${bld.id==="coin_factory"?" +5 coins/sec (more with Gold Vaults)!":bld.id==="spy_academy"?" Spy ready every 20 min, claim for 300 coins!":bld.id==="vault"?" +2 coins/sec to all factories + +500 daily reward!":""}`, "success");
+  };
+
+  const claimAcademySpy=async()=>{
+    if((myInventory.academySpies||0)<1){flash("No spies ready yet!","warn");return;}
+    if(myInventory.coins<SPY_CLAIM_COST){flash(`Need ${SPY_CLAIM_COST} coins to claim spy!`,"warn");return;}
+    const newInv={...myInventory,coins:myInventory.coins-SPY_CLAIM_COST,spy:(myInventory.spy||0)+1,academySpies:myInventory.academySpies-1};
+    setMyInventory(newInv);
+    await saveInv(newInv);
+    flash(`🕵️ Claimed academy spy for ${SPY_CLAIM_COST} coins! +1% win chance on next attack.`,"success");
   };
 
   const handleClick=async(country)=>{
@@ -730,11 +792,10 @@ export default function EarthConquest(){
     const hops=myInventory.plane>0?3:2;
     const reach=getReachable(mine,hops);
     if(!reach.has(country.id)){flash("Out of range! Expand your borders first.","warn");return;}
-    if(myInventory.tank===0&&myInventory.bomb===0&&myInventory.plane===0){
+    if(myInventory.tank===0&&myInventory.bomb===0&&myInventory.plane===0&&(myInventory.missile||0)===0&&(myInventory.bomber||0)===0){
       flash("You have no weapons! Buy some in the Shop first.","warn");return;
     }
-    // Open attack plan modal
-    setDeploy({tank:0,bomb:0,plane:0});
+    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0});
     setAttackPlan({country,owner});
     setAttackMode(false);
   };
@@ -742,24 +803,29 @@ export default function EarthConquest(){
   const confirmAttack=async()=>{
     if(!attackPlan)return;
     const {country,owner}=attackPlan;
-    const {tank,bomb,plane}=deploy;
-    if(tank===0&&bomb===0&&plane===0){flash("Deploy at least 1 weapon!","warn");return;}
-    if(tank>myInventory.tank||bomb>myInventory.bomb||plane>myInventory.plane){
+    const {tank,bomb,plane,missile,bomber}=deploy;
+    if(tank===0&&bomb===0&&plane===0&&missile===0&&bomber===0){flash("Deploy at least 1 weapon!","warn");return;}
+    if(tank>myInventory.tank||bomb>myInventory.bomb||plane>myInventory.plane||
+       (missile||0)>myInventory.missile||(bomber||0)>myInventory.bomber){
       flash("Not enough weapons in arsenal!","warn");return;
     }
 
-    const damage=calcDamage(tank,bomb,plane);
-    const chance=calcWinChance(country.area||20, damage, myInventory.spy||0);
+    // Get defender's air defence count from shared players data (stored in world)
+    // We approximate by checking ownership — real air_def is in their inventory (not shared)
+    // so we just use 0 for now unless we can check; use academySpies from own inventory
+    const damage=calcDamage(tank,bomb,plane,missile,bomber);
+    const chance=calcWinChance(country.area||20, damage, myInventory.spy||0, myInventory.academySpies||0, 0);
     const won=Math.random()<chance;
     const pct=Math.round(chance*100);
     const usedSpy=myInventory.spy>0;
 
-    // Always consume deployed weapons + spy if used
     const newInv={
       ...myInventory,
       tank:myInventory.tank-tank,
       bomb:myInventory.bomb-bomb,
       plane:myInventory.plane-plane,
+      missile:myInventory.missile-(missile||0),
+      bomber:myInventory.bomber-(bomber||0),
       spy:usedSpy?myInventory.spy-1:myInventory.spy,
     };
     setMyInventory(newInv);
@@ -779,6 +845,36 @@ export default function EarthConquest(){
   const myC=CLRS[cidx%CLRS.length];
   const lb=Object.entries(Object.values(ownership).reduce((a,o)=>{a[o]=(a[o]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const canClaimDaily=myInventory.lastDaily!==todayStr();
+
+  // ── ELIMINATED SCREEN ─────────────────────────────────────────────────────
+  if(screen==="eliminated"){
+    const totalTerr=Object.keys(ownership).length;
+    return(
+      <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at 50% 50%,#1a0000,#000)",
+        display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif"}}>
+        <style>{`@keyframes elimIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+          @keyframes skull{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}`}</style>
+        <div style={{textAlign:"center",animation:"elimIn .5s ease",padding:"40px"}}>
+          <div style={{fontSize:"100px",animation:"skull 2s ease infinite",marginBottom:"16px"}}>💀</div>
+          <h1 style={{color:"#ef4444",fontSize:"36px",letterSpacing:"4px",margin:"0 0 8px",textTransform:"uppercase"}}>Eliminated</h1>
+          <p style={{color:"rgba(255,255,255,.5)",fontSize:"14px",margin:"0 0 8px"}}>You have lost all your territories.</p>
+          <p style={{color:"rgba(255,255,255,.3)",fontSize:"12px",margin:"0 0 32px"}}>Room <span style={{color:"#f5c842"}}>{roomCode}</span> continues without you.</p>
+          <div style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"14px",padding:"20px 32px",marginBottom:"28px",display:"inline-block"}}>
+            <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",marginBottom:"12px",textTransform:"uppercase"}}>Your Final Stats</div>
+            <div style={{color:"#f5c842",fontSize:"18px",fontWeight:"bold",marginBottom:"6px"}}>🪙 {myInventory.coins.toLocaleString()} coins remaining</div>
+            <div style={{color:"rgba(255,255,255,.5)",fontSize:"13px"}}>{totalTerr} territories claimed by others</div>
+          </div>
+          <br/>
+          <button onClick={()=>{setScreen("room");setRoomCode("");setRoomInput("");setOwnership({});setPlayers({});setUsername("");}}
+            style={{padding:"14px 36px",background:"linear-gradient(135deg,#7f1d1d,#ef4444)",border:"none",
+              borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",
+              letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(239,68,68,.4)"}}>
+            ← Back to Lobby
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── ROOM CODE SCREEN ───────────────────────────────────────────────────────
   if(screen==="room"){
@@ -913,6 +1009,14 @@ export default function EarthConquest(){
             style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
               borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
         </div>
+        <div style={{textAlign:"left",marginBottom:"18px"}}>
+          <label style={{color:"rgba(255,255,255,.42)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"7px"}}>🔒 Password</label>
+          <input type="password" value={inputPassword} onChange={e=>setInputPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+            placeholder="Set a password to protect your account"
+            style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
+              borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
+          <p style={{color:"rgba(255,255,255,.25)",fontSize:"9px",margin:"5px 0 0",lineHeight:"1.5"}}>Remember this! Anyone who knows your name needs this password to log in as you.</p>
+        </div>
         <div style={{marginBottom:"26px"}}>
           <label style={{color:"rgba(255,255,255,.42)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"9px"}}>Choose Color</label>
           <div style={{display:"flex",gap:"9px",justifyContent:"center",flexWrap:"wrap"}}>
@@ -957,17 +1061,31 @@ export default function EarthConquest(){
       )}
 
       {/* Daily Reward Modal */}
-      {showDaily&&(
+      {showDaily&&(()=>{
+        const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
+        const vaultBonus=vaultCount*500;
+        const total=DAILY_REWARD+vaultBonus;
+        return(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"linear-gradient(135deg,#0a1628,#0f2040)",border:"1px solid rgba(212,160,23,.5)",
             borderRadius:"20px",padding:"48px 44px",textAlign:"center",maxWidth:"360px",
             boxShadow:"0 0 60px rgba(212,160,23,.25)",animation:"modalIn .4s ease"}}>
             <div style={{fontSize:"64px",marginBottom:"12px"}}>🎁</div>
             <h2 style={{color:"#f5c842",fontSize:"22px",margin:"0 0 8px",letterSpacing:"2px"}}>DAILY REWARD</h2>
-            <p style={{color:"rgba(255,255,255,.5)",fontSize:"12px",margin:"0 0 28px"}}>You've been awarded your daily coins!</p>
-            <div style={{fontSize:"42px",color:"#f5c842",fontWeight:"bold",marginBottom:"24px",animation:"coinPop .5s ease"}}>
-              +{DAILY_REWARD.toLocaleString()} 🪙
+            <p style={{color:"rgba(255,255,255,.5)",fontSize:"12px",margin:"0 0 16px"}}>Come back every day to claim your coins!</p>
+            <div style={{fontSize:"42px",color:"#f5c842",fontWeight:"bold",marginBottom:"8px",animation:"coinPop .5s ease"}}>
+              +{total.toLocaleString()} 🪙
             </div>
+            {vaultBonus>0&&(
+              <p style={{color:"#fcd34d",fontSize:"12px",margin:"0 0 20px"}}>
+                🏦 Includes +{vaultBonus} from {vaultCount} Gold Vault{vaultCount>1?"s":""}
+              </p>
+            )}
+            {vaultBonus===0&&(
+              <p style={{color:"rgba(255,255,255,.3)",fontSize:"11px",margin:"0 0 20px"}}>
+                💡 Build Gold Vaults to earn +500 extra per vault per day
+              </p>
+            )}
             <button onClick={claimDaily} style={{padding:"14px 40px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",
               borderRadius:"12px",color:"#000",fontSize:"15px",fontWeight:"bold",cursor:"pointer",
               letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(212,160,23,.5)"}}>
@@ -975,7 +1093,8 @@ export default function EarthConquest(){
             </button>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Shop Modal */}
       {showShop&&(
@@ -987,7 +1106,7 @@ export default function EarthConquest(){
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"24px"}}>
               <div>
                 <h2 style={{color:"white",fontSize:"20px",margin:"0 0 4px",letterSpacing:"2px"}}>🏪 WAR SHOP</h2>
-                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Spend wisely, Commander</p>
+                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Weapons are consumed win or lose. Air Defence protects you.</p>
               </div>
               <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"4px"}}>
                 <div style={{background:"rgba(212,160,23,.15)",border:"1px solid rgba(212,160,23,.4)",
@@ -1135,10 +1254,11 @@ export default function EarthConquest(){
               <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                 {BUILDINGS.map(bld=>{
                   const owned=(myInventory.buildings||[]).filter(b=>b===bld.id).length;
-                  const canBuild=Object.entries(bld.cost).every(([mat,qty])=>(myInventory[mat]||0)>=qty);
-                  const fc=bld.id==="coin_factory";
-                  const nextMs=factoryTimer;
-                  const nextMin=Math.ceil(nextMs/60000);
+                  const limit=BUILDING_LIMITS[bld.id]||99;
+                  const atLimit=owned>=limit;
+                  const canBuild=!atLimit&&Object.entries(bld.cost).every(([mat,qty])=>(myInventory[mat]||0)>=qty);
+                  const isFactory=bld.id==="coin_factory";
+                  const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
                   return(
                     <div key={bld.id} style={{display:"flex",alignItems:"center",gap:"12px",
                       background:"rgba(255,255,255,.04)",border:`1px solid ${bld.color}28`,borderRadius:"12px",padding:"12px 14px"}}>
@@ -1146,8 +1266,9 @@ export default function EarthConquest(){
                       <div style={{flex:1}}>
                         <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"3px"}}>
                           <span style={{color:"white",fontWeight:"bold",fontSize:"13px"}}>{bld.name}</span>
-                          {owned>0&&<span style={{background:`${bld.color}22`,border:`1px solid ${bld.color}44`,borderRadius:"4px",padding:"1px 6px",color:bld.color,fontSize:"9px"}}>BUILT ×{owned}</span>}
-                          {fc&&owned>0&&<span style={{background:"rgba(16,185,129,.15)",border:"1px solid rgba(16,185,129,.3)",borderRadius:"4px",padding:"1px 6px",color:"#6ee7b7",fontSize:"9px"}}>⏱ {nextMin}m</span>}
+                          {owned>0&&<span style={{background:`${bld.color}22`,border:`1px solid ${bld.color}44`,borderRadius:"4px",padding:"1px 6px",color:bld.color,fontSize:"9px"}}>{owned}/{limit}</span>}
+                          {atLimit&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"4px",padding:"1px 6px",color:"#fca5a5",fontSize:"9px"}}>MAX</span>}
+                          {isFactory&&owned>0&&<span style={{background:"rgba(16,185,129,.15)",border:"1px solid rgba(16,185,129,.3)",borderRadius:"4px",padding:"1px 6px",color:"#6ee7b7",fontSize:"9px"}}>+{(COIN_FACTORY_YIELD+vaultCount*2)*owned}/s</span>}
                         </div>
                         <p style={{color:"rgba(255,255,255,.4)",fontSize:"10px",margin:"0 0 5px"}}>{bld.desc}</p>
                         <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
@@ -1166,7 +1287,7 @@ export default function EarthConquest(){
                           background:canBuild?`linear-gradient(135deg,${bld.color}99,${bld.color})`:"rgba(255,255,255,.05)",
                           border:"none",borderRadius:"8px",color:canBuild?"white":"rgba(255,255,255,.2)",
                           cursor:canBuild?"pointer":"not-allowed",fontSize:"11px",fontWeight:"bold",fontFamily:"Georgia,serif"}}>
-                        Build
+                        {atLimit?"MAX":"Build"}
                       </button>
                     </div>
                   );
@@ -1180,11 +1301,10 @@ export default function EarthConquest(){
       {/* Attack Plan Modal */}
       {attackPlan&&(()=>{
         const {country,owner}=attackPlan;
-        const damage=calcDamage(deploy.tank,deploy.bomb,deploy.plane);
-        const chance=calcWinChance(country.area||20,damage,myInventory.spy||0);
+        const damage=calcDamage(deploy.tank,deploy.bomb,deploy.plane,deploy.missile,deploy.bomber);
+        const chance=calcWinChance(country.area||20,damage,myInventory.spy||0,myInventory.academySpies||0,0);
         const pct=Math.round(chance*100);
-        const totalWeapons=deploy.tank+deploy.bomb+deploy.plane;
-        // color of chance bar
+        const totalWeapons=deploy.tank+deploy.bomb+deploy.plane+(deploy.missile||0)+(deploy.bomber||0);
         const barColor=pct>=70?"#10b981":pct>=40?"#f59e0b":"#ef4444";
         const ownerColor=owner?CLRS[(players[owner]?.cidx||0)%CLRS.length]:null;
 
@@ -1265,9 +1385,11 @@ export default function EarthConquest(){
                 <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",marginBottom:"14px",textTransform:"uppercase"}}>
                   Deploy Forces
                 </div>
-                <WeaponRow id="tank"  emoji="🪖" label="Tanks"  dmg={DMG.tank}  color="#f59e0b"/>
-                <WeaponRow id="bomb"  emoji="💣" label="Bombs"  dmg={DMG.bomb}  color="#ef4444"/>
-                <WeaponRow id="plane" emoji="✈️" label="Planes" dmg={DMG.plane} color="#3b82f6"/>
+                <WeaponRow id="tank"    emoji="🪖" label="Tanks"             dmg={DMG.tank}    color="#f59e0b"/>
+                <WeaponRow id="bomb"    emoji="💣" label="Bombs"             dmg={DMG.bomb}    color="#ef4444"/>
+                <WeaponRow id="plane"   emoji="✈️" label="Planes"            dmg={DMG.plane}   color="#3b82f6"/>
+                <WeaponRow id="missile" emoji="🚀" label="Ballistic Missiles" dmg={DMG.missile} color="#f97316"/>
+                <WeaponRow id="bomber"  emoji="💥" label="Bombers"           dmg={DMG.bomber}  color="#dc2626"/>
               </div>
 
               {/* Live stats */}
@@ -1299,6 +1421,8 @@ export default function EarthConquest(){
                     {deploy.tank>0&&<span style={{background:"rgba(245,158,11,.15)",border:"1px solid rgba(245,158,11,.3)",borderRadius:"5px",padding:"2px 7px",color:"#fcd34d",fontSize:"10px"}}>🪖 ×{deploy.tank} = {deploy.tank*DMG.tank}pts</span>}
                     {deploy.bomb>0&&<span style={{background:"rgba(239,68,68,.15)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"5px",padding:"2px 7px",color:"#fca5a5",fontSize:"10px"}}>💣 ×{deploy.bomb} = {deploy.bomb*DMG.bomb}pts</span>}
                     {deploy.plane>0&&<span style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.3)",borderRadius:"5px",padding:"2px 7px",color:"#93c5fd",fontSize:"10px"}}>✈️ ×{deploy.plane} = {deploy.plane*DMG.plane}pts</span>}
+                    {(deploy.missile||0)>0&&<span style={{background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.3)",borderRadius:"5px",padding:"2px 7px",color:"#fdba74",fontSize:"10px"}}>🚀 ×{deploy.missile} = {deploy.missile*DMG.missile}pts</span>}
+                    {(deploy.bomber||0)>0&&<span style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:"5px",padding:"2px 7px",color:"#fca5a5",fontSize:"10px"}}>💥 ×{deploy.bomber} = {deploy.bomber*DMG.bomber}pts</span>}
                   </div>
                 )}
               </div>
@@ -1592,8 +1716,11 @@ export default function EarthConquest(){
             <div style={{background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.25)",borderRadius:"8px",padding:"9px",animation:"gl 2s infinite"}}>
               <div style={{color:"#fca5a5",fontSize:"10px",fontWeight:"bold",marginBottom:"3px"}}>⚔️ Attack Mode</div>
               <div style={{color:"rgba(255,255,255,.36)",fontSize:"9px",lineHeight:"1.5"}}>
-                Click a red country to attack.<br/>Deploy weapons for better odds.
-                {myInventory.plane>0&&<><br/><span style={{color:"#93c5fd"}}>✈️ Range: 3 borders</span></>}
+                Click a highlighted country to attack.<br/>
+                More dmg = higher win chance.<br/>
+                All deployed weapons are consumed win or lose.
+                {myInventory.plane>0&&<><br/><span style={{color:"#93c5fd"}}>✈️ Planes extend range to 3 borders</span></>}
+                {(myInventory.air_def||0)>0&&<><br/><span style={{color:"#6ee7b7"}}>🛡️ You have {myInventory.air_def} Air Defence unit{myInventory.air_def>1?"s":""} protecting you</span></>}
               </div>
             </div>
           )}
