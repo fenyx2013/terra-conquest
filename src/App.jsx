@@ -45,13 +45,13 @@ const BUILDINGS = [
   },
   {
     id:"barracks", name:"Barracks", emoji:"🏯",
-    desc:"Gives 20% discount on Tanks in the War Shop. Max 3 (discount doesn't stack).",
+    desc:"Each Barracks gives 20% discount on Tanks — stackable. 3 Barracks = 48% off. Max 3.",
     color:"#ef4444",
     cost:{ wood:5, stone:3, iron:1 },
   },
   {
     id:"airbase", name:"Air Base", emoji:"🛫",
-    desc:"Gives 20% discount on Planes in the War Shop. Max 3 (discount doesn't stack).",
+    desc:"Each Air Base gives 20% discount on Planes — stackable. 3 Air Bases = 48% off. Max 3.",
     color:"#3b82f6",
     cost:{ stone:4, iron:3 },
   },
@@ -738,8 +738,14 @@ export default function EarthConquest(){
   const buyItem=async(item)=>{
     const buildings=myInventory.buildings||[];
     let price=item.price;
-    if(item.id==="tank"&&buildings.includes("barracks"))price=Math.floor(price*0.8);
-    if(item.id==="plane"&&buildings.includes("airbase"))price=Math.floor(price*0.8);
+    if(item.id==="tank"){
+      const barrackCount=buildings.filter(b=>b==="barracks").length;
+      price=Math.floor(price*Math.pow(0.8,barrackCount));
+    }
+    if(item.id==="plane"){
+      const airbaseCount=buildings.filter(b=>b==="airbase").length;
+      price=Math.floor(price*Math.pow(0.8,airbaseCount));
+    }
     if(myInventory.coins<price){flash("Not enough coins!","warn");return;}
     const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+1};
     setMyInventory(newInv);
@@ -1145,8 +1151,14 @@ export default function EarthConquest(){
                 const buildings=myInventory.buildings||[];
                 let price=item.price;
                 let discountTag=null;
-                if(item.id==="tank"&&buildings.includes("barracks")){price=Math.floor(price*0.8);discountTag="🏯 -20%";}
-                if(item.id==="plane"&&buildings.includes("airbase")){price=Math.floor(price*0.8);discountTag="🛫 -20%";}
+                if(item.id==="tank"){
+                  const n=buildings.filter(b=>b==="barracks").length;
+                  if(n>0){price=Math.floor(price*Math.pow(0.8,n));discountTag=`🏯 -${Math.round((1-Math.pow(0.8,n))*100)}%`;}
+                }
+                if(item.id==="plane"){
+                  const n=buildings.filter(b=>b==="airbase").length;
+                  if(n>0){price=Math.floor(price*Math.pow(0.8,n));discountTag=`🛫 -${Math.round((1-Math.pow(0.8,n))*100)}%`;}
+                }
                 const canBuy=myInventory.coins>=price;
                 return(
                   <div key={item.id} style={{display:"flex",alignItems:"center",gap:"14px",
