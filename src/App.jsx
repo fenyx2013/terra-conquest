@@ -528,13 +528,16 @@ function startTerr(existing){
 
 
 export default function EarthConquest(){
-  const [screen,setScreen]=useState("room");
+  const [screen,setScreen]=useState("home"); // home → login → menu → room → map
+  const [menuTab,setMenuTab]=useState("main"); // main | multiplayer | tutorial
   const [roomCode,setRoomCode]=useState("");
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [username,setUsername]=useState("");
   const [inputName,setInputName]=useState("");
   const [inputPassword,setInputPassword]=useState("");
+  const [loginError,setLoginError]=useState("");
+  const [recentRooms,setRecentRooms]=useState([]); // rooms this account played in
   const [cidx,setCidx]=useState(0);
   const [ownership,setOwnership]=useState({});
   const [players,setPlayers]=useState({});
@@ -679,34 +682,54 @@ export default function EarthConquest(){
     if(!/^\d{6}$/.test(code)){setRoomError("Please enter exactly 6 digits.");return;}
     setRoomCode(code);
     await loadWorld(code);
+    // save to recent rooms for this user
+    const stored=JSON.parse(localStorage.getItem(`tc-rooms-${username}`)||"[]");
+    if(!stored.includes(code)){
+      const updated=[code,...stored].slice(0,8);
+      localStorage.setItem(`tc-rooms-${username}`,JSON.stringify(updated));
+      setRecentRooms(updated);
+    }
     setRoomError("");
     setScreen("login");
   };
 
-  const handleLogin=async()=>{
-    const name=inputName.trim()||rndName();
+  // Step 1: home screen — enter name + password, validate account
+  const handleHomeLogin=async()=>{
+    const name=inputName.trim();
     const pwd=inputPassword.trim();
-    if(!pwd){flash("Please enter a password!","warn");return;}
+    if(!name){setLoginError("Please enter a commander name.");return;}
+    if(!pwd){setLoginError("Please enter a password.");return;}
+    // Check if account exists and password matches
+    try{
+      const {data}=await sb.from("inventory").select("data").eq("username",name).single();
+      if(data){
+        if(data.data._pwd && data.data._pwd!==pwd){setLoginError("❌ Wrong password for that name!");return;}
+      }
+      // new account or correct password — proceed
+    }catch(e){}
+    setUsername(name);
+    setInputPassword(pwd);
+    // load recent rooms
+    const stored=JSON.parse(localStorage.getItem(`tc-rooms-${name}`)||"[]");
+    setRecentRooms(stored);
+    setLoginError("");
+    setScreen("menu");
+  };
+
+  const handleLogin=async()=>{
+    const name=username;
+    const pwd=inputPassword;
     let o={},p={};
     try{
       const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
       if(data){o=data.ownership||{};p=data.players||{};}
     }catch(e){}
-
     const defaultInv={coins:500,tank:0,bomb:0,plane:0,missile:0,bomber:0,air_def:0,spy:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,_name:name,_pwd:pwd};
     let inv=defaultInv;
     try{
       const {data}=await sb.from("inventory").select("data").eq("username",name).single();
-      if(data){
-        // account exists — check password
-        const saved=data.data;
-        if(saved._pwd && saved._pwd!==pwd){
-          flash("❌ Wrong password for that name!","error");return;
-        }
-        inv={...defaultInv,...saved,_name:name,_pwd:pwd};
-      }
+      if(data){inv={...defaultInv,...data.data,_name:name,_pwd:pwd};}
     }catch(e){}
-
     if(p[name]){
       const cnt=Object.keys(o).filter(id=>o[id]===name).length;
       setOwnership(o);setPlayers(p);setCidx(p[name].cidx||0);
@@ -722,7 +745,8 @@ export default function EarthConquest(){
       setMyInventory(inv);
       flash(`🌍 Welcome, ${name}! Room ${roomCode} · ${terr.length} starting territory!`,"success");
     }
-    setUsername(name);setScreen("map");
+    await saveInv(inv,name);
+    setScreen("map");
   };
 
   const claimDaily=async()=>{
@@ -871,7 +895,7 @@ export default function EarthConquest(){
             <div style={{color:"rgba(255,255,255,.5)",fontSize:"13px"}}>{totalTerr} territories claimed by others</div>
           </div>
           <br/>
-          <button onClick={()=>{setScreen("room");setRoomCode("");setRoomInput("");setOwnership({});setPlayers({});setUsername("");}}
+          <button onClick={()=>{setScreen("menu");setRoomCode("");setRoomInput("");setOwnership({});setPlayers({});setMenuTab("multiplayer");}}
             style={{padding:"14px 36px",background:"linear-gradient(135deg,#7f1d1d,#ef4444)",border:"none",
               borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",
               letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(239,68,68,.4)"}}>
@@ -882,162 +906,272 @@ export default function EarthConquest(){
     );
   }
 
-  // ── ROOM CODE SCREEN ───────────────────────────────────────────────────────
-  if(screen==="room"){
-    const digits=roomInput.split("").concat(Array(6).fill("")).slice(0,6);
+  const Stars=()=>Array.from({length:60}).map((_,i)=>(
+    <div key={i} style={{position:"absolute",width:Math.random()*2+1+"px",height:Math.random()*2+1+"px",
+      background:"white",borderRadius:"50%",left:Math.random()*100+"%",top:Math.random()*100+"%",
+      opacity:Math.random()*.6+.1,animation:`tw${i%3} ${Math.random()*3+2}s ease-in-out infinite alternate`}}/>
+  ));
+
+  const bgStyle={minHeight:"100vh",background:"radial-gradient(ellipse at 20% 50%,#0a1628,#050d1a 50%,#000)",
+    display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",overflow:"hidden",position:"relative"};
+  const starCss=`@keyframes tw0{from{opacity:.1}to{opacity:.8}}@keyframes tw1{from{opacity:.15}to{opacity:.7}}@keyframes tw2{from{opacity:.05}to{opacity:.9}}
+    @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+    @keyframes si{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.2)}100%{transform:scale(1)}}
+    .digit-box{transition:all .15s;border:2px solid rgba(255,255,255,.15);border-radius:12px;width:46px;height:58px;
+      display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;color:white;background:rgba(255,255,255,.06);}
+    .digit-box.filled{border-color:rgba(212,160,23,.7);background:rgba(212,160,23,.12);box-shadow:0 0 12px rgba(212,160,23,.3);animation:digitPop .2s ease;}
+    .digit-box.active{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);}
+    .frbtn{transition:all .15s;}.frbtn:hover{transform:translateY(-2px);filter:brightness(1.1);}`;
+  const card={background:"linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02))",
+    border:"1px solid rgba(255,255,255,.15)",borderRadius:"22px",backdropFilter:"blur(20px)",
+    boxShadow:"0 40px 80px rgba(0,0,0,.6)",animation:"si .5s ease",zIndex:10};
+
+  // ── HOME SCREEN ─────────────────────────────────────────────────────────────
+  if(screen==="home") return(
+    <div style={bgStyle}>
+      <Stars/><style>{starCss}</style>
+      <div style={{...card,padding:"48px 44px",width:"420px",textAlign:"center"}}>
+        <div style={{fontSize:"64px",animation:"pu 3s infinite",marginBottom:"8px"}}>🌍</div>
+        <h1 style={{color:"#fff",fontSize:"30px",margin:"0 0 4px",letterSpacing:"5px",textTransform:"uppercase"}}>TERRA</h1>
+        <p style={{color:"rgba(255,255,255,.3)",margin:"0 0 32px",fontSize:"11px",letterSpacing:"6px"}}>CONQUEST</p>
+
+        <div style={{textAlign:"left",marginBottom:"14px"}}>
+          <label style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"6px"}}>Commander Name</label>
+          <input value={inputName} onChange={e=>{setInputName(e.target.value);setLoginError("");}}
+            onKeyDown={e=>e.key==="Enter"&&handleHomeLogin()}
+            placeholder="Your unique name…"
+            style={{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
+              borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        <div style={{textAlign:"left",marginBottom:"20px"}}>
+          <label style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"6px"}}>🔒 Password</label>
+          <input type="password" value={inputPassword} onChange={e=>{setInputPassword(e.target.value);setLoginError("");}}
+            onKeyDown={e=>e.key==="Enter"&&handleHomeLogin()}
+            placeholder="Protects your account…"
+            style={{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
+              borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
+          <p style={{color:"rgba(255,255,255,.2)",fontSize:"9px",margin:"5px 0 0"}}>New name = new account. Returning player = enter same name + password.</p>
+        </div>
+
+        {loginError&&<div style={{color:"#f87171",fontSize:"11px",marginBottom:"14px",padding:"8px 12px",
+          background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"8px"}}>{loginError}</div>}
+
+        <button className="frbtn" onClick={handleHomeLogin}
+          style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",
+            borderRadius:"10px",color:"#000",fontSize:"13px",fontWeight:"bold",cursor:"pointer",
+            letterSpacing:"3px",textTransform:"uppercase",fontFamily:"Georgia,serif",
+            boxShadow:"0 8px 22px rgba(212,160,23,.4)"}}>
+          Enter →
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── MAIN MENU ───────────────────────────────────────────────────────────────
+  if(screen==="menu"){
+    const TUTORIAL_STEPS=[
+      {emoji:"🌍",title:"The Map",text:"The world is divided into countries. Each country has a size — bigger countries are harder to conquer. Your territories are shown in your color."},
+      {emoji:"⚔️",title:"Attacking",text:"Click the sword button to enter Attack Mode. Highlighted countries are within your reach (2 borders away, 3 if you own a Plane). Click one to attack."},
+      {emoji:"🪖",title:"Weapons",text:"In the War Shop, buy Tanks (0.5dmg), Bombs (2dmg), Planes (3dmg), Missiles (6dmg), or Bombers (10dmg). Deploy them in the attack modal. More damage = higher win chance."},
+      {emoji:"🛡️",title:"Air Defence",text:"Buy Air Defence units from the War Shop. Each one reduces the enemy's win chance by 5% when they attack you. Stack them for a strong defence."},
+      {emoji:"🏭",title:"Economy",text:"Build a Coin Factory in the Build Shop to earn 5 coins/sec. Build Gold Vaults to add +2 coins/sec to each factory. Claim your Daily Reward every day for 3,000 coins."},
+      {emoji:"🏗️",title:"Buildings",text:"The Build Shop lets you build structures using Wood, Stone, Iron and Gold materials. Barracks discount Tanks, Air Bases discount Planes, Spy Academy trains spies every 20 min."},
+      {emoji:"🕵️",title:"Spies",text:"Build a Spy Academy and wait 20 min. Pay 300 coins to claim a spy. Each spy adds +1% win chance to your next attack. Stack academy spies for big advantages."},
+      {emoji:"💀",title:"Elimination",text:"If all your territories are conquered, you are eliminated. There's no respawn — protect your lands! The last player standing wins."},
+    ];
+    const [tutStep,setTutStep]=useState(0);
+
     return(
-      <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at 20% 50%,#0a1628,#050d1a 50%,#000)",
-        display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",overflow:"hidden",position:"relative"}}>
-        {Array.from({length:70}).map((_,i)=>(
-          <div key={i} style={{position:"absolute",width:Math.random()*2+1+"px",height:Math.random()*2+1+"px",
-            background:"white",borderRadius:"50%",left:Math.random()*100+"%",top:Math.random()*100+"%",
-            opacity:Math.random()*.6+.1,animation:`twR${i%3} ${Math.random()*3+2}s ease-in-out infinite alternate`}}/>
-        ))}
-        <style>{`
-          @keyframes twR0{from{opacity:.1}to{opacity:.8}}
-          @keyframes twR1{from{opacity:.15}to{opacity:.7}}
-          @keyframes twR2{from{opacity:.05}to{opacity:.9}}
-          @keyframes puR{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-          @keyframes siR{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-          @keyframes digitPop{0%{transform:scale(1)}40%{transform:scale(1.2)}100%{transform:scale(1)}}
-          .digit-box{transition:all .15s;border:2px solid rgba(255,255,255,.15);border-radius:12px;
-            width:52px;height:64px;display:flex;align-items:center;justify-content:center;
-            font-size:28px;font-weight:bold;color:white;background:rgba(255,255,255,.06);}
-          .digit-box.filled{border-color:rgba(212,160,23,.7);background:rgba(212,160,23,.12);
-            box-shadow:0 0 12px rgba(212,160,23,.3);animation:digitPop .2s ease;}
-          .digit-box.active{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);}
-        `}</style>
-        <div style={{background:"linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02))",
-          border:"1px solid rgba(255,255,255,.15)",borderRadius:"22px",padding:"52px 48px",width:"420px",
-          backdropFilter:"blur(20px)",boxShadow:"0 40px 80px rgba(0,0,0,.6)",animation:"siR .5s ease",zIndex:10,textAlign:"center"}}>
-
-          <div style={{fontSize:"60px",animation:"puR 3s infinite",marginBottom:"8px"}}>🌍</div>
-          <h1 style={{color:"#fff",fontSize:"28px",margin:"0 0 4px",letterSpacing:"4px",textTransform:"uppercase"}}>TERRA</h1>
-          <p style={{color:"rgba(255,255,255,.32)",margin:"0 0 10px",fontSize:"11px",letterSpacing:"5px"}}>CONQUEST</p>
-          <p style={{color:"rgba(255,255,255,.45)",fontSize:"13px",margin:"0 0 32px",lineHeight:"1.6"}}>
-            Enter or share a <span style={{color:"#f5c842",fontWeight:"bold"}}>6-digit room code</span><br/>
-            to play on the same map as your friends
-          </p>
-
-          {/* 6 digit boxes */}
-          <div style={{display:"flex",gap:"8px",justifyContent:"center",marginBottom:"20px"}}>
-            {digits.map((d,i)=>(
-              <div key={i} className={`digit-box${d?"  filled":i===roomInput.length?" active":""}`}>{d||""}</div>
-            ))}
-          </div>
-
-          {/* Hidden real input for typing */}
-          <input
-            autoFocus
-            value={roomInput}
-            onChange={e=>{
-              const v=e.target.value.replace(/\D/g,"").slice(0,6);
-              setRoomInput(v);setRoomError("");
-            }}
-            onKeyDown={e=>e.key==="Enter"&&handleRoom()}
-            style={{position:"absolute",opacity:0,pointerEvents:"none",width:"1px",height:"1px"}}
-          />
-
-          {/* Clickable number pad */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",marginBottom:"20px"}}>
-            {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((k,i)=>(
-              <button key={i} onClick={()=>{
-                if(k==="⌫"){setRoomInput(r=>r.slice(0,-1));setRoomError("");}
-                else if(k!==""&&roomInput.length<6){setRoomInput(r=>r+k);setRoomError("");}
-              }} style={{
-                padding:"14px",borderRadius:"10px",fontSize:k==="⌫"?"18px":"20px",fontWeight:"bold",
-                background:k===""?"transparent":"rgba(255,255,255,.07)",
-                border:k===""?"none":"1px solid rgba(255,255,255,.12)",
-                color:k==="⌫"?"#f87171":"white",cursor:k===""?"default":"pointer",
-                transition:"all .12s",fontFamily:"Georgia,serif",
-              }}
-              onMouseOver={e=>{if(k!=="")e.currentTarget.style.background="rgba(255,255,255,.14)";}}
-              onMouseOut={e=>{if(k!=="")e.currentTarget.style.background="rgba(255,255,255,.07)";}}>
-                {k}
-              </button>
-            ))}
-          </div>
-
-          {roomError&&(
-            <div style={{color:"#f87171",fontSize:"11px",marginBottom:"12px",padding:"8px 12px",
-              background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"8px"}}>
-              {roomError}
+      <div style={bgStyle}>
+        <Stars/><style>{starCss}</style>
+        <div style={{...card,padding:"0",width:"480px",overflow:"hidden"}}>
+          {/* Header */}
+          <div style={{padding:"28px 32px 0",textAlign:"center"}}>
+            <div style={{fontSize:"48px",animation:"pu 3s infinite"}}>🌍</div>
+            <h1 style={{color:"#fff",fontSize:"22px",margin:"6px 0 2px",letterSpacing:"4px",textTransform:"uppercase"}}>TERRA CONQUEST</h1>
+            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 20px",letterSpacing:"2px"}}>
+              Welcome, <span style={{color:"#f5c842",fontWeight:"bold"}}>{username}</span>
+            </p>
+            {/* Tabs */}
+            <div style={{display:"flex",gap:"4px",marginBottom:"0",background:"rgba(0,0,0,.3)",borderRadius:"10px",padding:"4px"}}>
+              {[["main","🏠 Menu"],["multiplayer","🌐 Multiplayer"],["tutorial","📖 Tutorial"]].map(([t,l])=>(
+                <button key={t} onClick={()=>setMenuTab(t)} className="frbtn"
+                  style={{flex:1,padding:"8px",borderRadius:"7px",border:"none",cursor:"pointer",
+                    fontFamily:"Georgia,serif",fontSize:"11px",fontWeight:"bold",letterSpacing:"1px",
+                    background:menuTab===t?"rgba(255,255,255,.12)":"transparent",
+                    color:menuTab===t?"white":"rgba(255,255,255,.4)"}}>
+                  {l}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          <button onClick={handleRoom}
-            style={{width:"100%",padding:"14px",
-              background:roomInput.length===6?"linear-gradient(135deg,#d4a017,#f5c842)":"rgba(255,255,255,.06)",
-              border:roomInput.length===6?"none":"1px solid rgba(255,255,255,.1)",
-              borderRadius:"10px",color:roomInput.length===6?"#000":"rgba(255,255,255,.25)",
-              fontSize:"13px",fontWeight:"bold",cursor:roomInput.length===6?"pointer":"not-allowed",
-              letterSpacing:"3px",textTransform:"uppercase",fontFamily:"Georgia,serif",
-              boxShadow:roomInput.length===6?"0 8px 22px rgba(212,160,23,.4)":"none",transition:"all .2s"}}>
-            {roomInput.length===6?"Enter Room →":"Enter 6-digit Code"}
-          </button>
+          <div style={{padding:"20px 32px 32px"}}>
 
-          <div style={{marginTop:"20px",padding:"12px 16px",background:"rgba(255,255,255,.03)",
-            border:"1px solid rgba(255,255,255,.07)",borderRadius:"10px"}}>
-            <p style={{color:"rgba(255,255,255,.3)",fontSize:"10px",margin:"0 0 8px",letterSpacing:"1px",textTransform:"uppercase"}}>Want your own room?</p>
-            <button onClick={()=>{
-              const r=String(Math.floor(100000+Math.random()*900000));
-              setRoomInput(r);setRoomError("");
-            }} style={{background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.4)",
-              borderRadius:"8px",padding:"7px 16px",color:"#93c5fd",fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif"}}>
-              🎲 Generate Random Code
-            </button>
+            {/* ── MAIN TAB ── */}
+            {menuTab==="main"&&(
+              <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                <button className="frbtn" onClick={()=>{
+                  const r=String(Math.floor(100000+Math.random()*900000));
+                  setRoomInput(r);setMenuTab("multiplayer");
+                }} style={{padding:"18px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"1px solid rgba(59,130,246,.4)",
+                  borderRadius:"14px",color:"white",fontSize:"15px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left"}}>
+                  <div style={{fontSize:"28px",marginBottom:"6px"}}>🤖</div>
+                  <div style={{letterSpacing:"2px",textTransform:"uppercase",marginBottom:"4px"}}>Singleplayer</div>
+                  <div style={{color:"rgba(255,255,255,.45)",fontSize:"11px",fontWeight:"normal"}}>Play against AI bots on your own map — coming soon!</div>
+                </button>
+                <button className="frbtn" onClick={()=>setMenuTab("multiplayer")}
+                  style={{padding:"18px",background:"linear-gradient(135deg,#1a3828,#16a34a)",border:"1px solid rgba(34,197,94,.4)",
+                    borderRadius:"14px",color:"white",fontSize:"15px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left"}}>
+                  <div style={{fontSize:"28px",marginBottom:"6px"}}>🌐</div>
+                  <div style={{letterSpacing:"2px",textTransform:"uppercase",marginBottom:"4px"}}>Multiplayer</div>
+                  <div style={{color:"rgba(255,255,255,.45)",fontSize:"11px",fontWeight:"normal"}}>Join or create a room and conquer the world with friends.</div>
+                </button>
+                <button className="frbtn" onClick={()=>setMenuTab("tutorial")}
+                  style={{padding:"14px 18px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",
+                    borderRadius:"12px",color:"rgba(255,255,255,.6)",fontSize:"13px",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left"}}>
+                  📖 How to Play
+                </button>
+                <button className="frbtn" onClick={()=>{setScreen("home");setUsername("");setInputName("");setInputPassword("");}}
+                  style={{padding:"10px",background:"transparent",border:"1px solid rgba(255,255,255,.08)",
+                    borderRadius:"10px",color:"rgba(255,255,255,.3)",fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif"}}>
+                  ← Log Out
+                </button>
+              </div>
+            )}
+
+            {/* ── MULTIPLAYER TAB ── */}
+            {menuTab==="multiplayer"&&(()=>{
+              const digits=roomInput.split("").concat(Array(6).fill("")).slice(0,6);
+              return(
+                <div>
+                  <p style={{color:"rgba(255,255,255,.4)",fontSize:"11px",margin:"0 0 16px",textAlign:"center"}}>Enter a 6-digit room code to join a specific game, or generate a random one.</p>
+                  {/* digit boxes */}
+                  <div style={{display:"flex",gap:"6px",justifyContent:"center",marginBottom:"14px"}}>
+                    {digits.map((d,i)=>(
+                      <div key={i} className={`digit-box${d?" filled":i===roomInput.length?" active":""}`}>{d||""}</div>
+                    ))}
+                  </div>
+                  {/* numpad */}
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"6px",marginBottom:"14px"}}>
+                    {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((k,i)=>(
+                      <button key={i} className="frbtn" onClick={()=>{
+                        if(k==="⌫"){setRoomInput(r=>r.slice(0,-1));setRoomError("");}
+                        else if(k!==""&&roomInput.length<6){setRoomInput(r=>r+k);setRoomError("");}
+                      }} style={{padding:"12px",borderRadius:"9px",fontSize:k==="⌫"?"16px":"18px",fontWeight:"bold",
+                        background:k===""?"transparent":"rgba(255,255,255,.07)",
+                        border:k===""?"none":"1px solid rgba(255,255,255,.1)",
+                        color:k==="⌫"?"#f87171":"white",cursor:k===""?"default":"pointer",fontFamily:"Georgia,serif"}}>
+                        {k}
+                      </button>
+                    ))}
+                  </div>
+                  {roomError&&<div style={{color:"#f87171",fontSize:"11px",marginBottom:"10px",padding:"7px 12px",
+                    background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"8px"}}>{roomError}</div>}
+                  <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
+                    <button className="frbtn" onClick={()=>{const r=String(Math.floor(100000+Math.random()*900000));setRoomInput(r);setRoomError("");}}
+                      style={{flex:1,padding:"10px",background:"rgba(59,130,246,.15)",border:"1px solid rgba(59,130,246,.4)",
+                        borderRadius:"8px",color:"#93c5fd",fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif"}}>
+                      🎲 Random Code
+                    </button>
+                    <button className="frbtn" onClick={handleRoom} disabled={roomInput.length!==6}
+                      style={{flex:2,padding:"10px",
+                        background:roomInput.length===6?"linear-gradient(135deg,#d4a017,#f5c842)":"rgba(255,255,255,.06)",
+                        border:"none",borderRadius:"8px",
+                        color:roomInput.length===6?"#000":"rgba(255,255,255,.2)",
+                        fontSize:"13px",fontWeight:"bold",cursor:roomInput.length===6?"pointer":"not-allowed",
+                        fontFamily:"Georgia,serif",letterSpacing:"2px"}}>
+                      {roomInput.length===6?"Enter Room →":"Enter Code"}
+                    </button>
+                  </div>
+                  {/* Recent rooms */}
+                  {recentRooms.length>0&&(
+                    <div>
+                      <div style={{color:"rgba(255,255,255,.25)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Your Recent Rooms</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                        {recentRooms.map(r=>(
+                          <button key={r} className="frbtn" onClick={()=>setRoomInput(r)}
+                            style={{padding:"5px 12px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",
+                              borderRadius:"7px",color:"#f5c842",fontSize:"12px",cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ── TUTORIAL TAB ── */}
+            {menuTab==="tutorial"&&(()=>{
+              const step=TUTORIAL_STEPS[tutStep];
+              return(
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:"52px",marginBottom:"12px"}}>{step.emoji}</div>
+                  <h3 style={{color:"#f5c842",fontSize:"16px",margin:"0 0 10px",letterSpacing:"2px",textTransform:"uppercase"}}>{step.title}</h3>
+                  <p style={{color:"rgba(255,255,255,.6)",fontSize:"13px",lineHeight:"1.7",margin:"0 0 24px",minHeight:"80px"}}>{step.text}</p>
+                  {/* step dots */}
+                  <div style={{display:"flex",justifyContent:"center",gap:"6px",marginBottom:"20px"}}>
+                    {TUTORIAL_STEPS.map((_,i)=>(
+                      <div key={i} onClick={()=>setTutStep(i)} style={{width:i===tutStep?"20px":"8px",height:"8px",borderRadius:"4px",
+                        background:i===tutStep?"#f5c842":"rgba(255,255,255,.2)",cursor:"pointer",transition:"all .2s"}}/>
+                    ))}
+                  </div>
+                  <div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
+                    {tutStep>0&&<button className="frbtn" onClick={()=>setTutStep(t=>t-1)}
+                      style={{padding:"9px 20px",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.15)",
+                        borderRadius:"8px",color:"rgba(255,255,255,.6)",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px"}}>
+                      ← Back
+                    </button>}
+                    {tutStep<TUTORIAL_STEPS.length-1
+                      ?<button className="frbtn" onClick={()=>setTutStep(t=>t+1)}
+                        style={{padding:"9px 24px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",
+                          borderRadius:"8px",color:"#000",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",fontWeight:"bold"}}>
+                        Next →
+                      </button>
+                      :<button className="frbtn" onClick={()=>setMenuTab("main")}
+                        style={{padding:"9px 24px",background:"linear-gradient(135deg,#16a34a,#22c55e)",border:"none",
+                          borderRadius:"8px",color:"white",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",fontWeight:"bold"}}>
+                        Ready to Play! 🌍
+                      </button>
+                    }
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
         </div>
       </div>
     );
   }
 
-  // ── LOGIN ──────────────────────────────────────────────────────────────────
+  // ── COLOR PICK (replaces old login screen) ──────────────────────────────────
   if(screen==="login")return(
-    <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at 20% 50%,#0a1628,#050d1a 50%,#000)",
-      display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",overflow:"hidden",position:"relative"}}>
-      {Array.from({length:70}).map((_,i)=>(
-        <div key={i} style={{position:"absolute",width:Math.random()*2+1+"px",height:Math.random()*2+1+"px",
-          background:"white",borderRadius:"50%",left:Math.random()*100+"%",top:Math.random()*100+"%",
-          opacity:Math.random()*.6+.1,animation:`tw${i%3} ${Math.random()*3+2}s ease-in-out infinite alternate`}}/>
-      ))}
-      <style>{`@keyframes tw0{from{opacity:.1}to{opacity:.8}}@keyframes tw1{from{opacity:.15}to{opacity:.7}}@keyframes tw2{from{opacity:.05}to{opacity:.9}}@keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes si{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}`}</style>
-      <div style={{background:"linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02))",border:"1px solid rgba(255,255,255,.15)",
-        borderRadius:"22px",padding:"52px 48px",width:"400px",backdropFilter:"blur(20px)",
-        boxShadow:"0 40px 80px rgba(0,0,0,.6)",animation:"si .5s ease",zIndex:10,textAlign:"center"}}>
-        <div style={{fontSize:"64px",animation:"pu 3s infinite"}}>🌍</div>
-        <h1 style={{color:"#fff",fontSize:"28px",margin:"8px 0 4px",letterSpacing:"4px",textTransform:"uppercase"}}>TERRA</h1>
-        <p style={{color:"rgba(255,255,255,.32)",margin:"0 0 34px",fontSize:"11px",letterSpacing:"5px"}}>CONQUEST</p>
-        <div style={{textAlign:"left",marginBottom:"18px"}}>
-          <label style={{color:"rgba(255,255,255,.42)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"7px"}}>Commander Name</label>
-          <input value={inputName} onChange={e=>setInputName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}
-            placeholder="Leave blank for random…"
-            style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
-              borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
+    <div style={bgStyle}>
+      <Stars/><style>{starCss}</style>
+      <div style={{...card,padding:"40px",width:"380px",textAlign:"center"}}>
+        <div style={{fontSize:"48px",marginBottom:"8px"}}>🎨</div>
+        <h2 style={{color:"white",fontSize:"18px",margin:"0 0 4px",letterSpacing:"3px",textTransform:"uppercase"}}>Choose Your Color</h2>
+        <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 8px"}}>Room <span style={{color:"#f5c842",letterSpacing:"2px"}}>{roomCode}</span></p>
+        <p style={{color:"rgba(255,255,255,.3)",fontSize:"11px",margin:"0 0 24px"}}>Commander: <span style={{color:"white",fontWeight:"bold"}}>{username}</span></p>
+        <div style={{display:"flex",gap:"12px",justifyContent:"center",flexWrap:"wrap",marginBottom:"28px"}}>
+          {CLRS.map((c,i)=>(<button key={i} onClick={()=>setCidx(i)} className="frbtn" style={{width:"36px",height:"36px",borderRadius:"50%",background:c.bg,cursor:"pointer",
+            border:cidx===i?"3px solid white":"3px solid transparent",transform:cidx===i?"scale(1.3)":"scale(1)",
+            transition:"all .2s",boxShadow:cidx===i?`0 0 14px ${c.bg}`:"none"}}/>))}
         </div>
-        <div style={{textAlign:"left",marginBottom:"18px"}}>
-          <label style={{color:"rgba(255,255,255,.42)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"7px"}}>🔒 Password</label>
-          <input type="password" value={inputPassword} onChange={e=>setInputPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}
-            placeholder="Set a password to protect your account"
-            style={{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.13)",
-              borderRadius:"9px",color:"#fff",fontSize:"14px",fontFamily:"Georgia,serif",outline:"none",boxSizing:"border-box"}}/>
-          <p style={{color:"rgba(255,255,255,.25)",fontSize:"9px",margin:"5px 0 0",lineHeight:"1.5"}}>Remember this! Anyone who knows your name needs this password to log in as you.</p>
-        </div>
-        <div style={{marginBottom:"26px"}}>
-          <label style={{color:"rgba(255,255,255,.42)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",display:"block",marginBottom:"9px"}}>Choose Color</label>
-          <div style={{display:"flex",gap:"9px",justifyContent:"center",flexWrap:"wrap"}}>
-            {CLRS.map((c,i)=>(<button key={i} onClick={()=>setCidx(i)} style={{width:"30px",height:"30px",borderRadius:"50%",background:c.bg,cursor:"pointer",
-              border:cidx===i?"3px solid white":"3px solid transparent",transform:cidx===i?"scale(1.25)":"scale(1)",
-              transition:"all .2s",boxShadow:cidx===i?`0 0 10px ${c.bg}`:"none"}}/>))}
-          </div>
-        </div>
-        <button onClick={handleLogin} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",
-          borderRadius:"10px",color:"#000",fontSize:"13px",fontWeight:"bold",cursor:"pointer",letterSpacing:"3px",
-          textTransform:"uppercase",fontFamily:"Georgia,serif",boxShadow:"0 8px 22px rgba(212,160,23,.4)",transition:"transform .2s"}}
-          onMouseOver={e=>e.target.style.transform="translateY(-2px)"} onMouseOut={e=>e.target.style.transform="translateY(0)"}>
-          Enter the World
+        <button className="frbtn" onClick={handleLogin}
+          style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",
+            borderRadius:"10px",color:"#000",fontSize:"13px",fontWeight:"bold",cursor:"pointer",
+            letterSpacing:"3px",textTransform:"uppercase",fontFamily:"Georgia,serif",
+            boxShadow:"0 8px 22px rgba(212,160,23,.4)"}}>
+          Enter the World 🌍
         </button>
-        <p style={{color:"rgba(255,255,255,.18)",fontSize:"10px",marginTop:"18px"}}>🔑 Room <span style={{color:"#f5c842",letterSpacing:"2px"}}>{roomCode}</span> · Start with 500 coins</p>
+        <button onClick={()=>setScreen("menu")}
+          style={{marginTop:"12px",background:"none",border:"none",color:"rgba(255,255,255,.3)",
+            fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif"}}>← Back to Menu</button>
       </div>
     </div>
   );
@@ -1544,7 +1678,7 @@ export default function EarthConquest(){
             fontSize:"11px",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":"none"}}>
             {attackMode?"⚔️ Cancel":"⚔️ Attack"}
           </button>
-          <button onClick={()=>{setAttackMode(false);setScreen("room");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});}} style={{padding:"4px 9px",background:"transparent",
+          <button onClick={()=>{setAttackMode(false);setScreen("menu");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});setMenuTab("multiplayer");}} style={{padding:"4px 9px",background:"transparent",
             border:"1px solid rgba(255,255,255,.09)",borderRadius:"7px",color:"rgba(255,255,255,.28)",
             cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>Exit</button>
         </div>
