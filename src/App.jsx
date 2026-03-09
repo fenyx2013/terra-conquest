@@ -122,7 +122,7 @@ function calcWinChance(area,damage,spyCount,academySpies,airDef){
 }
 
 const COUNTRIES = [
-  { id:"russia", name:"Russia", area:220, lx:1250, ly:220,
+  { id:"russia", name:"Russia", area:220, lx:1290, ly:210,
     borders:["norway","finland","estonia","latvia","lithuania","belarus","ukraine","georgia","azerbaijan","kazakhstan","china","mongolia","north_korea"],
     d:"M830,60 L860,55 L900,50 L950,55 L1000,48 L1060,52 L1120,45 L1180,50 L1240,45 L1300,52 L1360,48 L1420,55 L1480,50 L1540,58 L1580,52 L1620,60 L1660,55 L1700,65 L1720,80 L1700,100 L1680,115 L1650,120 L1620,110 L1580,125 L1550,115 L1510,130 L1470,120 L1430,135 L1390,125 L1350,138 L1310,128 L1270,142 L1230,132 L1190,145 L1150,135 L1110,148 L1070,138 L1030,150 L990,140 L950,152 L910,142 L880,155 L850,145 L830,158 L810,148 L790,160 L780,148 L800,135 L795,120 L810,105 L800,90 L810,75 Z"
   },
@@ -426,7 +426,7 @@ const COUNTRIES = [
     d:"M1148,325 L1195,322 L1200,340 L1188,352 L1155,355 L1142,342 Z"
   },
   // \u2500\u2500\u2500 Central/South Asia \u2500\u2500\u2500
-  { id:"kazakhstan", name:"Kazakhstan", area:62, lx:1215, ly:232,
+  { id:"kazakhstan", name:"Kazakhstan", area:62, lx:1175, ly:248,
     borders:["russia","china","kyrgyzstan","tajikistan","uzbekistan","turkmenistan"],
     d:"M1165,182 L1330,178 L1338,205 L1328,235 L1295,248 L1248,252 L1200,248 L1162,232 Z"
   },
@@ -760,14 +760,18 @@ export default function EarthConquest(){
   };
 
   const progressMission=(stat,amount)=>{
+    if(amount===0)return;
     setMissionProgress(prev=>{
       const next={...prev,[stat]:(prev[stat]||0)+amount};
       const today=getTodayMissions();
-      today.forEach(m=>{
-        if(next[m.stat]>=m.goal&&!claimedMissions.includes(m.id)){
-          flash("[Trophy] Mission complete: "+m.label,"success");
-          addXP(m.xp);
-        }
+      setClaimedMissions(claimed=>{
+        today.forEach(m=>{
+          if(next[m.stat]>=m.goal&&!claimed.includes(m.id)){
+            flash("[Trophy] Mission complete: "+m.label+" - open Daily to claim!","success");
+            addXP(m.xp);
+          }
+        });
+        return claimed;
       });
       setMyInventory(inv=>{
         const newInv={...inv,_missionProgress:next,_missionDate:todayStr()};
@@ -1018,7 +1022,9 @@ export default function EarthConquest(){
   const todayMissions=getTodayMissions();
   const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)>0;
   const atkDamage=attackPlan?calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0):0;
-  const atkChance=attackPlan?calcWinChance(attackPlan.country.area||20,atkDamage,myInventory.spy||0,myInventory.academySpies||0,0):0;
+  const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
+  const defenderAirDefPreview=defenderOwner&&players[defenderOwner]?0:0; // multiplayer: can't read opponent inv; shows conservative estimate
+  const atkChance=attackPlan?calcWinChance(attackPlan.country.area||20,atkDamage,myInventory.spy||0,myInventory.academySpies||0,defenderAirDefPreview):0;
   const atkPct=Math.round(atkChance*100);
   const atkBarColor=atkPct>=70?"#22c55e":atkPct>=40?"#f59e0b":"#ef4444";
 
@@ -1105,19 +1111,10 @@ export default function EarthConquest(){
           <div style={{padding:"24px 32px 28px",maxHeight:"480px",overflowY:"auto"}}>
             {menuTab==="main"&&(
               <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
-                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",textAlign:"center",marginBottom:"2px"}}>Singleplayer</div>
-                {[
-                  {diff:"easy",   label:"EASY",   sub:"Slow bots, small army",    grad:"linear-gradient(135deg,#166534,#16a34a)", glow:"rgba(22,163,74,.35)"},
-                  {diff:"normal", label:"NORMAL",  sub:"Balanced challenge",        grad:"linear-gradient(135deg,#1e3a5f,#2563eb)", glow:"rgba(37,99,235,.35)"},
-                  {diff:"hard",   label:"HARD",    sub:"Aggressive, targets you",   grad:"linear-gradient(135deg,#7f1d1d,#dc2626)", glow:"rgba(220,38,38,.35)"},
-                ].map(({diff,label,sub,grad,glow})=>(
-                  <button key={diff} onClick={()=>startSingleplayer(diff)}
-                    style={{padding:"12px 16px",background:grad,border:"none",borderRadius:"12px",color:"white",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",boxShadow:"0 6px 20px "+glow,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:"13px",fontWeight:"bold",letterSpacing:"2px"}}>{label}</span>
-                    <span style={{fontSize:"10px",color:"rgba(255,255,255,.6)"}}>{sub}</span>
-                  </button>
-                ))}
-                <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"2px 0"}}/>
+                <button onClick={()=>setMenuTab("singleplayer")}
+                  style={{padding:"14px",background:"linear-gradient(135deg,#166534,#16a34a)",border:"none",borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 6px 20px rgba(22,163,74,.35)"}}>
+                  SINGLEPLAYER
+                </button>
                 <button onClick={()=>setMenuTab("multiplayer")}
                   style={{padding:"14px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"none",borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif"}}>
                   MULTIPLAYER
@@ -1130,6 +1127,31 @@ export default function EarthConquest(){
                   style={{padding:"10px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"10px",color:"rgba(255,255,255,.35)",fontSize:"12px",cursor:"pointer",fontFamily:"Georgia,serif"}}>
                   Log Out
                 </button>
+              </div>
+            )}
+            {menuTab==="singleplayer"&&(
+              <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                <button onClick={()=>setMenuTab("main")} style={{background:"none",border:"none",color:"rgba(255,255,255,.4)",fontSize:"11px",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",padding:"0 0 4px",display:"flex",alignItems:"center",gap:"4px"}}>
+                  &larr; Back
+                </button>
+                <div style={{textAlign:"center",marginBottom:"4px"}}>
+                  <div style={{color:"white",fontSize:"14px",fontWeight:"bold",letterSpacing:"2px",marginBottom:"4px"}}>CHOOSE DIFFICULTY</div>
+                  <div style={{color:"rgba(255,255,255,.35)",fontSize:"10px"}}>4 AI opponents</div>
+                </div>
+                {[
+                  {diff:"easy",   label:"EASY",   sub:"Slow bots - Small army",       grad:"linear-gradient(135deg,#166534,#16a34a)", glow:"rgba(22,163,74,.4)",   desc:"Attack every 3.5s, 50% skip chance"},
+                  {diff:"normal", label:"NORMAL", sub:"Balanced challenge",               grad:"linear-gradient(135deg,#1e3a5f,#2563eb)", glow:"rgba(37,99,235,.4)",   desc:"Attack every 2s, prefers small countries"},
+                  {diff:"hard",   label:"HARD",   sub:"Aggressive - Targets you",      grad:"linear-gradient(135deg,#7f1d1d,#dc2626)", glow:"rgba(220,38,38,.4)",   desc:"Attack every 1s, hunts your territories"},
+                ].map(({diff,label,sub,grad,glow,desc})=>(
+                  <button key={diff} onClick={()=>startSingleplayer(diff)}
+                    style={{padding:"14px 16px",background:grad,border:"none",borderRadius:"12px",color:"white",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",boxShadow:"0 6px 24px "+glow,display:"flex",flexDirection:"column",gap:"4px",transition:"transform .15s"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontSize:"15px",fontWeight:"bold",letterSpacing:"2px"}}>{label}</span>
+                      <span style={{fontSize:"10px",color:"rgba(255,255,255,.7)"}}>{sub}</span>
+                    </div>
+                    <span style={{fontSize:"10px",color:"rgba(255,255,255,.5)"}}>{desc}</span>
+                  </button>
+                ))}
               </div>
             )}
             {menuTab==="multiplayer"&&(
@@ -1297,25 +1319,26 @@ export default function EarthConquest(){
                 const claimed=claimedMissions.includes(m.id);
                 const pctM=Math.round((prog/m.goal)*100);
                 return(
-                  <div key={m.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"10px",padding:"12px 14px",marginBottom:"8px"}}>
+                  <div key={m.id} style={{background:"rgba(255,255,255,.04)",border:"1px solid "+(done&&!claimed?"rgba(245,200,66,.3)":claimed?"rgba(34,197,94,.2)":"rgba(255,255,255,.08)"),borderRadius:"10px",padding:"12px 14px",marginBottom:"8px"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
-                      <span style={{color:done?"#f5c842":"white",fontSize:"12px",fontWeight:"bold"}}>{m.label}</span>
+                      <span style={{color:claimed?"#86efac":done?"#f5c842":"white",fontSize:"12px",fontWeight:"bold"}}>{m.label}</span>
                       <span style={{color:"rgba(255,255,255,.4)",fontSize:"10px"}}>{prog}/{m.goal}</span>
                     </div>
                     <div style={{height:"5px",background:"rgba(255,255,255,.08)",borderRadius:"3px",overflow:"hidden",marginBottom:"8px"}}>
-                      <div style={{height:"100%",width:pctM+"%",background:done?"#f5c842":"#7c3aed",borderRadius:"3px"}}/>
+                      <div style={{height:"100%",width:pctM+"%",background:claimed?"#22c55e":done?"#f5c842":"#7c3aed",borderRadius:"3px",transition:"width .4s"}}/>
                     </div>
                     {done&&!claimed&&(
                       <button onClick={async()=>{
                         const next=[...claimedMissions,m.id];
                         setClaimedMissions(next);
-                        setMyInventory(inv=>{const ni={...inv,coins:inv.coins+m.coins,_claimedMissions:next};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
+                        setMissionProgress(p=>({...p}));
+                        setMyInventory(inv=>{const ni={...inv,coins:inv.coins+m.coins,_claimedMissions:next,_missionProgress:missionProgress};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
                         flash("Mission claimed: +"+m.coins+" coins!","success");
                       }} style={{width:"100%",padding:"6px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"7px",color:"#000",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif"}}>
                         Claim +{m.coins} coins
                       </button>
                     )}
-                    {claimed&&<div style={{color:"#22c55e",fontSize:"10px",textAlign:"center"}}>Claimed</div>}
+                    {claimed&&<div style={{color:"#22c55e",fontSize:"11px",textAlign:"center",fontWeight:"bold"}}>Claimed</div>}
                     {!done&&<div style={{color:"rgba(255,255,255,.25)",fontSize:"10px"}}>+{m.xp} XP + {m.coins} coins on completion</div>}
                   </div>
                 );
@@ -1573,14 +1596,52 @@ export default function EarthConquest(){
         </div>
       )}
 
-      {/* top bar - minimal: just player info + attack + exit */}
-      <div style={{background:"rgba(4,10,22,.95)",borderBottom:"1px solid rgba(255,255,255,.1)",padding:"7px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+      {/* top bar */}
+      <div style={{background:"rgba(4,10,22,.95)",borderBottom:"1px solid rgba(255,255,255,.1)",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,minHeight:"44px"}}>
+        {/* left: player info */}
         <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
           <div style={{width:"9px",height:"9px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 6px "+myC.bg}}/>
           <span style={{color:"white",fontSize:"12px",fontWeight:"bold"}}>{username}</span>
-          <span style={{color:myC.light,fontSize:"11px"}}>{mine.length} territories</span>
-          <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px",marginLeft:"8px"}}>{myInventory.coins.toLocaleString()} coins</span>
+          <span style={{color:myC.light,fontSize:"11px"}}>{mine.length} terr</span>
+          <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px",marginLeft:"4px"}}>{myInventory.coins.toLocaleString()} coins</span>
         </div>
+
+        {/* center: weapons + buildings inventory strip */}
+        <div style={{display:"flex",alignItems:"center",gap:"2px",flex:1,justifyContent:"center",flexWrap:"nowrap",overflow:"hidden",padding:"0 12px"}}>
+          {[
+            {id:"tank",    label:"Tank",    color:"#f59e0b"},
+            {id:"bomb",    label:"Bomb",    color:"#ef4444"},
+            {id:"plane",   label:"Plane",   color:"#3b82f6"},
+            {id:"missile", label:"Missile", color:"#f97316"},
+            {id:"bomber",  label:"Bomber",  color:"#dc2626"},
+            {id:"air_def",    label:"Air Def",  color:"#6366f1"},
+            {id:"academySpies",label:"Spies",    color:"#10b981"},
+          ].map(w=>{
+            const qty=myInventory[w.id]||0;
+            return(
+              <div key={w.id} style={{display:"flex",alignItems:"center",gap:"3px",padding:"3px 7px",background:qty>0?"rgba(255,255,255,.06)":"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?w.color+"44":"rgba(255,255,255,.06)"),minWidth:"52px",justifyContent:"center"}}>
+                <span style={{color:qty>0?w.color:"rgba(255,255,255,.2)",fontSize:"9px",letterSpacing:".3px"}}>{w.label}</span>
+                <span style={{color:qty>0?"white":"rgba(255,255,255,.2)",fontWeight:"bold",fontSize:"11px",marginLeft:"2px"}}>{qty}</span>
+              </div>
+            );
+          })}
+          {(myInventory.buildings||[]).length>0&&(
+            <>
+              <div style={{width:"1px",height:"18px",background:"rgba(255,255,255,.1)",margin:"0 4px"}}/>
+              {Object.entries((myInventory.buildings||[]).reduce((a,b)=>{a[b]=(a[b]||0)+1;return a;},{})).map(([id,cnt])=>{
+                const bld=BUILDINGS.find(b=>b.id===id);
+                return(
+                  <div key={id} style={{display:"flex",alignItems:"center",gap:"3px",padding:"3px 7px",background:"rgba(34,197,94,.06)",borderRadius:"6px",border:"1px solid rgba(34,197,94,.25)",minWidth:"52px",justifyContent:"center"}}>
+                    <span style={{color:"#86efac",fontSize:"9px"}}>{bld?bld.label:id}</span>
+                    <span style={{color:"white",fontWeight:"bold",fontSize:"11px",marginLeft:"2px"}}>{cnt}</span>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+
+        {/* right: attack + exit */}
         <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
           <button onClick={()=>setAttackMode(m=>!m)}
             style={{padding:"5px 14px",background:attackMode?"linear-gradient(135deg,#dc2626,#ef4444)":"rgba(255,255,255,.08)",border:attackMode?"none":"1px solid rgba(255,255,255,.15)",borderRadius:"7px",color:attackMode?"white":"rgba(255,255,255,.7)",cursor:"pointer",fontSize:"11px",fontWeight:"bold",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":undefined}}>
