@@ -36,7 +36,7 @@ const SHOP_ITEMS=[
   {id:"plane",   label:"Plane",   desc:"Air unit. Extends attack radius to 3.", price:350,  dmg:DMG.plane,   color:"#3b82f6"},
   {id:"missile", label:"Missile", desc:"Ballistic strike. Very high damage.",   price:500,  dmg:DMG.missile, color:"#f97316"},
   {id:"bomber",  label:"Bomber",  desc:"Carpet bomb. Highest damage.",          price:1200, dmg:DMG.bomber,  color:"#dc2626"},
-  {id:"air_def", label:"Air Def", desc:"Reduces enemy win chance by 5% each.", price:300,  dmg:0,           color:"#6366f1"},
+  {id:"air_def", label:"Air Def", desc:"Reduces enemy win chance by 5% each. Max 5.", price:900, dmg:0, color:"#6366f1"},
 ];
 
 const MATERIALS=[
@@ -921,6 +921,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const buildings=myInventory.buildings||[];
     const price=getItemPrice(item,buildings);
     if(myInventory.coins<price){flash("Not enough coins!","error");return;}
+    if(item.id==="air_def"&&(myInventory.air_def||0)>=5){flash("Air Defence is maxed at 5!","error");return;}
     const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+1};
     setMyInventory(newInv);
     await saveInv(newInv);
