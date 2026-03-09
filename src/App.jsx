@@ -122,7 +122,7 @@ function calcWinChance(area,damage,spyCount,academySpies,airDef){
 }
 
 const COUNTRIES = [
-  { id:"russia", name:"Russia", area:220, lx:1290, ly:210,
+  { id:"russia", name:"Russia", area:220, lx:1100, ly:95,
     borders:["norway","finland","estonia","latvia","lithuania","belarus","ukraine","georgia","azerbaijan","kazakhstan","china","mongolia","north_korea"],
     d:"M830,60 L860,55 L900,50 L950,55 L1000,48 L1060,52 L1120,45 L1180,50 L1240,45 L1300,52 L1360,48 L1420,55 L1480,50 L1540,58 L1580,52 L1620,60 L1660,55 L1700,65 L1720,80 L1700,100 L1680,115 L1650,120 L1620,110 L1580,125 L1550,115 L1510,130 L1470,120 L1430,135 L1390,125 L1350,138 L1310,128 L1270,142 L1230,132 L1190,145 L1150,135 L1110,148 L1070,138 L1030,150 L990,140 L950,152 L910,142 L880,155 L850,145 L830,158 L810,148 L790,160 L780,148 L800,135 L795,120 L810,105 L800,90 L810,75 Z"
   },
@@ -426,7 +426,7 @@ const COUNTRIES = [
     d:"M1148,325 L1195,322 L1200,340 L1188,352 L1155,355 L1142,342 Z"
   },
   // \u2500\u2500\u2500 Central/South Asia \u2500\u2500\u2500
-  { id:"kazakhstan", name:"Kazakhstan", area:62, lx:1175, ly:248,
+  { id:"kazakhstan", name:"Kazakhstan", area:62, lx:1250, ly:215,
     borders:["russia","china","kyrgyzstan","tajikistan","uzbekistan","turkmenistan"],
     d:"M1165,182 L1330,178 L1338,205 L1328,235 L1295,248 L1248,252 L1200,248 L1162,232 Z"
   },
@@ -679,7 +679,9 @@ export default function EarthConquest(){
         const now=Date.now();
         const last=inv.lastAcademy||0;
         if(now-last<1200000)return inv;
-        const newInv={...inv,academySpies:(inv.academySpies||0)+1,lastAcademy:now};
+        const curSpies=(inv.academySpies||0);
+if(curSpies>=15)return inv;
+const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         if(!isSingleplayer)(async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
         return newInv;
       });
@@ -984,7 +986,6 @@ export default function EarthConquest(){
     const usedSpy=(myInventory.spy||0)>0||(myInventory.academySpies||0)>0;
     const newInv={...myInventory};
     for(const[id,qty]of Object.entries(deploy)){if(qty>0)newInv[id]=(newInv[id]||0)-qty;}
-    if(usedSpy){newInv.spy=0;newInv.academySpies=0;}
     const won=Math.random()<chance;
     if(won){
       const newO={...ownership,[country.id]:username};
