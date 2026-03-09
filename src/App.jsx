@@ -37,7 +37,6 @@ const SHOP_ITEMS=[
   {id:"missile", label:"Missile", desc:"Ballistic strike. Very high damage.",   price:500,  dmg:DMG.missile, color:"#f97316"},
   {id:"bomber",  label:"Bomber",  desc:"Carpet bomb. Highest damage.",          price:1200, dmg:DMG.bomber,  color:"#dc2626"},
   {id:"air_def", label:"Air Def", desc:"Reduces enemy win chance by 5% each.", price:300,  dmg:0,           color:"#6366f1"},
-  {id:"spy",     label:"Spy",     desc:"Adds +1% win chance to next attack.",   price:400,  dmg:0,           color:"#10b981"},
 ];
 
 const MATERIALS=[
@@ -122,146 +121,409 @@ function calcWinChance(area,damage,spyCount,academySpies,airDef){
   return Math.max(0.02,Math.min(0.97,base+spyBonus-defPenalty));
 }
 
-const COUNTRIES=[
-  {id:"usa",name:"USA",area:98,lx:215,ly:285,borders:["canada","mexico","cuba"],d:"M72,188 L285,185 L298,222 L290,268 L255,295 L198,308 L148,298 L88,278 L62,245 Z"},
-  {id:"canada",name:"Canada",area:128,lx:195,ly:155,borders:["usa","greenland"],d:"M55,88 L322,82 L335,148 L298,175 L72,178 L48,145 Z"},
-  {id:"mexico",name:"Mexico",area:28,lx:185,ly:345,borders:["usa","cuba","colombia"],d:"M88,302 L255,298 L265,335 L252,368 L215,382 L165,378 L118,358 L95,328 Z"},
-  {id:"cuba",name:"Cuba",area:8,lx:262,ly:355,borders:["usa","mexico","colombia"],d:"M248,338 L298,335 L305,355 L292,372 L255,375 L242,358 Z"},
-  {id:"greenland",name:"Greenland",area:38,lx:368,ly:82,borders:["canada","iceland"],d:"M328,38 L435,32 L448,72 L435,108 L388,118 L342,108 L322,78 Z"},
-  {id:"iceland",name:"Iceland",area:8,lx:515,ly:88,borders:["greenland","uk"],d:"M495,68 L548,65 L555,88 L542,108 L505,112 L488,92 Z"},
-  {id:"colombia",name:"Colombia",area:18,lx:215,ly:425,borders:["mexico","cuba","venezuela","brazil","peru"],d:"M162,398 L268,395 L278,428 L265,458 L228,465 L182,458 L165,432 Z"},
-  {id:"venezuela",name:"Venezuela",area:14,lx:278,ly:415,borders:["colombia","brazil","guyana"],d:"M262,392 L322,388 L332,415 L318,442 L282,448 L258,432 Z"},
-  {id:"guyana",name:"Guyana",area:10,lx:322,ly:418,borders:["venezuela","brazil"],d:"M318,395 L365,392 L372,418 L358,442 L322,448 L312,428 Z"},
-  {id:"brazil",name:"Brazil",area:88,lx:298,ly:498,borders:["colombia","venezuela","guyana","peru","bolivia","paraguay","argentina","uruguay"],d:"M168,452 L382,448 L395,498 L385,558 L348,598 L298,618 L245,612 L195,582 L168,535 Z"},
-  {id:"peru",name:"Peru",area:22,lx:205,ly:478,borders:["colombia","brazil","bolivia","chile"],d:"M162,448 L242,445 L252,478 L238,515 L202,522 L168,512 L155,482 Z"},
-  {id:"bolivia",name:"Bolivia",area:14,lx:248,ly:528,borders:["peru","brazil","paraguay","chile","argentina"],d:"M228,508 L288,505 L298,535 L285,565 L248,572 L222,558 L215,532 Z"},
-  {id:"chile",name:"Chile",area:18,lx:218,ly:588,borders:["peru","bolivia","argentina"],d:"M178,558 L248,555 L255,638 L238,688 L202,698 L175,678 L165,618 Z"},
-  {id:"paraguay",name:"Paraguay",area:10,lx:275,ly:575,borders:["brazil","bolivia","argentina"],d:"M255,552 L308,548 L315,575 L302,602 L265,608 L248,582 Z"},
-  {id:"argentina",name:"Argentina",area:38,lx:258,ly:648,borders:["chile","bolivia","paraguay","brazil","uruguay"],d:"M188,612 L322,608 L332,648 L318,718 L275,745 L238,748 L198,725 L178,678 Z"},
-  {id:"uruguay",name:"Uruguay",area:8,lx:315,ly:638,borders:["brazil","argentina"],d:"M298,618 L348,615 L355,638 L342,658 L305,662 L292,642 Z"},
-  {id:"uk",name:"UK",area:10,lx:548,ly:165,borders:["iceland","france","ireland"],d:"M528,145 L578,142 L585,165 L572,188 L535,192 L518,172 Z"},
-  {id:"ireland",name:"Ireland",area:6,lx:508,ly:162,borders:["uk"],d:"M492,145 L532,142 L538,165 L525,182 L495,185 L482,168 Z"},
-  {id:"france",name:"France",area:18,lx:562,ly:218,borders:["uk","spain","germany","italy","switzerland"],d:"M528,195 L605,192 L612,222 L598,252 L562,258 L528,248 L518,225 Z"},
-  {id:"spain",name:"Spain",area:18,lx:535,ly:262,borders:["france","portugal","morocco"],d:"M498,248 L608,245 L615,275 L602,305 L558,312 L512,305 L495,278 Z"},
-  {id:"portugal",name:"Portugal",area:8,lx:502,ly:282,borders:["spain"],d:"M488,262 L518,258 L525,285 L512,308 L482,312 L472,288 Z"},
-  {id:"germany",name:"Germany",area:14,lx:608,ly:192,borders:["france","netherlands","poland","austria","switzerland","denmark"],d:"M595,172 L658,168 L665,198 L652,228 L608,235 L582,225 L578,198 Z"},
-  {id:"netherlands",name:"Netherlands",area:6,lx:608,ly:158,borders:["germany","belgium"],d:"M592,148 L638,145 L645,168 L632,182 L598,185 L582,168 Z"},
-  {id:"belgium",name:"Belgium",area:6,lx:595,ly:188,borders:["netherlands","france","germany","luxembourg"],d:"M578,172 L628,168 L635,192 L622,208 L588,212 L572,195 Z"},
-  {id:"luxembourg",name:"Luxembourg",area:2,lx:615,ly:208,borders:["belgium","france","germany"],d:"M608,198 L628,195 L632,215 L618,225 L602,218 Z"},
-  {id:"switzerland",name:"Switzerland",area:6,lx:618,ly:228,borders:["france","germany","austria","italy"],d:"M602,215 L655,212 L662,235 L648,252 L612,255 L595,238 Z"},
-  {id:"austria",name:"Austria",area:8,lx:652,ly:215,borders:["germany","switzerland","italy","hungary","czech"],d:"M638,198 L698,195 L705,218 L692,242 L648,248 L625,232 Z"},
-  {id:"czech",name:"Czech",area:8,lx:658,ly:188,borders:["germany","austria","poland","slovakia"],d:"M638,172 L702,168 L708,192 L695,212 L652,218 L632,202 Z"},
-  {id:"poland",name:"Poland",area:18,lx:672,ly:165,borders:["germany","czech","slovakia","ukraine","belarus","russia"],d:"M648,148 L722,145 L728,175 L715,205 L672,212 L642,202 L638,175 Z"},
-  {id:"slovakia",name:"Slovakia",area:6,lx:695,ly:208,borders:["czech","austria","hungary","poland","ukraine"],d:"M678,195 L738,192 L742,215 L728,232 L688,235 L672,218 Z"},
-  {id:"hungary",name:"Hungary",area:10,lx:678,ly:235,borders:["austria","slovakia","romania","croatia","serbia"],d:"M648,218 L718,215 L725,242 L712,265 L668,272 L642,258 Z"},
-  {id:"romania",name:"Romania",area:18,lx:718,ly:232,borders:["hungary","ukraine","moldova","bulgaria","serbia"],d:"M708,212 L778,208 L785,238 L772,268 L728,275 L705,258 Z"},
-  {id:"moldova",name:"Moldova",area:4,lx:755,ly:228,borders:["romania","ukraine"],d:"M742,212 L778,208 L782,232 L768,248 L745,245 Z"},
-  {id:"ukraine",name:"Ukraine",area:38,lx:748,ly:188,borders:["poland","belarus","russia","romania","moldova","slovakia","hungary"],d:"M718,155 L808,152 L818,188 L808,228 L768,235 L725,228 L708,198 Z"},
-  {id:"belarus",name:"Belarus",area:10,lx:742,ly:158,borders:["poland","ukraine","russia","lithuania","latvia"],d:"M718,138 L798,135 L805,162 L792,182 L748,188 L718,175 Z"},
-  {id:"lithuania",name:"Lithuania",area:6,lx:722,ly:138,borders:["belarus","latvia","poland","russia"],d:"M705,122 L758,118 L762,142 L748,158 L715,162 L698,145 Z"},
-  {id:"latvia",name:"Latvia",area:6,lx:742,ly:118,borders:["lithuania","belarus","estonia","russia"],d:"M722,102 L778,98 L782,122 L768,138 L725,142 L708,125 Z"},
-  {id:"estonia",name:"Estonia",area:4,lx:752,ly:98,borders:["latvia","russia","finland"],d:"M735,82 L782,78 L785,102 L772,118 L738,122 L722,105 Z"},
-  {id:"finland",name:"Finland",area:18,lx:742,ly:68,borders:["norway","sweden","russia","estonia"],d:"M708,38 L792,35 L798,78 L782,102 L745,108 L712,95 Z"},
-  {id:"norway",name:"Norway",area:18,lx:652,ly:72,borders:["sweden","finland","russia"],d:"M618,38 L718,35 L722,78 L708,95 L662,102 L622,88 Z"},
-  {id:"sweden",name:"Sweden",area:18,lx:685,ly:85,borders:["norway","finland","denmark"],d:"M655,52 L728,48 L735,92 L718,108 L675,115 L648,102 L645,72 Z"},
-  {id:"denmark",name:"Denmark",area:6,lx:648,ly:148,borders:["germany","sweden","norway"],d:"M628,132 L678,128 L682,152 L668,168 L632,172 L618,155 Z"},
-  {id:"italy",name:"Italy",area:18,lx:638,ly:275,borders:["france","switzerland","austria","croatia"],d:"M608,255 L668,252 L672,285 L658,322 L618,345 L585,338 L572,305 L582,268 Z"},
-  {id:"croatia",name:"Croatia",area:8,lx:668,ly:268,borders:["italy","hungary","serbia","bosnia"],d:"M648,252 L712,248 L718,272 L705,295 L662,302 L638,285 Z"},
-  {id:"bosnia",name:"Bosnia",area:6,lx:672,ly:295,borders:["croatia","serbia","montenegro"],d:"M655,278 L712,275 L718,298 L705,318 L665,322 L648,305 Z"},
-  {id:"serbia",name:"Serbia",area:6,lx:700,ly:278,borders:["hungary","romania","bulgaria","north_macedonia","croatia","bosnia","montenegro","kosovo"],d:"M682,258 L738,255 L745,282 L732,308 L692,315 L668,298 Z"},
-  {id:"montenegro",name:"Montenegro",area:4,lx:675,ly:318,borders:["bosnia","serbia","albania","kosovo"],d:"M658,305 L712,302 L715,325 L702,342 L665,345 L652,328 Z"},
-  {id:"kosovo",name:"Kosovo",area:2,lx:702,ly:315,borders:["serbia","north_macedonia","albania","montenegro"],d:"M688,298 L738,295 L742,318 L728,335 L692,338 L678,322 Z"},
-  {id:"albania",name:"Albania",area:4,lx:692,ly:338,borders:["montenegro","kosovo","north_macedonia","greece"],d:"M675,322 L722,318 L728,342 L715,362 L678,365 L665,345 Z"},
-  {id:"north_macedonia",name:"N. Macedonia",area:4,lx:712,ly:328,borders:["serbia","bulgaria","greece","albania","kosovo"],d:"M695,312 L748,308 L752,332 L738,352 L698,355 L682,338 Z"},
-  {id:"bulgaria",name:"Bulgaria",area:10,lx:742,ly:295,borders:["romania","serbia","north_macedonia","greece","turkey"],d:"M718,275 L792,272 L798,302 L785,332 L742,338 L715,322 Z"},
-  {id:"greece",name:"Greece",area:12,lx:712,ly:355,borders:["bulgaria","albania","north_macedonia","turkey"],d:"M678,335 L748,332 L755,362 L742,395 L705,402 L672,392 L662,362 Z"},
-  {id:"turkey",name:"Turkey",area:38,lx:798,ly:298,borders:["bulgaria","greece","georgia","armenia","iran","iraq","syria"],d:"M772,272 L878,268 L888,298 L878,328 L798,335 L762,322 Z"},
-  {id:"georgia",name:"Georgia",area:8,lx:862,ly:255,borders:["turkey","russia","armenia","azerbaijan"],d:"M842,238 L902,235 L908,258 L895,278 L852,282 L832,265 Z"},
-  {id:"armenia",name:"Armenia",area:6,lx:878,ly:278,borders:["turkey","georgia","azerbaijan","iran"],d:"M858,262 L918,258 L922,282 L908,302 L868,305 L852,288 Z"},
-  {id:"azerbaijan",name:"Azerbaijan",area:6,lx:902,ly:268,borders:["georgia","armenia","iran","russia"],d:"M882,252 L938,248 L942,272 L928,292 L888,295 L872,278 Z"},
-  {id:"russia",name:"Russia",area:248,lx:1002,ly:118,borders:["norway","finland","estonia","latvia","lithuania","belarus","ukraine","georgia","azerbaijan","kazakhstan","china","mongolia","north_korea"],d:"M618,28 L1508,22 L1522,108 L1508,178 L1302,185 L1082,182 L838,178 L728,162 L712,128 L652,108 Z"},
-  {id:"syria",name:"Syria",area:10,lx:858,ly:335,borders:["turkey","iraq","jordan","lebanon","israel"],d:"M832,312 L892,308 L898,338 L885,362 L845,368 L825,348 Z"},
-  {id:"lebanon",name:"Lebanon",area:4,lx:845,ly:358,borders:["syria","israel"],d:"M828,342 L862,338 L865,362 L852,378 L832,375 Z"},
-  {id:"israel",name:"Israel",area:4,lx:838,ly:375,borders:["lebanon","syria","jordan","egypt"],d:"M822,358 L855,355 L858,378 L845,398 L822,402 L808,382 Z"},
-  {id:"jordan",name:"Jordan",area:8,lx:862,ly:382,borders:["syria","israel","iraq","saudi_arabia"],d:"M842,358 L898,355 L905,382 L892,408 L852,415 L832,398 Z"},
-  {id:"iraq",name:"Iraq",area:18,lx:892,ly:348,borders:["turkey","syria","jordan","saudi_arabia","kuwait","iran"],d:"M872,312 L948,308 L955,348 L942,382 L902,388 L865,375 L858,348 Z"},
-  {id:"kuwait",name:"Kuwait",area:4,lx:940,ly:378,borders:["iraq","saudi_arabia"],d:"M922,358 L958,355 L962,378 L948,395 L925,398 Z"},
-  {id:"iran",name:"Iran",area:58,lx:958,ly:318,borders:["turkey","iraq","kuwait","saudi_arabia","azerbaijan","armenia","georgia","russia","afghanistan","pakistan"],d:"M912,278 L1042,275 L1052,318 L1038,368 L998,388 L955,382 L928,348 Z"},
-  {id:"saudi_arabia",name:"Saudi Arabia",area:58,lx:908,ly:415,borders:["jordan","iraq","kuwait","iran","uae","oman","yemen"],d:"M842,388 L1018,385 L1028,432 L1015,478 L975,495 L908,498 L858,488 L835,448 Z"},
-  {id:"uae",name:"UAE",area:8,lx:1018,ly:442,borders:["saudi_arabia","oman"],d:"M1002,418 L1052,415 L1058,442 L1045,462 L1008,465 L992,448 Z"},
-  {id:"oman",name:"Oman",area:14,lx:1042,ly:468,borders:["saudi_arabia","uae","yemen"],d:"M1008,448 L1072,445 L1078,478 L1065,508 L1025,515 L1002,498 Z"},
-  {id:"yemen",name:"Yemen",area:18,lx:965,ly:478,borders:["saudi_arabia","oman"],d:"M928,458 L1042,455 L1048,488 L1035,515 L988,522 L942,515 L925,492 Z"},
-  {id:"kazakhstan",name:"Kazakhstan",area:68,lx:1082,ly:195,borders:["russia","china","kyrgyzstan","uzbekistan","turkmenistan","azerbaijan"],d:"M928,162 L1282,158 L1292,205 L1278,248 L1088,252 L932,245 Z"},
-  {id:"uzbekistan",name:"Uzbekistan",area:14,lx:1072,ly:258,borders:["kazakhstan","kyrgyzstan","tajikistan","afghanistan","turkmenistan"],d:"M1018,242 L1138,238 L1145,268 L1132,298 L1088,305 L1022,298 Z"},
-  {id:"turkmenistan",name:"Turkmenistan",area:18,lx:1032,ly:288,borders:["iran","afghanistan","uzbekistan","kazakhstan"],d:"M978,268 L1112,265 L1118,298 L1105,332 L1062,338 L982,332 Z"},
-  {id:"kyrgyzstan",name:"Kyrgyzstan",area:8,lx:1142,ly:248,borders:["kazakhstan","uzbekistan","tajikistan","china"],d:"M1122,232 L1198,228 L1202,252 L1188,272 L1145,278 L1128,258 Z"},
-  {id:"tajikistan",name:"Tajikistan",area:6,lx:1102,ly:298,borders:["uzbekistan","kyrgyzstan","afghanistan","china"],d:"M1082,278 L1158,275 L1162,302 L1148,322 L1105,328 L1088,308 Z"},
-  {id:"afghanistan",name:"Afghanistan",area:22,lx:1072,ly:328,borders:["iran","pakistan","uzbekistan","turkmenistan","tajikistan","china"],d:"M1032,305 L1162,302 L1168,338 L1155,372 L1108,378 L1038,372 Z"},
-  {id:"pakistan",name:"Pakistan",area:28,lx:1108,ly:368,borders:["iran","afghanistan","india","china"],d:"M1042,348 L1178,345 L1185,382 L1172,418 L1125,425 L1048,418 Z"},
-  {id:"india",name:"India",area:68,lx:1182,ly:418,borders:["pakistan","china","nepal","bhutan","bangladesh","myanmar"],d:"M1155,385 L1298,382 L1308,432 L1295,498 L1258,535 L1215,548 L1172,542 L1142,508 L1132,462 Z"},
-  {id:"nepal",name:"Nepal",area:8,lx:1255,ly:365,borders:["india","china"],d:"M1225,348 L1302,345 L1308,368 L1295,385 L1228,388 Z"},
-  {id:"bhutan",name:"Bhutan",area:4,lx:1312,ly:362,borders:["india","china"],d:"M1295,345 L1342,342 L1345,365 L1332,378 L1298,382 Z"},
-  {id:"bangladesh",name:"Bangladesh",area:6,lx:1312,ly:398,borders:["india","myanmar"],d:"M1295,382 L1342,378 L1345,402 L1332,422 L1298,425 Z"},
-  {id:"sri_lanka",name:"Sri Lanka",area:4,lx:1242,ly:515,borders:["india"],d:"M1225,498 L1262,495 L1265,518 L1252,538 L1228,542 Z"},
-  {id:"mongolia",name:"Mongolia",area:48,lx:1382,ly:185,borders:["russia","china"],d:"M1298,155 L1515,152 L1522,195 L1508,238 L1298,242 L1285,205 Z"},
-  {id:"china",name:"China",area:118,lx:1398,ly:305,borders:["russia","mongolia","kazakhstan","afghanistan","pakistan","india","nepal","bhutan","myanmar","vietnam","north_korea"],d:"M1278,195 L1528,192 L1538,242 L1525,305 L1495,358 L1455,378 L1398,385 L1342,378 L1298,348 L1282,305 Z"},
-  {id:"north_korea",name:"N. Korea",area:10,lx:1548,ly:248,borders:["china","russia","south_korea"],d:"M1515,228 L1562,225 L1568,248 L1555,272 L1518,278 L1505,258 Z"},
-  {id:"south_korea",name:"S. Korea",area:8,lx:1552,ly:278,borders:["north_korea"],d:"M1512,262 L1558,258 L1565,282 L1552,302 L1518,305 Z"},
-  {id:"japan",name:"Japan",area:22,lx:1590,ly:248,borders:["south_korea","china"],d:"M1565,222 L1618,218 L1625,248 L1612,278 L1578,285 L1555,268 Z"},
-  {id:"myanmar",name:"Myanmar",area:22,lx:1412,ly:378,borders:["china","india","bangladesh","thailand"],d:"M1382,342 L1452,338 L1458,372 L1445,408 L1412,422 L1375,415 L1362,385 Z"},
-  {id:"thailand",name:"Thailand",area:22,lx:1448,ly:415,borders:["myanmar","cambodia","malaysia","vietnam"],d:"M1412,398 L1472,395 L1478,428 L1465,458 L1432,465 L1398,458 L1395,428 Z"},
-  {id:"vietnam",name:"Vietnam",area:18,lx:1488,ly:408,borders:["china","cambodia","thailand"],d:"M1465,368 L1522,365 L1528,398 L1515,435 L1485,448 L1458,435 L1452,408 Z"},
-  {id:"cambodia",name:"Cambodia",area:10,lx:1465,ly:448,borders:["thailand","vietnam"],d:"M1432,428 L1488,425 L1492,452 L1478,472 L1445,475 L1428,455 Z"},
-  {id:"malaysia",name:"Malaysia",area:14,lx:1458,ly:472,borders:["thailand","indonesia"],d:"M1412,455 L1495,452 L1498,475 L1485,492 L1425,495 L1408,478 Z"},
-  {id:"philippines",name:"Philippines",area:18,lx:1545,ly:425,borders:["indonesia","malaysia"],d:"M1518,392 L1572,388 L1578,418 L1565,452 L1532,458 L1505,445 L1502,418 Z"},
-  {id:"indonesia",name:"Indonesia",area:68,lx:1508,ly:498,borders:["malaysia","papua"],d:"M1412,472 L1655,468 L1662,492 L1648,515 L1415,518 L1398,495 Z"},
-  {id:"papua",name:"Papua N.G.",area:28,lx:1672,ly:492,borders:["indonesia","australia"],d:"M1648,465 L1718,462 L1725,488 L1712,512 L1672,518 L1642,508 Z"},
-  {id:"australia",name:"Australia",area:128,lx:1618,ly:578,borders:["indonesia","papua","new_zealand"],d:"M1455,508 L1728,502 L1738,542 L1732,582 L1705,622 L1655,648 L1590,658 L1520,652 L1462,625 L1432,582 L1435,542 Z"},
-  {id:"new_zealand",name:"New Zealand",area:16,lx:1758,ly:618,borders:["australia"],d:"M1728,588 L1778,582 L1788,612 L1775,648 L1742,662 L1718,645 L1715,618 Z"},
-  {id:"morocco",name:"Morocco",area:18,lx:545,ly:355,borders:["spain","algeria"],d:"M508,328 L615,325 L622,358 L608,392 L565,398 L522,392 L508,362 Z"},
-  {id:"algeria",name:"Algeria",area:48,lx:602,ly:392,borders:["morocco","tunisia","libya","mali","mauritania"],d:"M508,365 L718,362 L725,408 L712,458 L668,478 L565,482 L512,472 L505,428 Z"},
-  {id:"tunisia",name:"Tunisia",area:8,lx:648,ly:335,borders:["algeria","libya"],d:"M628,312 L685,308 L692,338 L678,368 L642,372 L622,348 Z"},
-  {id:"libya",name:"Libya",area:48,lx:682,ly:388,borders:["tunisia","algeria","egypt","sudan","niger","chad"],d:"M658,358 L808,355 L815,402 L802,458 L758,478 L692,482 L668,465 L662,418 Z"},
-  {id:"egypt",name:"Egypt",area:28,lx:788,ly:368,borders:["libya","israel","jordan","sudan"],d:"M768,342 L868,338 L875,378 L862,425 L818,432 L775,425 L762,385 Z"},
-  {id:"mauritania",name:"Mauritania",area:28,lx:528,ly:438,borders:["morocco","algeria","mali","senegal"],d:"M492,408 L618,405 L625,448 L612,492 L568,498 L512,492 L495,458 Z"},
-  {id:"mali",name:"Mali",area:38,lx:588,ly:462,borders:["mauritania","algeria","niger","burkina","senegal","guinea"],d:"M552,428 L718,425 L725,472 L712,518 L668,528 L588,532 L548,522 L545,482 Z"},
-  {id:"senegal",name:"Senegal",area:8,lx:502,ly:472,borders:["mauritania","mali","guinea"],d:"M478,452 L548,448 L552,478 L538,502 L502,508 L482,488 Z"},
-  {id:"guinea",name:"Guinea",area:10,lx:515,ly:508,borders:["senegal","mali","sierra_leone","ivory_coast"],d:"M482,488 L568,485 L572,515 L558,542 L518,548 L492,532 Z"},
-  {id:"sierra_leone",name:"Sierra Leone",area:6,lx:497,ly:532,borders:["guinea","liberia"],d:"M478,518 L532,515 L535,542 L522,558 L492,562 Z"},
-  {id:"liberia",name:"Liberia",area:6,lx:522,ly:545,borders:["sierra_leone","ivory_coast"],d:"M508,528 L565,525 L568,552 L555,572 L518,575 Z"},
-  {id:"ivory_coast",name:"Ivory Coast",area:10,lx:558,ly:538,borders:["guinea","liberia","ghana","burkina"],d:"M538,518 L612,515 L618,548 L605,578 L562,582 L532,568 Z"},
-  {id:"burkina",name:"Burkina Faso",area:10,lx:585,ly:498,borders:["mali","ivory_coast","ghana","togo","benin","niger"],d:"M552,478 L648,475 L652,508 L638,538 L592,542 L558,532 Z"},
-  {id:"ghana",name:"Ghana",area:10,lx:598,ly:538,borders:["ivory_coast","burkina","togo"],d:"M578,518 L648,515 L652,548 L638,578 L598,582 L578,558 Z"},
-  {id:"togo",name:"Togo",area:4,lx:632,ly:540,borders:["ghana","burkina","benin"],d:"M615,518 L655,515 L658,542 L645,562 L618,565 Z"},
-  {id:"benin",name:"Benin",area:6,lx:645,ly:532,borders:["togo","burkina","nigeria","niger"],d:"M628,512 L672,508 L675,538 L662,562 L632,565 Z"},
-  {id:"niger",name:"Niger",area:38,lx:648,ly:462,borders:["algeria","mali","burkina","benin","nigeria","chad","libya"],d:"M618,428 L778,425 L785,468 L772,518 L728,528 L638,532 L615,518 L612,478 Z"},
-  {id:"nigeria",name:"Nigeria",area:38,lx:668,ly:528,borders:["benin","niger","chad","cameroon"],d:"M638,508 L752,505 L758,548 L745,588 L698,598 L652,592 L635,555 Z"},
-  {id:"chad",name:"Chad",area:38,lx:722,ly:478,borders:["libya","niger","nigeria","cameroon","central_africa","sudan"],d:"M698,448 L818,445 L825,492 L812,548 L768,558 L718,552 L698,518 Z"},
-  {id:"sudan",name:"Sudan",area:48,lx:798,ly:442,borders:["egypt","libya","chad","central_africa","south_sudan","ethiopia","eritrea"],d:"M768,408 L878,405 L885,458 L872,518 L828,528 L782,522 L758,488 Z"},
-  {id:"eritrea",name:"Eritrea",area:6,lx:875,ly:432,borders:["sudan","ethiopia"],d:"M852,408 L908,405 L912,432 L898,458 L858,462 L842,438 Z"},
-  {id:"ethiopia",name:"Ethiopia",area:38,lx:875,ly:488,borders:["eritrea","sudan","south_sudan","kenya","somalia"],d:"M842,458 L958,455 L962,508 L948,558 L905,568 L858,562 L838,522 Z"},
-  {id:"somalia",name:"Somalia",area:22,lx:955,ly:508,borders:["ethiopia","kenya"],d:"M928,478 L992,475 L998,525 L985,578 L942,588 L912,568 L908,528 Z"},
-  {id:"cameroon",name:"Cameroon",area:14,lx:682,ly:562,borders:["nigeria","niger","chad","central_africa","congo","gabon"],d:"M658,538 L752,535 L758,572 L745,605 L702,612 L658,605 Z"},
-  {id:"central_africa",name:"C.A.R.",area:22,lx:748,ly:568,borders:["chad","sudan","south_sudan","congo","cameroon"],d:"M718,538 L848,535 L855,572 L842,608 L798,618 L722,612 Z"},
-  {id:"south_sudan",name:"S. Sudan",area:22,lx:812,ly:528,borders:["sudan","ethiopia","kenya","uganda","congo","central_africa"],d:"M782,498 L882,495 L888,535 L875,568 L832,578 L782,572 Z"},
-  {id:"gabon",name:"Gabon",area:10,lx:682,ly:598,borders:["cameroon","congo"],d:"M658,578 L722,575 L728,608 L715,638 L675,642 L658,618 Z"},
-  {id:"congo",name:"Congo",area:14,lx:725,ly:605,borders:["cameroon","central_africa","south_sudan","drc","gabon","angola"],d:"M692,578 L808,575 L815,618 L802,658 L758,668 L698,662 L688,628 Z"},
-  {id:"drc",name:"DR Congo",area:68,lx:778,ly:618,borders:["congo","south_sudan","kenya","uganda","tanzania","angola","zambia","central_africa"],d:"M742,588 L892,585 L898,648 L885,718 L838,738 L778,742 L722,728 L705,678 Z"},
-  {id:"uganda",name:"Uganda",area:10,lx:862,ly:568,borders:["south_sudan","kenya","tanzania","drc"],d:"M838,548 L908,545 L912,578 L898,608 L858,618 L832,602 Z"},
-  {id:"kenya",name:"Kenya",area:18,lx:908,ly:568,borders:["ethiopia","somalia","uganda","tanzania","south_sudan"],d:"M878,538 L978,535 L982,578 L968,622 L925,632 L882,625 Z"},
-  {id:"rwanda",name:"Rwanda",area:4,lx:838,ly:632,borders:["uganda","drc","tanzania","burundi"],d:"M822,615 L862,612 L865,638 L852,655 L825,658 Z"},
-  {id:"burundi",name:"Burundi",area:4,lx:838,ly:655,borders:["rwanda","drc","tanzania"],d:"M822,638 L862,635 L865,662 L852,678 L825,682 Z"},
-  {id:"tanzania",name:"Tanzania",area:28,lx:892,ly:638,borders:["kenya","uganda","drc","rwanda","burundi","mozambique","zambia","malawi"],d:"M858,608 L972,605 L978,648 L965,705 L918,715 L872,708 L852,668 Z"},
-  {id:"angola",name:"Angola",area:28,lx:718,ly:688,borders:["congo","drc","zambia","namibia"],d:"M688,658 L822,655 L828,702 L815,752 L768,762 L718,755 L692,718 Z"},
-  {id:"zambia",name:"Zambia",area:28,lx:818,ly:705,borders:["angola","drc","tanzania","malawi","mozambique","zimbabwe","namibia","botswana"],d:"M792,668 L922,665 L928,712 L915,762 L868,772 L808,765 L788,728 Z"},
-  {id:"malawi",name:"Malawi",area:6,lx:908,ly:712,borders:["zambia","tanzania","mozambique"],d:"M888,688 L935,685 L938,718 L925,748 L892,752 Z"},
-  {id:"mozambique",name:"Mozambique",area:22,lx:900,ly:762,borders:["tanzania","malawi","zambia","zimbabwe","south_africa","eswatini"],d:"M868,718 L948,715 L952,768 L938,828 L898,838 L858,832 L842,782 Z"},
-  {id:"namibia",name:"Namibia",area:22,lx:762,ly:762,borders:["angola","zambia","botswana","south_africa"],d:"M722,728 L848,725 L852,778 L838,832 L792,842 L738,835 L718,788 Z"},
-  {id:"botswana",name:"Botswana",area:18,lx:822,ly:792,borders:["namibia","zambia","zimbabwe","south_africa"],d:"M792,758 L892,755 L898,802 L885,852 L838,862 L798,855 Z"},
-  {id:"zimbabwe",name:"Zimbabwe",area:14,lx:878,ly:775,borders:["zambia","mozambique","botswana","south_africa"],d:"M852,748 L938,745 L942,792 L928,838 L885,848 L848,842 Z"},
-  {id:"south_africa",name:"South Africa",area:38,lx:832,ly:858,borders:["namibia","botswana","zimbabwe","mozambique","eswatini","lesotho"],d:"M738,828 L958,825 L965,878 L952,932 L895,948 L828,952 L762,938 L738,892 Z"},
-  {id:"eswatini",name:"Eswatini",area:2,lx:942,ly:832,borders:["south_africa","mozambique"],d:"M928,818 L962,815 L965,838 L952,852 L928,855 Z"},
-  {id:"lesotho",name:"Lesotho",area:2,lx:862,ly:908,borders:["south_africa"],d:"M845,892 L882,888 L885,912 L872,928 L848,932 Z"},
+const COUNTRIES = [
+  { id:"russia", name:"Russia", area:220, lx:1250, ly:220,
+    borders:["norway","finland","estonia","latvia","lithuania","belarus","ukraine","georgia","azerbaijan","kazakhstan","china","mongolia","north_korea"],
+    d:"M830,60 L860,55 L900,50 L950,55 L1000,48 L1060,52 L1120,45 L1180,50 L1240,45 L1300,52 L1360,48 L1420,55 L1480,50 L1540,58 L1580,52 L1620,60 L1660,55 L1700,65 L1720,80 L1700,100 L1680,115 L1650,120 L1620,110 L1580,125 L1550,115 L1510,130 L1470,120 L1430,135 L1390,125 L1350,138 L1310,128 L1270,142 L1230,132 L1190,145 L1150,135 L1110,148 L1070,138 L1030,150 L990,140 L950,152 L910,142 L880,155 L850,145 L830,158 L810,148 L790,160 L780,148 L800,135 L795,120 L810,105 L800,90 L810,75 Z"
+  },
+  { id:"canada", name:"Canada", area:180, lx:310, ly:180,
+    borders:["usa"],
+    d:"M60,80 L120,72 L180,68 L240,62 L300,58 L360,55 L420,58 L460,52 L500,58 L520,70 L510,90 L530,105 L515,125 L530,140 L515,158 L530,172 L510,185 L490,178 L470,190 L445,183 L420,195 L395,188 L370,198 L340,190 L310,200 L280,192 L250,202 L220,194 L190,204 L160,196 L130,206 L100,198 L75,210 L60,198 L50,182 L60,165 L45,148 L58,132 L45,115 L60,98 Z"
+  },
+  { id:"usa", name:"United States", area:150, lx:280, ly:280,
+    borders:["canada","mexico"],
+    d:"M68,210 L520,210 L524,218 L518,232 L528,248 L514,265 L524,280 L510,295 L495,288 L478,300 L460,292 L440,305 L418,297 L395,310 L368,300 L340,312 L308,302 L278,315 L245,304 L212,318 L178,308 L145,320 L110,310 L78,322 L60,310 L52,295 L62,278 L50,260 L64,242 L50,225 Z"
+  },
+  { id:"alaska", name:"Alaska", area:40, lx:95, ly:130,
+    borders:["canada","russia"],
+    d:"M30,95 L130,88 L145,100 L138,118 L148,132 L134,145 L118,138 L100,150 L82,142 L65,154 L48,145 L35,155 L22,142 L18,125 L28,110 Z"
+  },
+  { id:"greenland", name:"Greenland", area:35, lx:560, ly:85,
+    borders:["canada"],
+    d:"M525,55 L595,50 L615,65 L608,85 L618,100 L605,118 L588,112 L570,125 L550,118 L535,130 L518,120 L508,105 L515,88 L508,72 Z"
+  },
+  { id:"mexico", name:"Mexico", area:55, lx:195, ly:340,
+    borders:["usa","guatemala","belize"],
+    d:"M68,320 L240,318 L248,332 L238,348 L248,362 L235,375 L218,368 L200,380 L180,372 L160,385 L140,376 L120,388 L100,378 L80,390 L65,380 L58,365 L68,348 L55,332 Z"
+  },
+  { id:"cuba", name:"Cuba", area:12, lx:340, ly:348,
+    borders:["usa","mexico"],
+    d:"M298,338 L385,336 L390,345 L378,354 L360,352 L338,358 L312,354 L295,346 Z"
+  },
+  { id:"guatemala", name:"Guatemala", area:8, lx:178, ly:395,
+    borders:["mexico","belize","honduras","colombia"],
+    d:"M120,382 L218,380 L222,392 L212,402 L195,405 L175,402 L155,408 L135,402 L118,394 Z"
+  },
+  { id:"colombia", name:"Colombia", area:38, lx:290, ly:430,
+    borders:["venezuela","ecuador","peru","brazil","panama","guatemala"],
+    d:"M220,405 L352,402 L358,418 L350,432 L358,448 L342,460 L320,452 L298,465 L274,456 L250,468 L225,458 L208,445 L215,428 L205,415 Z"
+  },
+  { id:"venezuela", name:"Venezuela", area:35, lx:368, ly:428,
+    borders:["colombia","brazil","guyana","trinidad"],
+    d:"M350,402 L445,400 L452,415 L444,428 L452,442 L436,454 L412,446 L388,458 L362,448 L350,435 L358,420 Z"
+  },
+  { id:"ecuador", name:"Ecuador", area:14, lx:222, ly:470,
+    borders:["colombia","peru"],
+    d:"M200,458 L258,455 L262,468 L254,482 L238,488 L218,482 L198,472 Z"
+  },
+  { id:"peru", name:"Peru", area:55, lx:255, ly:510,
+    borders:["ecuador","colombia","brazil","bolivia","chile"],
+    d:"M195,475 L318,470 L325,488 L316,510 L322,532 L306,552 L280,560 L252,548 L225,555 L200,542 L185,522 L192,502 Z"
+  },
+  { id:"brazil", name:"Brazil", area:148, lx:400, ly:510,
+    borders:["venezuela","colombia","peru","bolivia","paraguay","argentina","uruguay"],
+    d:"M350,440 L530,438 L545,458 L555,480 L548,505 L555,528 L542,552 L520,568 L492,580 L462,592 L430,598 L398,590 L365,598 L335,585 L315,565 L308,542 L318,518 L312,492 L320,468 L338,452 Z"
+  },
+  { id:"bolivia", name:"Bolivia", area:38, lx:318, ly:570,
+    borders:["peru","brazil","paraguay","argentina","chile"],
+    d:"M250,550 L378,545 L382,562 L372,580 L378,598 L360,612 L335,618 L308,610 L280,618 L258,605 L245,588 L252,570 Z"
+  },
+  { id:"paraguay", name:"Paraguay", area:18, lx:368, ly:610,
+    borders:["bolivia","brazil","argentina"],
+    d:"M318,600 L420,596 L424,612 L415,628 L395,632 L370,628 L345,635 L322,622 L315,608 Z"
+  },
+  { id:"chile", name:"Chile", area:32, lx:248, ly:625,
+    borders:["peru","bolivia","argentina"],
+    d:"M215,600 L265,596 L268,618 L260,642 L250,668 L238,695 L224,720 L208,735 L195,725 L198,700 L210,672 L218,645 L212,618 Z"
+  },
+  { id:"argentina", name:"Argentina", area:80, lx:330, ly:660,
+    borders:["chile","bolivia","paraguay","brazil","uruguay"],
+    d:"M264,618 L445,612 L450,632 L442,655 L448,678 L435,702 L415,718 L390,725 L360,720 L330,728 L298,720 L268,728 L248,715 L238,695 L250,668 L260,642 L268,618 Z"
+  },
+  { id:"uruguay", name:"Uruguay", area:12, lx:405, ly:638,
+    borders:["brazil","argentina"],
+    d:"M380,628 L448,624 L452,640 L442,655 L418,660 L390,655 L375,642 Z"
+  },
+  // \u2500\u2500\u2500 Europe \u2500\u2500\u2500
+  { id:"iceland", name:"Iceland", area:12, lx:638, ly:118,
+    borders:["uk","norway"],
+    d:"M608,102 L672,98 L678,112 L668,128 L648,134 L625,128 L605,118 Z"
+  },
+  { id:"norway", name:"Norway", area:25, lx:862, ly:160,
+    borders:["russia","finland","sweden","iceland","uk"],
+    d:"M828,108 L875,102 L888,118 L878,138 L888,155 L872,170 L855,162 L838,174 L820,165 L810,150 L818,135 L808,118 Z"
+  },
+  { id:"sweden", name:"Sweden", area:22, lx:892, ly:178,
+    borders:["norway","finland","russia"],
+    d:"M875,108 L912,105 L918,122 L910,142 L916,160 L900,175 L882,168 L872,152 L880,135 L878,118 Z"
+  },
+  { id:"finland", name:"Finland", area:20, lx:928, ly:165,
+    borders:["norway","sweden","russia"],
+    d:"M910,108 L948,105 L952,122 L945,142 L950,162 L935,175 L918,168 L910,152 L916,135 L912,118 Z"
+  },
+  { id:"uk", name:"UK", area:14, lx:812, ly:205,
+    borders:["ireland","france","norway","iceland"],
+    d:"M790,188 L835,185 L840,200 L832,218 L818,225 L800,218 L788,205 Z"
+  },
+  { id:"ireland", name:"Ireland", area:10, lx:770, ly:208,
+    borders:["uk"],
+    d:"M748,195 L788,192 L792,208 L784,222 L765,225 L748,215 Z"
+  },
+  { id:"portugal", name:"Portugal", area:10, lx:755, ly:270,
+    borders:["spain"],
+    d:"M738,250 L772,248 L776,265 L768,282 L750,285 L736,272 Z"
+  },
+  { id:"spain", name:"Spain", area:28, lx:795, ly:262,
+    borders:["portugal","france","andorra","morocco"],
+    d:"M770,242 L858,240 L864,255 L856,272 L840,280 L815,285 L785,282 L768,268 Z"
+  },
+  { id:"france", name:"France", area:22, lx:832, ly:232,
+    borders:["spain","andorra","monaco","italy","switzerland","germany","luxembourg","belgium","uk"],
+    d:"M798,215 L868,212 L874,228 L866,248 L848,255 L820,258 L798,248 L792,232 Z"
+  },
+  { id:"germany", name:"Germany", area:18, lx:880, ly:218,
+    borders:["france","belgium","netherlands","denmark","poland","czechia","austria","switzerland"],
+    d:"M865,200 L912,198 L918,215 L910,232 L895,238 L872,235 L862,220 Z"
+  },
+  { id:"poland", name:"Poland", area:18, lx:920, ly:215,
+    borders:["germany","russia","belarus","ukraine","czechia","slovakia"],
+    d:"M910,198 L958,196 L962,212 L954,230 L938,236 L912,232 L906,218 Z"
+  },
+  { id:"czechia", name:"Czechia", area:10, lx:900, ly:232,
+    borders:["germany","poland","austria","slovakia"],
+    d:"M866,225 L920,222 L924,235 L916,245 L890,248 L865,242 Z"
+  },
+  { id:"austria", name:"Austria", area:10, lx:900, ly:248,
+    borders:["germany","czechia","slovakia","hungary","slovenia","italy","switzerland","liechtenstein"],
+    d:"M865,240 L935,237 L938,250 L928,260 L898,262 L866,255 Z"
+  },
+  { id:"switzerland", name:"Switzerland", area:8, lx:862, ly:245,
+    borders:["france","germany","austria","italy","liechtenstein"],
+    d:"M840,238 L876,235 L880,248 L870,258 L842,255 L836,245 Z"
+  },
+  { id:"italy", name:"Italy", area:20, lx:898, ly:270,
+    borders:["france","switzerland","austria","slovenia","san_marino","vatican"],
+    d:"M862,252 L920,250 L925,265 L918,282 L905,298 L888,312 L872,320 L858,308 L850,290 L855,272 Z"
+  },
+  { id:"greece", name:"Greece", area:12, lx:938, ly:295,
+    borders:["albania","north_macedonia","bulgaria","turkey"],
+    d:"M912,278 L958,275 L962,292 L954,310 L936,318 L915,312 L908,295 Z"
+  },
+  { id:"romania", name:"Romania", area:16, lx:958, ly:248,
+    borders:["ukraine","moldova","bulgaria","serbia","hungary"],
+    d:"M934,232 L985,230 L990,248 L982,265 L962,268 L936,262 L930,248 Z"
+  },
+  { id:"ukraine", name:"Ukraine", area:28, lx:978, ly:228,
+    borders:["russia","belarus","poland","slovakia","hungary","romania","moldova"],
+    d:"M955,210 L1040,208 L1046,225 L1038,242 L1010,248 L978,245 L952,240 L948,225 Z"
+  },
+  { id:"belarus", name:"Belarus", area:14, lx:968, ly:198,
+    borders:["russia","ukraine","poland","latvia","lithuania"],
+    d:"M946,182 L1002,180 L1008,198 L1000,215 L970,218 L944,212 Z"
+  },
+  { id:"turkey", name:"Turkey", area:32, lx:1010, ly:280,
+    borders:["greece","bulgaria","georgia","armenia","iran","iraq","syria"],
+    d:"M960,262 L1072,258 L1080,275 L1070,292 L1042,298 L1008,302 L975,298 L958,282 Z"
+  },
+  { id:"bulgaria", name:"Bulgaria", area:10, lx:960, ly:265,
+    borders:["romania","serbia","north_macedonia","greece","turkey"],
+    d:"M932,255 L985,252 L988,268 L978,280 L950,282 L930,272 Z"
+  },
+  { id:"hungary", name:"Hungary", area:10, lx:930, ly:252,
+    borders:["austria","slovakia","ukraine","romania","serbia","croatia","slovenia"],
+    d:"M902,242 L958,240 L962,255 L952,268 L922,270 L900,262 Z"
+  },
+  // \u2500\u2500\u2500 Africa \u2500\u2500\u2500
+  { id:"morocco", name:"Morocco", area:22, lx:790, ly:310,
+    borders:["spain","algeria","mauritania","western_sahara"],
+    d:"M760,290 L820,288 L826,308 L818,328 L795,335 L770,328 L756,312 Z"
+  },
+  { id:"algeria", name:"Algeria", area:55, lx:848, ly:325,
+    borders:["morocco","tunisia","libya","niger","mali","mauritania"],
+    d:"M818,285 L925,282 L932,310 L924,342 L895,358 L858,362 L820,355 L808,325 Z"
+  },
+  { id:"libya", name:"Libya", area:45, lx:928, ly:315,
+    borders:["algeria","tunisia","egypt","niger","chad","sudan"],
+    d:"M922,280 L1010,278 L1018,308 L1010,342 L982,358 L945,362 L920,348 L912,318 Z"
+  },
+  { id:"egypt", name:"Egypt", area:40, lx:1014, ly:308,
+    borders:["libya","sudan","israel","jordan","saudi"],
+    d:"M1008,278 L1082,275 L1090,305 L1082,335 L1052,348 L1018,345 L1005,320 Z"
+  },
+  { id:"mauritania", name:"Mauritania", area:30, lx:782, ly:358,
+    borders:["morocco","algeria","mali","senegal"],
+    d:"M750,332 L830,328 L835,355 L826,380 L795,385 L762,378 L746,358 Z"
+  },
+  { id:"mali", name:"Mali", area:42, lx:840, ly:370,
+    borders:["mauritania","algeria","niger","burkina","guinea","senegal"],
+    d:"M828,330 L922,328 L928,358 L920,390 L888,398 L850,402 L818,395 L808,362 Z"
+  },
+  { id:"niger", name:"Niger", area:42, lx:912, ly:368,
+    borders:["mali","algeria","libya","chad","nigeria","burkina","benin"],
+    d:"M920,330 L1008,328 L1014,360 L1006,392 L972,400 L935,405 L910,395 L905,362 Z"
+  },
+  { id:"chad", name:"Chad", area:40, lx:992, ly:368,
+    borders:["niger","libya","sudan","cameroon","nigeria","car"],
+    d:"M1005,328 L1078,325 L1085,358 L1076,392 L1044,402 L1008,405 L992,392 L990,360 Z"
+  },
+  { id:"sudan", name:"Sudan", area:42, lx:1065, ly:358,
+    borders:["egypt","libya","chad","car","south_sudan","ethiopia","eritrea"],
+    d:"M1080,305 L1148,302 L1155,335 L1148,370 L1118,385 L1082,388 L1058,375 L1052,342 Z"
+  },
+  { id:"senegal", name:"Senegal", area:10, lx:752, ly:402,
+    borders:["mauritania","mali","guinea","gambia"],
+    d:"M730,380 L778,378 L782,395 L774,412 L752,415 L730,408 Z"
+  },
+  { id:"guinea", name:"Guinea", area:12, lx:768, ly:420,
+    borders:["senegal","mali","sierra_leone","liberia","ivory_coast"],
+    d:"M742,408 L805,405 L810,422 L800,438 L775,442 L745,435 Z"
+  },
+  { id:"nigeria", name:"Nigeria", area:42, lx:878, ly:408,
+    borders:["niger","chad","cameroon","benin"],
+    d:"M842,395 L948,392 L954,415 L945,442 L912,450 L872,452 L840,442 L832,418 Z"
+  },
+  { id:"cameroon", name:"Cameroon", area:22, lx:968, ly:418,
+    borders:["nigeria","chad","car","congo","gabon","eq_guinea"],
+    d:"M945,392 L1010,390 L1016,415 L1008,442 L978,450 L948,448 L940,425 Z"
+  },
+  { id:"ethiopia", name:"Ethiopia", area:40, lx:1108, ly:408,
+    borders:["sudan","eritrea","djibouti","somalia","kenya","south_sudan"],
+    d:"M1072,385 L1155,382 L1162,408 L1152,435 L1120,448 L1085,452 L1060,438 L1052,412 Z"
+  },
+  { id:"somalia", name:"Somalia", area:28, lx:1165, ly:420,
+    borders:["ethiopia","kenya","djibouti"],
+    d:"M1150,378 L1205,375 L1215,405 L1205,442 L1178,462 L1152,458 L1140,435 L1142,408 Z"
+  },
+  { id:"south_sudan", name:"S. Sudan", area:28, lx:1065, ly:418,
+    borders:["sudan","ethiopia","car","drc","uganda","kenya"],
+    d:"M1040,385 L1120,382 L1126,408 L1116,432 L1082,438 L1048,432 L1035,412 Z"
+  },
+  { id:"kenya", name:"Kenya", area:24, lx:1122, ly:455,
+    borders:["ethiopia","somalia","tanzania","uganda","south_sudan"],
+    d:"M1085,435 L1152,432 L1158,455 L1148,478 L1115,485 L1082,478 L1072,455 Z"
+  },
+  { id:"drc", name:"D.R. Congo", area:65, lx:1002, ly:458,
+    borders:["cameroon","car","south_sudan","uganda","rwanda","burundi","tanzania","zambia","angola","congo"],
+    d:"M968,430 L1080,428 L1088,458 L1078,495 L1045,510 L1005,515 L968,508 L950,478 L955,452 Z"
+  },
+  { id:"angola", name:"Angola", area:38, lx:968, ly:515,
+    borders:["drc","zambia","namibia"],
+    d:"M942,498 L1060,495 L1065,522 L1055,552 L1020,562 L980,565 L945,555 L932,528 Z"
+  },
+  { id:"tanzania", name:"Tanzania", area:32, lx:1098, ly:490,
+    borders:["kenya","uganda","rwanda","burundi","drc","zambia","mozambique","malawi"],
+    d:"M1080,470 L1158,468 L1165,492 L1155,518 L1122,528 L1085,522 L1068,498 Z"
+  },
+  { id:"zambia", name:"Zambia", area:30, lx:1042, ly:532,
+    borders:["angola","drc","tanzania","malawi","mozambique","zimbabwe","botswana","namibia"],
+    d:"M1002,508 L1092,505 L1098,530 L1088,558 L1052,565 L1012,558 L998,535 Z"
+  },
+  { id:"mozambique", name:"Mozambique", area:25, lx:1098, ly:548,
+    borders:["tanzania","malawi","zambia","zimbabwe","south_africa","swaziland"],
+    d:"M1068,518 L1135,515 L1142,542 L1132,572 L1098,582 L1065,572 L1055,545 Z"
+  },
+  { id:"zimbabwe", name:"Zimbabwe", area:18, lx:1040, ly:555,
+    borders:["zambia","mozambique","south_africa","botswana"],
+    d:"M1008,535 L1082,532 L1088,558 L1078,578 L1042,582 L1008,575 Z"
+  },
+  { id:"namibia", name:"Namibia", area:22, lx:970, ly:558,
+    borders:["angola","zambia","botswana","south_africa"],
+    d:"M940,528 L1012,525 L1018,552 L1008,578 L975,585 L942,578 Z"
+  },
+  { id:"botswana", name:"Botswana", area:18, lx:1018, ly:578,
+    borders:["namibia","zambia","zimbabwe","south_africa"],
+    d:"M1008,555 L1075,552 L1080,575 L1068,598 L1030,602 L1000,595 Z"
+  },
+  { id:"south_africa", name:"S. Africa", area:42, lx:1012, ly:608,
+    borders:["namibia","botswana","zimbabwe","mozambique","swaziland","lesotho"],
+    d:"M940,578 L1098,575 L1106,605 L1095,638 L1055,652 L1010,655 L965,648 L935,618 Z"
+  },
+  { id:"madagascar", name:"Madagascar", area:22, lx:1182, ly:545,
+    borders:["mozambique"],
+    d:"M1158,502 L1205,500 L1212,528 L1202,562 L1178,578 L1155,565 L1148,538 Z"
+  },
+  // \u2500\u2500\u2500 Middle East \u2500\u2500\u2500
+  { id:"saudi", name:"Saudi Arabia", area:55, lx:1072, ly:338,
+    borders:["jordan","iraq","iran","uae","oman","qatar","bahrain","yemen"],
+    d:"M1048,295 L1148,292 L1155,322 L1148,358 L1118,378 L1078,385 L1042,378 L1025,348 L1032,318 Z"
+  },
+  { id:"iraq", name:"Iraq", area:22, lx:1075, ly:292,
+    borders:["turkey","iran","saudi","jordan","syria","kuwait"],
+    d:"M1045,262 L1112,258 L1120,278 L1112,302 L1085,315 L1052,312 L1038,292 Z"
+  },
+  { id:"syria", name:"Syria", area:14, lx:1045, ly:270,
+    borders:["turkey","iraq","jordan","lebanon","israel"],
+    d:"M1018,252 L1080,250 L1086,268 L1076,285 L1045,288 L1018,280 Z"
+  },
+  { id:"jordan", name:"Jordan", area:12, lx:1038, ly:298,
+    borders:["syria","iraq","saudi","israel"],
+    d:"M1012,275 L1055,272 L1062,292 L1052,312 L1025,318 L1008,302 Z"
+  },
+  { id:"iran", name:"Iran", area:55, lx:1135, ly:288,
+    borders:["turkey","iraq","saudi","uae","oman","pakistan","afghanistan","turkmenistan","armenia","azerbaijan"],
+    d:"M1082,252 L1195,248 L1205,275 L1198,308 L1165,328 L1122,335 L1082,325 L1068,298 Z"
+  },
+  { id:"yemen", name:"Yemen", area:22, lx:1098, ly:388,
+    borders:["saudi","oman"],
+    d:"M1058,375 L1148,372 L1155,392 L1145,415 L1108,422 L1068,415 L1050,395 Z"
+  },
+  { id:"oman", name:"Oman", area:18, lx:1172, ly:368,
+    borders:["uae","saudi","iran","yemen"],
+    d:"M1145,342 L1198,338 L1205,362 L1196,392 L1165,402 L1138,392 L1130,368 Z"
+  },
+  { id:"uae", name:"UAE", area:8, lx:1175, ly:342,
+    borders:["saudi","oman","iran"],
+    d:"M1148,325 L1195,322 L1200,340 L1188,352 L1155,355 L1142,342 Z"
+  },
+  // \u2500\u2500\u2500 Central/South Asia \u2500\u2500\u2500
+  { id:"kazakhstan", name:"Kazakhstan", area:62, lx:1215, ly:232,
+    borders:["russia","china","kyrgyzstan","tajikistan","uzbekistan","turkmenistan"],
+    d:"M1165,182 L1330,178 L1338,205 L1328,235 L1295,248 L1248,252 L1200,248 L1162,232 Z"
+  },
+  { id:"uzbekistan", name:"Uzbekistan", area:16, lx:1218, ly:268,
+    borders:["kazakhstan","tajikistan","kyrgyzstan","afghanistan","turkmenistan"],
+    d:"M1185,248 L1260,245 L1268,265 L1258,285 L1222,288 L1185,280 Z"
+  },
+  { id:"afghanistan", name:"Afghanistan", area:28, lx:1228, ly:298,
+    borders:["iran","pakistan","tajikistan","uzbekistan","turkmenistan","china"],
+    d:"M1195,272 L1292,268 L1300,292 L1288,318 L1250,325 L1205,322 L1188,302 Z"
+  },
+  { id:"pakistan", name:"Pakistan", area:38, lx:1262, ly:328,
+    borders:["iran","afghanistan","china","india"],
+    d:"M1200,315 L1308,312 L1318,338 L1308,368 L1268,378 L1225,372 L1198,352 Z"
+  },
+  { id:"india", name:"India", area:72, lx:1305, ly:388,
+    borders:["pakistan","china","nepal","bhutan","bangladesh","myanmar","srilanka"],
+    d:"M1262,362 L1375,358 L1385,390 L1375,425 L1348,452 L1308,465 L1265,458 L1240,428 L1238,395 Z"
+  },
+  { id:"nepal", name:"Nepal", area:10, lx:1335, ly:355,
+    borders:["india","china"],
+    d:"M1272,340 L1368,337 L1374,355 L1362,365 L1280,368 L1268,355 Z"
+  },
+  { id:"bangladesh", name:"Bangladesh", area:8, lx:1368, ly:388,
+    borders:["india","myanmar"],
+    d:"M1355,365 L1395,362 L1400,382 L1390,402 L1362,405 L1348,388 Z"
+  },
+  { id:"srilanka", name:"Sri Lanka", area:6, lx:1318, ly:468,
+    borders:["india"],
+    d:"M1295,452 L1332,448 L1338,468 L1325,485 L1300,482 Z"
+  },
+  // \u2500\u2500\u2500 East/SE Asia \u2500\u2500\u2500
+  { id:"mongolia", name:"Mongolia", area:55, lx:1388, ly:218,
+    borders:["russia","china"],
+    d:"M1315,182 L1498,178 L1506,205 L1495,232 L1438,242 L1372,245 L1315,238 Z"
+  },
+  { id:"china", name:"China", area:118, lx:1445, ly:295,
+    borders:["russia","mongolia","kazakhstan","kyrgyzstan","tajikistan","afghanistan","pakistan","india","nepal","bhutan","myanmar","laos","vietnam","north_korea"],
+    d:"M1302,232 L1512,228 L1525,262 L1518,305 L1495,338 L1455,352 L1398,358 L1345,350 L1302,325 L1288,295 Z"
+  },
+  { id:"north_korea", name:"N. Korea", area:10, lx:1548, ly:265,
+    borders:["china","russia","south_korea"],
+    d:"M1515,242 L1560,238 L1568,258 L1558,278 L1522,282 L1508,265 Z"
+  },
+  { id:"south_korea", name:"S. Korea", area:8, lx:1550, ly:285,
+    borders:["north_korea"],
+    d:"M1512,275 L1555,272 L1562,292 L1550,308 L1515,308 Z"
+  },
+  { id:"japan", name:"Japan", area:22, lx:1588, ly:262,
+    borders:["south_korea","china"],
+    d:"M1565,232 L1612,228 L1620,252 L1610,278 L1578,288 L1558,272 Z"
+  },
+  { id:"myanmar", name:"Myanmar", area:22, lx:1415, ly:378,
+    borders:["china","india","bangladesh","laos","thailand"],
+    d:"M1385,342 L1448,338 L1458,365 L1448,398 L1415,412 L1378,405 L1365,378 Z"
+  },
+  { id:"thailand", name:"Thailand", area:22, lx:1445, ly:412,
+    borders:["myanmar","laos","cambodia","malaysia"],
+    d:"M1415,392 L1472,388 L1482,415 L1471,445 L1438,452 L1405,445 L1398,418 Z"
+  },
+  { id:"vietnam", name:"Vietnam", area:18, lx:1492, ly:405,
+    borders:["china","laos","cambodia"],
+    d:"M1468,368 L1518,365 L1528,395 L1518,432 L1488,442 L1462,432 L1452,405 Z"
+  },
+  { id:"cambodia", name:"Cambodia", area:10, lx:1468, ly:445,
+    borders:["thailand","vietnam","laos"],
+    d:"M1435,428 L1488,425 L1494,448 L1482,465 L1448,468 L1428,452 Z"
+  },
+  { id:"laos", name:"Laos", area:12, lx:1470, ly:388,
+    borders:["china","vietnam","cambodia","thailand","myanmar"],
+    d:"M1445,358 L1490,355 L1498,382 L1488,408 L1458,412 L1440,392 Z"
+  },
+  { id:"malaysia", name:"Malaysia", area:14, lx:1462, ly:468,
+    borders:["thailand","indonesia","singapore","brunei"],
+    d:"M1415,452 L1495,448 L1502,468 L1490,485 L1428,488 L1408,472 Z"
+  },
+  { id:"philippines", name:"Philippines", area:18, lx:1545, ly:420,
+    borders:["indonesia","malaysia"],
+    d:"M1518,390 L1572,386 L1580,415 L1568,448 L1535,455 L1508,442 L1502,415 Z"
+  },
+  { id:"indonesia", name:"Indonesia", area:68, lx:1505, ly:498,
+    borders:["malaysia","timor","papua"],
+    d:"M1412,470 L1650,465 L1660,488 L1648,510 L1415,515 L1400,492 Z"
+  },
+  // \u2500\u2500\u2500 Oceania \u2500\u2500\u2500
+  { id:"papua", name:"Papua N.G.", area:28, lx:1672, ly:490,
+    borders:["indonesia","australia"],
+    d:"M1645,462 L1715,458 L1722,482 L1710,508 L1672,515 L1642,505 Z"
+  },
+  { id:"australia", name:"Australia", area:128, lx:1615, ly:580,
+    borders:["indonesia","papua","new_zealand"],
+    d:"M1452,505 L1725,500 L1738,538 L1732,582 L1705,622 L1655,645 L1590,655 L1520,648 L1462,622 L1432,580 L1435,542 Z"
+  },
+  { id:"new_zealand", name:"New Zealand", area:16, lx:1755, ly:618,
+    borders:["australia"],
+    d:"M1728,588 L1775,582 L1785,610 L1772,645 L1742,658 L1718,642 L1715,618 Z"
+  },
 ];
 
 function buildAdj(){
@@ -291,25 +553,6 @@ function startTerr(existing){
   return nb?[first.id,nb]:[first.id];
 }
 
-function todayStr(){return new Date().toISOString().slice(0,10);}
-
-function rndName(){
-  const adj=["Bold","Swift","Iron","Brave","Dark","Gold","Storm","Fire"];
-  const noun=["Wolf","Eagle","Bear","Lion","Fox","Hawk","Tiger","Drake"];
-  return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
-}
-
-function calcDamage(tank,bomb,plane,missile,bomber){
-  return Math.round((tank*DMG.tank+bomb*DMG.bomb+plane*DMG.plane+missile*DMG.missile+bomber*DMG.bomber)*10)/10;
-}
-
-function calcWinChance(area,damage,spyCount,academySpies,airDef){
-  const base=Math.min(0.95,damage/(area*0.8));
-  const spyBonus=(spyCount+academySpies)*0.01;
-  const defPenalty=airDef*0.05;
-  return Math.max(0.02,Math.min(0.97,base+spyBonus-defPenalty));
-}
-
 const STAR_DATA=Array.from({length:60},(_,i)=>({
   top:(i*17+i*i*3)%100,
   left:(i*23+i*i*7)%100,
@@ -331,10 +574,10 @@ function Stars(){
   );
 }
 
-const starCss="@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.7}} @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}} @keyframes si{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes digitPop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} .digit-box{transition:all .15s;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;width:40px;height:52px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;color:white;background:rgba(255,255,255,.05);font-family:Georgia,serif} .digit-box.active{border-color:#f5c842;box-shadow:0 0 12px rgba(245,200,66,.3)} .digit-box.filled{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.1);animation:digitPop .2s ease} .frbtn{transition:all .15s} .frbtn:hover{filter:brightness(1.15)} .cp{transition:filter .12s,opacity .12s} .cp:hover{filter:brightness(1.2)}";
+const starCss="@keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.65}} @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}} @keyframes si{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes digitPop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}} .digit-box{transition:all .18s cubic-bezier(.34,1.56,.64,1);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;width:42px;height:54px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;color:white;background:rgba(255,255,255,.04);font-family:Georgia,serif} .digit-box.active{border-color:#f5c842;box-shadow:0 0 16px rgba(245,200,66,.25);background:rgba(245,200,66,.06)} .digit-box.filled{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.09);animation:digitPop .25s cubic-bezier(.34,1.56,.64,1)} .frbtn{transition:all .15s ease} .frbtn:hover{filter:brightness(1.12);transform:translateY(-1px)} .frbtn:active{transform:translateY(0)} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.05)} input:focus{outline:none!important;border-color:rgba(245,200,66,.5)!important;box-shadow:0 0 0 2px rgba(245,200,66,.12)!important}";
 
-const bgStyle={minHeight:"100vh",background:"radial-gradient(ellipse at 50% 30%,#0d1f3c,#060d1a)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",position:"relative"};
-const card={background:"linear-gradient(135deg,#0a1628,#0d1f38)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"20px",padding:"36px",width:"420px",position:"relative",zIndex:1};
+const bgStyle={minHeight:"100vh",background:"radial-gradient(ellipse at 40% 20%,#0d1f3c 0%,#081428 50%,#030810 100%)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif",position:"relative",overflow:"hidden"};
+const card={background:"linear-gradient(160deg,#0c1e35,#0a1628)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"22px",padding:"36px",width:"420px",position:"relative",zIndex:1,boxShadow:"0 32px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)"};
 
 export default function EarthConquest(){
   const [screen,setScreen]=useState("home");
@@ -358,12 +601,14 @@ export default function EarthConquest(){
   const [reachable,setReachable]=useState(new Set());
   const [showShop,setShowShop]=useState(false);
   const [showBuildShop,setShowBuildShop]=useState(false);
+  const [showMatShop,setShowMatShop]=useState(false);
   const [showDaily,setShowDaily]=useState(false);
   const [showTerraPass,setShowTerraPass]=useState(false);
   const [attackPlan,setAttackPlan]=useState(null);
   const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
+  const [difficulty,setDifficulty]=useState("normal");
   const [botInventories,setBotInventories]=useState({});
   const [playerXP,setPlayerXP]=useState(0);
   const [achievements,setAchievements]=useState([]);
@@ -444,28 +689,47 @@ export default function EarthConquest(){
 
   useEffect(()=>{
     if(!isSingleplayer||screen!=="map")return;
+    const cfg=DIFF[difficulty]||DIFF.normal;
     const tick=setInterval(()=>{
       const o=ownershipRef.current;
       const bInv=botInvRef.current;
+
+      // check if player has been eliminated
+      const playerTerr=Object.keys(o).filter(id=>o[id]===username);
+      if(playerTerr.length===0){
+        setScreen("eliminated");
+        return;
+      }
+
       BOT_NAMES.forEach(bot=>{
         const bMine=Object.keys(o).filter(id=>o[id]===bot);
         if(bMine.length===0)return;
+        if(Math.random()>cfg.attackChance)return;
         const reach=getReachable(bMine,2);
         const targets=[...reach].filter(id=>o[id]!==bot);
         if(targets.length===0)return;
-        const target=targets.sort((a,b)=>{const ca=COUNTRIES.find(c=>c.id===a);const cb=COUNTRIES.find(c=>c.id===b);return (ca?.area||99)-(cb?.area||99);})[0];
+        // hard bots prefer player territories; easy bots pick randomly
+        let target;
+        if(difficulty==="hard"){
+          const playerTargets=targets.filter(id=>o[id]===username);
+          target=(playerTargets.length>0&&Math.random()<0.6)?playerTargets[Math.floor(Math.random()*playerTargets.length)]:targets[Math.floor(Math.random()*targets.length)];
+        }else if(difficulty==="easy"){
+          target=targets[Math.floor(Math.random()*targets.length)];
+        }else{
+          target=targets.sort((a,b)=>{const ca=COUNTRIES.find(c=>c.id===a);const cb=COUNTRIES.find(c=>c.id===b);return (ca?.area||99)-(cb?.area||99);})[0];
+        }
         const newO={...o,[target]:bot};
         ownershipRef.current=newO;
         setOwnership(newO);
-        const inv=bInv[bot]||{coins:800,tank:5,bomb:3,plane:1,missile:1,bomber:0};
-        const newInv={...inv,coins:inv.coins+50};
+        const inv=bInv[bot]||{coins:cfg.startCoins,tank:cfg.startTank,bomb:cfg.startBomb,plane:1,missile:cfg.startMissile,bomber:cfg.startBomber};
+        const newInv={...inv,coins:inv.coins+cfg.coinsPerTick};
         const newBInv={...bInv,[bot]:newInv};
         botInvRef.current=newBInv;
         setBotInventories(newBInv);
       });
-    },2000);
+    },cfg.tickMs);
     return()=>clearInterval(tick);
-  },[isSingleplayer,screen]);
+  },[isSingleplayer,screen,difficulty]);
 
   const addXP=async(amount)=>{
     setPlayerXP(prev=>{
@@ -578,19 +842,28 @@ export default function EarthConquest(){
     setScreen("map");
   };
 
-  const startSingleplayer=()=>{
+  const DIFF={
+    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:20, attackChance:0.5},
+    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:50, attackChance:0.75},
+    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:100,attackChance:1.0},
+  };
+
+  const startSingleplayer=(diff)=>{
+    setDifficulty(diff);
+    const cfg=DIFF[diff];
     const o={};
-    const startForPlayer=(name,colorIdx,isBot)=>{
+    const startForPlayer=(name)=>{
       const terr=startTerr(o);
       terr.forEach(id=>{o[id]=name;});
-      return{cidx:colorIdx,joinedAt:Date.now()};
     };
     const p={};
-    p[username]=startForPlayer(username,0,false);
+    startForPlayer(username);
+    p[username]={cidx,joinedAt:Date.now()};
     const botInvs={};
     BOT_NAMES.forEach((bot,i)=>{
-      p[bot]=startForPlayer(bot,i+1,true);
-      botInvs[bot]={coins:800,tank:5,bomb:3,plane:1,missile:1,bomber:0};
+      startForPlayer(bot);
+      p[bot]={cidx:i+1,joinedAt:Date.now()};
+      botInvs[bot]={coins:cfg.startCoins,tank:cfg.startTank,bomb:cfg.startBomb,plane:1,missile:cfg.startMissile,bomber:cfg.startBomber};
     });
     setBotInventories(botInvs);
     botInvRef.current=botInvs;
@@ -630,15 +903,19 @@ export default function EarthConquest(){
     flash("[Gift] Terra Pass Level "+level+": "+pass.label+" claimed!","success");
   };
 
-  const buyItem=async(item)=>{
-    const buildings=myInventory.buildings||[];
+  const getItemPrice=(item,buildings)=>{
     let price=item.price;
     if(item.id==="tank"){const bc=buildings.filter(b=>b==="barracks").length;price=Math.floor(price*Math.pow(0.8,bc));}
     if(item.id==="plane"){const ac=buildings.filter(b=>b==="airbase").length;price=Math.floor(price*Math.pow(0.85,ac));}
     if(item.id==="bomber"&&buildings.includes("embassy"))price=Math.floor(price*0.9);
+    return price;
+  };
+
+  const buyItem=async(item)=>{
+    const buildings=myInventory.buildings||[];
+    const price=getItemPrice(item,buildings);
     if(myInventory.coins<price){flash("Not enough coins!","error");return;}
-    const qty=item.id==="air_def"?1:1;
-    const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+qty};
+    const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+1};
     setMyInventory(newInv);
     await saveInv(newInv);
     flash("Bought "+item.label+"!","success");
@@ -663,6 +940,23 @@ export default function EarthConquest(){
     await saveInv(newInv);
     flash("Built "+bld.label+"!","success");
     progressMission("builds",1);
+    checkAchievements(newInv,ownership);
+  };
+
+  const MAT_SHOP=[
+    {id:"wood",  label:"Wood",  color:"#84cc16", prices:[{qty:1,cost:200},{qty:5,cost:900},{qty:10,cost:1600}]},
+    {id:"stone", label:"Stone", color:"#94a3b8", prices:[{qty:1,cost:250},{qty:5,cost:1100},{qty:10,cost:2000}]},
+    {id:"iron",  label:"Iron",  color:"#6b7280", prices:[{qty:1,cost:400},{qty:5,cost:1800},{qty:10,cost:3200}]},
+    {id:"gold",  label:"Gold",  color:"#f59e0b", prices:[{qty:1,cost:800},{qty:5,cost:3500},{qty:10,cost:6500}]},
+  ];
+
+  const buyMaterial=async(matId,qty,cost)=>{
+    if(myInventory.coins<cost){flash("Not enough coins!","error");return;}
+    const newInv={...myInventory,coins:myInventory.coins-cost,[matId]:(myInventory[matId]||0)+qty};
+    setMyInventory(newInv);
+    await saveInv(newInv);
+    flash("Bought "+qty+"x "+matId+"!","success");
+    progressMission("coinsEarned",0);
     checkAchievements(newInv,ownership);
   };
 
@@ -733,13 +1027,13 @@ export default function EarthConquest(){
       <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at 50% 50%,#1a0000,#000)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Georgia,serif"}}>
         <style>{"@keyframes elimIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}} @keyframes skull{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}"}</style>
         <div style={{textAlign:"center",animation:"elimIn .5s ease",padding:"40px"}}>
-          <div style={{fontSize:"100px",animation:"skull 2s ease infinite",marginBottom:"16px"}}>X</div>
+          <svg width="100" height="100" viewBox="0 0 100 100" style={{marginBottom:"16px",animation:"skull 2s ease infinite",filter:"drop-shadow(0 0 20px rgba(239,68,68,.5))"}}><circle cx="50" cy="50" r="45" fill="rgba(239,68,68,.15)" stroke="#ef4444" strokeWidth="2"/><line x1="30" y1="30" x2="70" y2="70" stroke="#ef4444" strokeWidth="5" strokeLinecap="round"/><line x1="70" y1="30" x2="30" y2="70" stroke="#ef4444" strokeWidth="5" strokeLinecap="round"/></svg>
           <h1 style={{color:"#ef4444",fontSize:"36px",letterSpacing:"4px",margin:"0 0 8px",textTransform:"uppercase"}}>Eliminated</h1>
           <p style={{color:"rgba(255,255,255,.5)",fontSize:"14px",margin:"0 0 8px"}}>You have lost all your territories.</p>
           <p style={{color:"rgba(255,255,255,.3)",fontSize:"12px",margin:"0 0 32px"}}>Room <span style={{color:"#f5c842"}}>{roomCode}</span> continues without you.</p>
           <div style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"14px",padding:"20px 32px",marginBottom:"28px",display:"inline-block"}}>
             <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",marginBottom:"12px",textTransform:"uppercase"}}>Your Final Stats</div>
-            <div style={{color:"#f5c842",fontSize:"18px",fontWeight:"bold",marginBottom:"6px"}}>$ {myInventory.coins.toLocaleString()} coins remaining</div>
+            <div style={{color:"#f5c842",fontSize:"18px",fontWeight:"bold",marginBottom:"6px"}}>{myInventory.coins.toLocaleString()} coins remaining</div>
           </div>
           <br/>
           <button onClick={()=>{setScreen("menu");setMenuTab("multiplayer");setOwnership({});setPlayers({});setRoomCode("");}}
@@ -756,9 +1050,9 @@ export default function EarthConquest(){
       <div style={bgStyle}>
         <Stars/><style>{starCss}</style>
         <div style={{...card,width:"380px",textAlign:"center"}}>
-          <div style={{fontSize:"52px",marginBottom:"8px",animation:"pu 3s infinite"}}>Globe</div>
-          <h1 style={{color:"#fff",fontSize:"24px",margin:"0 0 4px",letterSpacing:"4px",textTransform:"uppercase"}}>TERRA CONQUEST</h1>
-          <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 28px",letterSpacing:"2px"}}>World domination awaits</p>
+          <svg width="64" height="64" viewBox="0 0 64 64" style={{marginBottom:"12px",filter:"drop-shadow(0 0 18px rgba(245,200,66,.4))",animation:"pu 3s infinite"}}><circle cx="32" cy="32" r="28" fill="none" stroke="#f5c842" strokeWidth="2.5"/><ellipse cx="32" cy="32" rx="14" ry="28" fill="none" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="4" y1="32" x2="60" y2="32" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="32" y1="4" x2="32" y2="60" stroke="#f5c842" strokeWidth="1.5" opacity=".4"/><ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#f5c842" strokeWidth="1" opacity=".3"/></svg>
+          <h1 style={{color:"#fff",fontSize:"26px",margin:"0 0 5px",letterSpacing:"5px",textTransform:"uppercase",textShadow:"0 0 30px rgba(245,200,66,.3)"}}>TERRA CONQUEST</h1>
+          <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 28px",letterSpacing:"3px"}}>CONQUER THE WORLD</p>
           <input value={inputName} onChange={e=>setInputName(e.target.value)} placeholder="Username (leave blank for random)"
             style={{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.15)",borderRadius:"10px",color:"white",fontSize:"13px",fontFamily:"Georgia,serif",boxSizing:"border-box",marginBottom:"10px"}}/>
           <input value={inputPassword} onChange={e=>setInputPassword(e.target.value)} placeholder="Password" type="password"
@@ -766,7 +1060,7 @@ export default function EarthConquest(){
             style={{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.15)",borderRadius:"10px",color:"white",fontSize:"13px",fontFamily:"Georgia,serif",boxSizing:"border-box",marginBottom:"10px"}}/>
           {loginError&&<div style={{color:"#fca5a5",fontSize:"11px",marginBottom:"10px"}}>{loginError}</div>}
           <button onClick={handleLogin}
-            style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(212,160,23,.4)"}}>
+            style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 28px rgba(212,160,23,.45)",transition:"all .2s ease"}}>
             LOGIN / REGISTER
           </button>
         </div>
@@ -792,7 +1086,7 @@ export default function EarthConquest(){
         <Stars/><style>{starCss}</style>
         <div style={{...card,padding:"0",width:"480px",overflow:"hidden"}}>
           <div style={{padding:"28px 32px 0",textAlign:"center"}}>
-            <div style={{fontSize:"48px",animation:"pu 3s infinite"}}>Globe</div>
+            <svg width="48" height="48" viewBox="0 0 64 64" style={{marginBottom:"6px",filter:"drop-shadow(0 0 12px rgba(245,200,66,.3))",animation:"pu 3s infinite"}}><circle cx="32" cy="32" r="28" fill="none" stroke="#f5c842" strokeWidth="2.5"/><ellipse cx="32" cy="32" rx="14" ry="28" fill="none" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="4" y1="32" x2="60" y2="32" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#f5c842" strokeWidth="1" opacity=".3"/></svg>
             <h1 style={{color:"#fff",fontSize:"22px",margin:"6px 0 2px",letterSpacing:"4px",textTransform:"uppercase"}}>TERRA CONQUEST</h1>
             <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 20px",letterSpacing:"2px"}}>
               Welcome, <span style={{color:"#f5c842",fontWeight:"bold"}}>{username}</span>
@@ -811,10 +1105,19 @@ export default function EarthConquest(){
           <div style={{padding:"24px 32px 28px",maxHeight:"480px",overflowY:"auto"}}>
             {menuTab==="main"&&(
               <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
-                <button onClick={startSingleplayer}
-                  style={{padding:"14px",background:"linear-gradient(135deg,#16a34a,#22c55e)",border:"none",borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif"}}>
-                  SINGLEPLAYER
-                </button>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",textAlign:"center",marginBottom:"2px"}}>Singleplayer</div>
+                {[
+                  {diff:"easy",   label:"EASY",   sub:"Slow bots, small army",    grad:"linear-gradient(135deg,#166534,#16a34a)", glow:"rgba(22,163,74,.35)"},
+                  {diff:"normal", label:"NORMAL",  sub:"Balanced challenge",        grad:"linear-gradient(135deg,#1e3a5f,#2563eb)", glow:"rgba(37,99,235,.35)"},
+                  {diff:"hard",   label:"HARD",    sub:"Aggressive, targets you",   grad:"linear-gradient(135deg,#7f1d1d,#dc2626)", glow:"rgba(220,38,38,.35)"},
+                ].map(({diff,label,sub,grad,glow})=>(
+                  <button key={diff} onClick={()=>startSingleplayer(diff)}
+                    style={{padding:"12px 16px",background:grad,border:"none",borderRadius:"12px",color:"white",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",boxShadow:"0 6px 20px "+glow,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:"13px",fontWeight:"bold",letterSpacing:"2px"}}>{label}</span>
+                    <span style={{fontSize:"10px",color:"rgba(255,255,255,.6)"}}>{sub}</span>
+                  </button>
+                ))}
+                <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"2px 0"}}/>
                 <button onClick={()=>setMenuTab("multiplayer")}
                   style={{padding:"14px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"none",borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif"}}>
                   MULTIPLAYER
@@ -920,12 +1223,12 @@ export default function EarthConquest(){
                 style={{width:"52px",height:"52px",borderRadius:"12px",background:c.bg,
                   cursor:"pointer",border:cidx===i?"3px solid white":"3px solid transparent",
                   boxShadow:cidx===i?"0 0 16px "+c.bg:"none",opacity:cidx===i?1:0.6}}>
-                {cidx===i&&<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:"18px",fontWeight:"bold"}}>*</div>}
+                {cidx===i&&<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width="22" height="22" viewBox="0 0 22 22"><polyline points="4,12 9,17 18,6" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>}
               </div>
             ))}
           </div>
           <button onClick={startGame}
-            style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"15px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 24px rgba(212,160,23,.4)"}}>
+            style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"15px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 28px rgba(212,160,23,.45)",transition:"all .2s ease"}}>
             ENTER THE WORLD
           </button>
         </div>
@@ -935,13 +1238,13 @@ export default function EarthConquest(){
 
   return(
     <div style={{width:"100vw",height:"100vh",background:"#060d1a",display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"Georgia,serif",userSelect:"none"}}>
-      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}} @keyframes gl{0%,100%{opacity:.7}50%{opacity:1}} @keyframes coinIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}} .cp{transition:filter .12s,opacity .12s} .cp:hover{filter:brightness(1.2)}"}</style>
+      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.15),0 0 16px rgba(239,68,68,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease}"}</style>
 
       {notif&&(
         <div style={{position:"fixed",top:"16px",left:"50%",transform:"translateX(-50%)",zIndex:9999,
           padding:"10px 20px",borderRadius:"10px",fontSize:"13px",fontWeight:"bold",fontFamily:"Georgia,serif",
           background:notif.type==="success"?"#16a34a":notif.type==="error"?"#dc2626":"#2563eb",
-          color:"white",boxShadow:"0 4px 20px rgba(0,0,0,.5)",animation:"coinIn .3s ease",whiteSpace:"nowrap"}}>
+          color:"white",boxShadow:"0 8px 32px rgba(0,0,0,.6)",animation:"coinIn .3s ease",whiteSpace:"nowrap",letterSpacing:".3px"}}>
           {notif.msg}
         </div>
       )}
@@ -1057,6 +1360,53 @@ export default function EarthConquest(){
         </div>
       )}
 
+      {showMatShop&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.78)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}}
+          onClick={e=>{if(e.target===e.currentTarget)setShowMatShop(false);}}>
+          <div style={{background:"linear-gradient(135deg,#0a1628,#0d1f38)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"20px",padding:"32px",width:"460px",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 40px 80px rgba(0,0,0,.6)",animation:"modalIn .3s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+              <div>
+                <h2 style={{color:"white",fontSize:"18px",margin:"0 0 3px",letterSpacing:"1px"}}>Material Shop</h2>
+                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Coins: <span style={{color:"#f5c842",fontWeight:"bold"}}>{myInventory.coins.toLocaleString()}</span></p>
+              </div>
+              <button onClick={()=>setShowMatShop(false)} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>X</button>
+            </div>
+            <div style={{background:"rgba(255,255,255,.03)",borderRadius:"10px",padding:"10px 14px",marginBottom:"18px"}}>
+              <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Your Stock</div>
+              <div style={{display:"flex",gap:"14px"}}>
+                {MATERIALS.map(m=>(
+                  <div key={m.id} style={{textAlign:"center"}}>
+                    <div style={{color:m.color,fontWeight:"bold",fontSize:"16px"}}>{myInventory[m.id]||0}</div>
+                    <div style={{color:"rgba(255,255,255,.35)",fontSize:"9px"}}>{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {MAT_SHOP.map(mat=>(
+              <div key={mat.id} style={{marginBottom:"14px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:"12px",padding:"14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"10px"}}>
+                  <div style={{width:"10px",height:"10px",borderRadius:"3px",background:mat.color,flexShrink:0}}/>
+                  <span style={{color:mat.color,fontWeight:"bold",fontSize:"14px"}}>{mat.label}</span>
+                  <span style={{color:"rgba(255,255,255,.3)",fontSize:"10px",marginLeft:"auto"}}>have: {myInventory[mat.id]||0}</span>
+                </div>
+                <div style={{display:"flex",gap:"8px"}}>
+                  {mat.prices.map(p=>{
+                    const can=myInventory.coins>=p.cost;
+                    return(
+                      <button key={p.qty} onClick={()=>buyMaterial(mat.id,p.qty,p.cost)} disabled={!can}
+                        style={{flex:1,padding:"8px 4px",background:can?"linear-gradient(135deg,"+mat.color+"33,"+mat.color+"55)":"rgba(255,255,255,.04)",border:"1px solid "+(can?mat.color+"66":"rgba(255,255,255,.08)"),borderRadius:"8px",color:can?mat.color:"rgba(255,255,255,.2)",cursor:can?"pointer":"not-allowed",fontFamily:"Georgia,serif",textAlign:"center"}}>
+                        <div style={{fontWeight:"bold",fontSize:"13px"}}>x{p.qty}</div>
+                        <div style={{fontSize:"10px",marginTop:"2px"}}>{p.cost.toLocaleString()}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {showShop&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.78)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}}
           onClick={e=>{if(e.target===e.currentTarget)setShowShop(false);}}>
@@ -1070,10 +1420,7 @@ export default function EarthConquest(){
             </div>
             {SHOP_ITEMS.map(item=>{
               const buildings=myInventory.buildings||[];
-              let price=item.price;
-              if(item.id==="tank"){const bc=buildings.filter(b=>b==="barracks").length;price=Math.floor(price*Math.pow(0.8,bc));}
-              if(item.id==="plane"){const ac=buildings.filter(b=>b==="airbase").length;price=Math.floor(price*Math.pow(0.85,ac));}
-              if(item.id==="bomber"&&buildings.includes("embassy"))price=Math.floor(price*0.9);
+              const price=getItemPrice(item,buildings);
               const can=myInventory.coins>=price;
               const owned=myInventory[item.id]||0;
               return(
@@ -1226,102 +1573,185 @@ export default function EarthConquest(){
         </div>
       )}
 
-      <div style={{background:"rgba(0,0,0,.92)",borderBottom:"1px solid rgba(255,255,255,.07)",padding:"7px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,gap:"8px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
-          <div style={{width:"8px",height:"8px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 5px "+myC.bg}}/>
-          <span style={{color:"white",fontSize:"11px"}}>{username}</span>
-          <span style={{color:myC.light,fontSize:"10px",fontWeight:"bold"}}>{mine.length} terr</span>
+      {/* top bar - minimal: just player info + attack + exit */}
+      <div style={{background:"rgba(4,10,22,.95)",borderBottom:"1px solid rgba(255,255,255,.1)",padding:"7px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+          <div style={{width:"9px",height:"9px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 6px "+myC.bg}}/>
+          <span style={{color:"white",fontSize:"12px",fontWeight:"bold"}}>{username}</span>
+          <span style={{color:myC.light,fontSize:"11px"}}>{mine.length} territories</span>
+          <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px",marginLeft:"8px"}}>{myInventory.coins.toLocaleString()} coins</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-          <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px"}}>{myInventory.coins.toLocaleString()} coins</span>
-          {canClaimDaily&&<button onClick={()=>setShowDaily(true)} style={{padding:"4px 8px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"6px",color:"#000",fontSize:"10px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif"}}>DAILY</button>}
-          <button onClick={()=>setShowShop(true)} style={{padding:"4px 9px",background:"rgba(239,68,68,.2)",border:"1px solid rgba(239,68,68,.4)",borderRadius:"6px",color:"#fca5a5",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>SHOP</button>
-          <button onClick={()=>setShowBuildShop(true)} style={{padding:"4px 9px",background:"rgba(16,185,129,.2)",border:"1px solid rgba(16,185,129,.4)",borderRadius:"6px",color:"#6ee7b7",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>BUILD</button>
-          <button onClick={()=>setShowTerraPass(true)} style={{padding:"4px 9px",background:"rgba(139,92,246,.2)",border:"1px solid rgba(139,92,246,.4)",borderRadius:"6px",color:"#c4b5fd",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>PASS</button>
+        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
           <button onClick={()=>setAttackMode(m=>!m)}
-            style={{padding:"4px 9px",background:attackMode?"linear-gradient(135deg,#dc2626,#ef4444)":"rgba(255,255,255,.08)",border:attackMode?"none":"1px solid rgba(255,255,255,.15)",borderRadius:"6px",color:attackMode?"white":"rgba(255,255,255,.6)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":undefined}}>
-            {attackMode?"CANCEL ATK":"ATTACK"}
+            style={{padding:"5px 14px",background:attackMode?"linear-gradient(135deg,#dc2626,#ef4444)":"rgba(255,255,255,.08)",border:attackMode?"none":"1px solid rgba(255,255,255,.15)",borderRadius:"7px",color:attackMode?"white":"rgba(255,255,255,.7)",cursor:"pointer",fontSize:"11px",fontWeight:"bold",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":undefined}}>
+            {attackMode?"CANCEL ATTACK":"ENTER ATTACK MODE"}
           </button>
           <button onClick={()=>{setAttackMode(false);setScreen("menu");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
-            style={{padding:"4px 9px",background:"transparent",border:"1px solid rgba(255,255,255,.12)",borderRadius:"6px",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif"}}>
+            style={{padding:"5px 12px",background:"transparent",border:"1px solid rgba(255,255,255,.12)",borderRadius:"7px",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif"}}>
             Exit
           </button>
         </div>
       </div>
 
-      <div style={{flex:1,overflow:"hidden",position:"relative"}}>
-        <svg ref={svgRef} viewBox="0 0 1800 950" style={{width:"100%",height:"100%"}}
-          onMouseMove={e=>{
-            const r=svgRef.current?.getBoundingClientRect();
-            if(r)setTip(t=>({...t,x:e.clientX-r.left,y:e.clientY-r.top}));
-          }}
-          onMouseLeave={()=>{setHovered(null);setTip(t=>({...t,show:false}));}}>
-          <rect width="1800" height="950" fill="#0a1628"/>
-          <rect width="1800" height="950" fill="url(#ocean)"/>
-          <defs>
-            <radialGradient id="ocean" cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stopColor="#0d2444"/>
-              <stop offset="100%" stopColor="#060d1a"/>
-            </radialGradient>
-          </defs>
-          {COUNTRIES.map(c=>{
-            const owner=ownership[c.id];
-            const isMe=owner===username;
-            const ownerIdx=owner&&players[owner]?players[owner].cidx:null;
-            const fillColor=owner?(CLRS[ownerIdx%CLRS.length]?.bg||"#555"):"#1e3a5f";
-            const inReach=reachable.has(c.id);
-            const isHovered=hovered===c.id;
-            let stroke="rgba(255,255,255,.12)";
-            let sw=0.5;
-            let fill=fillColor;
-            if(isMe){stroke="#ffffff";sw=1;}
-            if(attackMode&&inReach&&!isMe){stroke="#ff4444";sw=2;fill=isHovered?"#ff2222":fillColor;}
-            if(isHovered&&!attackMode){fill=isMe?"#ffffff22":fillColor+"dd";}
-            return(
-              <path key={c.id} d={c.d} fill={fill} stroke={stroke} strokeWidth={sw}
-                style={{cursor:attackMode&&inReach&&!isMe?"crosshair":"default",transition:"fill .15s"}}
-                onMouseEnter={e=>{
-                  setHovered(c.id);
-                  const r=svgRef.current?.getBoundingClientRect();
-                  if(r)setTip({show:true,x:e.clientX-r.left,y:e.clientY-r.top,c,owner:owner||null,inReach:attackMode&&inReach&&!isMe});
-                }}
-                onMouseLeave={()=>{setHovered(null);setTip(t=>({...t,show:false}));}}
-                onClick={()=>startAttack(c)}
-              />
-            );
-          })}
-        </svg>
+      {/* main area: map + right sidebar */}
+      <div style={{flex:1,overflow:"hidden",display:"flex"}}>
 
-        {tip.show&&tip.c&&(
-          <div style={{position:"absolute",left:tip.x+12,top:tip.y-8,pointerEvents:"none",zIndex:100,
-            background:"rgba(6,13,26,.96)",border:"1px solid rgba(255,255,255,.15)",borderRadius:"10px",padding:"10px 14px",minWidth:"140px"}}>
-            <div style={{color:"white",fontWeight:"bold",fontSize:"12px",marginBottom:"3px"}}>{tip.c.name}</div>
-            <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginBottom:"4px"}}>Area: {tip.c.area}</div>
-            {tip.owner
-              ?<div style={{color:CLRS[(players[tip.owner]?.cidx||0)%CLRS.length].light,fontSize:"11px",marginBottom:"4px"}}>{tip.owner}</div>
-              :<div style={{color:"rgba(255,255,255,.35)",fontSize:"11px",marginBottom:"4px"}}>Unclaimed</div>
-            }
-            {tip.inReach&&(
-              <div style={{color:"#ff6666",fontSize:"10px",fontWeight:"bold"}}>Click to Attack</div>
-            )}
-          </div>
-        )}
+        {/* map */}
+        <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+          <svg ref={svgRef} viewBox="0 0 1800 950" style={{width:"100%",height:"100%"}}
+            onMouseMove={e=>{
+              const r=svgRef.current?.getBoundingClientRect();
+              if(r)setTip(t=>({...t,x:e.clientX-r.left,y:e.clientY-r.top}));
+            }}
+            onMouseLeave={()=>{setHovered(null);setTip(t=>({...t,show:false}));}}>
+            <rect width="1800" height="950" fill="#05101f"/>
+            <rect width="1800" height="950" fill="url(#ocean)"/>
+            <defs>
+              <radialGradient id="ocean" cx="50%" cy="50%" r="70%">
+                <stop offset="0%" stopColor="#0e2848"/>
+                <stop offset="100%" stopColor="#060d1a"/>
+              </radialGradient>
+            </defs>
+            {COUNTRIES.map(c=>{
+              const owner=ownership[c.id];
+              const isMe=owner===username;
+              const ownerIdx=owner&&players[owner]?players[owner].cidx:null;
+              const fillColor=owner?(CLRS[ownerIdx%CLRS.length]?.bg||"#555"):"#1e3a5f";
+              const inReach=reachable.has(c.id);
+              const isHovered=hovered===c.id;
+              let stroke="rgba(255,255,255,.18)";
+              let sw=0.6;
+              let fill=fillColor;
+              let opacity=owner?0.72:0.55;
+              if(isMe){stroke="#ffffff";sw=1.2;opacity=0.82;}
+              if(attackMode&&inReach&&!isMe){stroke="#ff4444";sw=2;fill=isHovered?"#ff2222":fillColor;opacity=0.85;}
+              if(isHovered){opacity=0.95;}
+              const showLabel=c.area>=8;
+              const fontSize=c.area>=120?12:c.area>=50?11:c.area>=20?10:c.area>=10?9:8;
+              return(
+                <g key={c.id}>
+                  <path d={c.d} fill={fill} stroke={stroke} strokeWidth={sw} opacity={opacity}
+                    style={{cursor:attackMode&&inReach&&!isMe?"crosshair":"default",transition:"fill .15s,opacity .15s"}}
+                    onMouseEnter={e=>{
+                      setHovered(c.id);
+                      const r=svgRef.current?.getBoundingClientRect();
+                      if(r)setTip({show:true,x:e.clientX-r.left,y:e.clientY-r.top,c,owner:owner||null,inReach:attackMode&&inReach&&!isMe});
+                    }}
+                    onMouseLeave={()=>{setHovered(null);setTip(t=>({...t,show:false}));}}
+                    onClick={()=>startAttack(c)}
+                  />
+                  {showLabel&&(
+                    <text x={c.lx} y={c.ly} textAnchor="middle" dominantBaseline="middle"
+                      fontSize={fontSize} fill="rgba(255,255,255,.85)" fontFamily="Georgia,serif"
+                      fontWeight="bold" pointerEvents="none" paintOrder="stroke"
+                      stroke="rgba(0,0,0,.6)" strokeWidth="2.5" strokeLinejoin="round">
+                      {c.name}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
 
-        <div style={{position:"absolute",top:"12px",right:"12px",background:"rgba(0,0,0,.82)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"12px",padding:"10px 14px",minWidth:"160px"}}>
-          <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Leaderboard</div>
-          {lb.map(([name,cnt],i)=>{
-            const p=players[name];
-            const color=p?CLRS[p.cidx%CLRS.length].bg:"#555";
-            const isMe=name===username;
-            return(
-              <div key={name} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px"}}>
-                <span style={{color:"rgba(255,255,255,.3)",fontSize:"9px",width:"10px"}}>{i+1}</span>
-                <div style={{width:"8px",height:"8px",borderRadius:"50%",background:color,flexShrink:0}}/>
-                <span style={{color:isMe?"#f5c842":"rgba(255,255,255,.7)",fontSize:"10px",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{name}</span>
-                <span style={{color:"rgba(255,255,255,.5)",fontSize:"10px"}}>{cnt}</span>
+          {tip.show&&tip.c&&(
+            <div style={{position:"absolute",left:tip.x+14,top:tip.y-10,pointerEvents:"none",zIndex:100,
+              background:"rgba(6,13,26,.97)",border:"1px solid rgba(255,255,255,.18)",borderRadius:"10px",padding:"10px 14px",minWidth:"150px",boxShadow:"0 4px 20px rgba(0,0,0,.5)"}}>
+              <div style={{color:"white",fontWeight:"bold",fontSize:"13px",marginBottom:"3px"}}>{tip.c.name}</div>
+              <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginBottom:"4px"}}>Area: {tip.c.area}</div>
+              {tip.owner
+                ?<div style={{color:CLRS[(players[tip.owner]?.cidx||0)%CLRS.length].light,fontSize:"11px",marginBottom:"4px"}}>{tip.owner}</div>
+                :<div style={{color:"rgba(255,255,255,.35)",fontSize:"11px",marginBottom:"4px"}}>Unclaimed</div>
+              }
+              {tip.inReach&&<div style={{color:"#ff6666",fontSize:"10px",fontWeight:"bold"}}>Click to Attack</div>}
+            </div>
+          )}
+        </div>
+
+        {/* right sidebar */}
+        <div style={{width:"200px",flexShrink:0,background:"rgba(4,10,22,.95)",borderLeft:"1px solid rgba(255,255,255,.1)",display:"flex",flexDirection:"column",overflowY:"auto",padding:"10px 8px",gap:"6px"}}>
+
+          {/* player card */}
+          <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"10px",padding:"10px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px"}}>
+              <div style={{width:"10px",height:"10px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 6px "+myC.bg,flexShrink:0}}/>
+              <span style={{color:"white",fontSize:"11px",fontWeight:"bold",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{username}</span>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"3px"}}><span style={{color:myC.light,fontSize:"10px"}}>{mine.length} territories</span><span style={{color:"rgba(255,255,255,.25)",fontSize:"9px"}}>|</span><span style={{color:myC.light,fontSize:"9px",opacity:.7}}>{myC.name}</span></div>
+            <div style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px"}}>{myInventory.coins.toLocaleString()}</div>
+            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px"}}>coins</div>
+            <div style={{marginTop:"8px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}>
+                <span style={{color:"rgba(255,255,255,.3)",fontSize:"8px",letterSpacing:"1px",textTransform:"uppercase"}}>Terra Pass Lv {curLevel+1}</span>
+                <span style={{color:"#c4b5fd",fontSize:"8px"}}>{playerXP} XP</span>
               </div>
-            );
-          })}
+              <div style={{height:"4px",background:"rgba(255,255,255,.08)",borderRadius:"2px",overflow:"hidden"}}>
+                <div style={{height:"100%",width:xpPct+"%",background:"linear-gradient(90deg,#7c3aed,#c4b5fd)",borderRadius:"2px",transition:"width .5s"}}/>
+              </div>
+            </div>
+          </div>
+
+          {/* daily reward */}
+          {canClaimDaily&&(
+            <button onClick={()=>setShowDaily(true)}
+              style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,#92400e,#d4a017)",border:"none",borderRadius:"9px",color:"#fff8dc",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
+              DAILY REWARD
+            </button>
+          )}
+
+          {/* action buttons */}
+          {[
+            {label:"War Shop",       color:"#ef4444", bg:"rgba(239,68,68,.15)",  border:"rgba(239,68,68,.35)",  action:()=>setShowShop(true)},
+            {label:"Material Shop",  color:"#84cc16", bg:"rgba(132,204,22,.15)", border:"rgba(132,204,22,.35)", action:()=>setShowMatShop(true)},
+            {label:"Build Shop",     color:"#22c55e", bg:"rgba(34,197,94,.15)",  border:"rgba(34,197,94,.35)",  action:()=>setShowBuildShop(true)},
+            {label:"Terra Pass",     color:"#a78bfa", bg:"rgba(139,92,246,.15)", border:"rgba(139,92,246,.35)", action:()=>setShowTerraPass(true)},
+          ].map(btn=>(
+            <button key={btn.label} onClick={btn.action}
+              style={{width:"100%",padding:"9px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.color,fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:"0.5px"}}>
+              {btn.label}
+            </button>
+          ))}
+
+          {/* divider */}
+          <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"2px 0"}}/>
+
+          {/* leaderboard */}
+          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"10px 12px",flex:1}}>
+            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"10px"}}>Leaderboard</div>
+            {lb.map(([name,cnt],i)=>{
+              const pl=players[name];
+              const color=pl?CLRS[pl.cidx%CLRS.length].bg:"#555";
+              const isMe=name===username;
+              const pct=Math.round((cnt/COUNTRIES.length)*100);
+              return(
+                <div key={name} style={{marginBottom:"8px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"5px",marginBottom:"3px"}}>
+                    <span style={{color:"rgba(255,255,255,.25)",fontSize:"9px",width:"12px"}}>{i+1}</span>
+                    <div style={{width:"7px",height:"7px",borderRadius:"50%",background:color,flexShrink:0}}/>
+                    <span style={{color:isMe?"#f5c842":"rgba(255,255,255,.7)",fontSize:"10px",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:isMe?"bold":"normal"}}>{name}</span>
+                    <span style={{color:"rgba(255,255,255,.5)",fontSize:"10px"}}>{cnt}</span>
+                  </div>
+                  <div style={{height:"3px",background:"rgba(255,255,255,.06)",borderRadius:"2px",overflow:"hidden",marginLeft:"17px"}}>
+                    <div style={{height:"100%",width:pct+"%",background:color,opacity:0.7,borderRadius:"2px"}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* materials */}
+          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"10px 12px"}}>
+            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Materials</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"5px"}}>
+              {MATERIALS.map(m=>(
+                <div key={m.id} style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                  <div style={{width:"6px",height:"6px",borderRadius:"2px",background:m.color,flexShrink:0}}/>
+                  <span style={{color:"rgba(255,255,255,.5)",fontSize:"9px"}}>{m.label}</span>
+                  <span style={{color:m.color,fontSize:"10px",fontWeight:"bold",marginLeft:"auto"}}>{myInventory[m.id]||0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
