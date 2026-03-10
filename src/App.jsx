@@ -621,6 +621,8 @@ export default function EarthConquest(){
   const mapAudioRef=useRef(null);
   const [musicMuted,setMusicMuted]=useState(false);
   const [musicVol,setMusicVol]=useState(0.5);
+  const [chatMsgs,setChatMsgs]=useState([]);
+  const [showChat,setShowChat]=useState(true);
 
   const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
@@ -635,7 +637,6 @@ export default function EarthConquest(){
 
   const flash=(msg,type="info")=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3500);};
 
-  // Play/pause music based on screen
   useEffect(()=>{
     const menu=menuAudioRef.current;
     const map=mapAudioRef.current;
@@ -658,6 +659,34 @@ export default function EarthConquest(){
     if(mapAudioRef.current)mapAudioRef.current.volume=musicMuted?0:musicVol;
   },[musicVol,musicMuted]);
 
+  const CHAT_PROMPTS=[
+    {id:"gg",    label:"GG",           msg:"Good game!"},
+    {id:"wp",    label:"Well played",  msg:"Well played!"},
+    {id:"ez",    label:"EZ",           msg:"EZ lol"},
+    {id:"rip",   label:"RIP",          msg:"RIP"},
+    {id:"noob",  label:"Noob",         msg:"What a noob"},
+    {id:"rush",  label:"Stop rushing", msg:"Stop rushing me!"},
+    {id:"letsgo",label:"LET'S GO!",    msg:"LETS GOOO"},
+    {id:"truce", label:"Truce?",       msg:"Can we have a truce?"},
+    {id:"nice",  label:"Nice attack",  msg:"Nice attack!"},
+  ];
+
+  const sendChat=async(prompt)=>{
+    if(isSingleplayer)return;
+    const msg={u:username,t:prompt.msg,ts:Date.now()};
+    setPlayers(prev=>{
+      const next={...prev,_chat:[...(prev._chat||[]).slice(-19),msg]};
+      setChatMsgs(next._chat);
+      (async()=>{
+        try{
+          const {data:cur}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
+          if(cur)await sb.from("world").upsert({room_code:roomCode,ownership:cur.ownership,players:next},{onConflict:"room_code"});
+        }catch(e){}
+      })();
+      return next;
+    });
+  };
+
   useEffect(()=>{
     if(!attackMode||!username){setReachable(new Set());return;}
     const mine=Object.keys(ownership).filter(id=>ownership[id]===username);
@@ -672,7 +701,10 @@ export default function EarthConquest(){
         const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
         if(data){
           setOwnership(prev=>{const inc=data.ownership||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
-          setPlayers(prev=>{const inc=data.players||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
+          const inc=data.players||{};
+          setPlayers(prev=>{if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
+          const msgs=inc._chat||[];
+          setChatMsgs(prev=>{if(JSON.stringify(prev)===JSON.stringify(msgs))return prev;return msgs;});
         }
       }catch(e){}
     },3000);
@@ -1702,6 +1734,57 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
         {/* map */}
         <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+
+          {/* Active players - top left */}
+          <div style={{position:"absolute",top:"10px",left:"10px",zIndex:100,display:"flex",flexDirection:"column",gap:"4px",pointerEvents:"none"}}>
+            <div style={{color:"rgba(255,255,255,.35)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"2px"}}>Active Players</div>
+            {Object.entries(players).filter(([k])=>!k.startsWith("_")).map(([name,pl])=>{
+              const c=CLRS[(pl.cidx||0)%CLRS.length];
+              const terrs=Object.values(ownership).filter(v=>v===name).length;
+              const isMe=name===username;
+              return(
+                <div key={name} style={{display:"flex",alignItems:"center",gap:"6px",padding:"4px 8px",background:isMe?"rgba(245,200,66,.08)":"rgba(0,0,0,.45)",borderRadius:"8px",border:"1px solid "+(isMe?"rgba(245,200,66,.2)":"rgba(255,255,255,.07)"),backdropFilter:"blur(4px)"}}>
+                  <div style={{width:"8px",height:"8px",borderRadius:"50%",background:c.bg,boxShadow:"0 0 6px "+c.bg,flexShrink:0}}/>
+                  <span style={{color:isMe?"#f5c842":"rgba(255,255,255,.75)",fontSize:"11px",fontWeight:isMe?"bold":"normal",maxWidth:"80px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{name}</span>
+                  <span style={{color:"rgba(255,255,255,.35)",fontSize:"10px",marginLeft:"auto",paddingLeft:"6px"}}>{terrs}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Chat - bottom left */}
+          {!isSingleplayer&&(
+            <div style={{position:"absolute",bottom:"10px",left:"10px",zIndex:100,width:"230px"}}>
+              {showChat&&(
+                <div style={{background:"rgba(4,10,22,.88)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"12px",marginBottom:"6px",overflow:"hidden",backdropFilter:"blur(6px)"}}>
+                  <div style={{maxHeight:"120px",overflowY:"auto",padding:"8px 10px",display:"flex",flexDirection:"column",gap:"4px"}}>
+                    {chatMsgs.length===0&&<div style={{color:"rgba(255,255,255,.2)",fontSize:"10px",textAlign:"center",padding:"6px 0"}}>No messages yet</div>}
+                    {chatMsgs.map((m,i)=>{
+                      const c=CLRS[(players[m.u]?.cidx||0)%CLRS.length];
+                      return(
+                        <div key={i} style={{display:"flex",gap:"5px",alignItems:"flex-start"}}>
+                          <span style={{color:c.light,fontSize:"10px",fontWeight:"bold",flexShrink:0,maxWidth:"65px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.u}:</span>
+                          <span style={{color:"rgba(255,255,255,.75)",fontSize:"10px"}}>{m.t}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{borderTop:"1px solid rgba(255,255,255,.07)",padding:"6px 8px",display:"flex",flexWrap:"wrap",gap:"4px"}}>
+                    {CHAT_PROMPTS.map(p=>(
+                      <button key={p.id} onClick={()=>sendChat(p)}
+                        style={{padding:"3px 8px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"5px",color:"rgba(255,255,255,.7)",fontSize:"9px",cursor:"pointer",fontFamily:"Georgia,serif",transition:"all .15s",whiteSpace:"nowrap"}}>
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <button onClick={()=>setShowChat(c=>!c)}
+                style={{padding:"4px 10px",background:"rgba(4,10,22,.88)",border:"1px solid rgba(255,255,255,.1)",borderRadius:"7px",color:"rgba(255,255,255,.4)",fontSize:"9px",cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
+                {showChat?"HIDE CHAT":"SHOW CHAT"}
+              </button>
+            </div>
+          )}
           <svg ref={svgRef} viewBox="0 0 1800 950" style={{width:"100%",height:"100%"}}
             onMouseMove={e=>{
               const r=svgRef.current?.getBoundingClientRect();
@@ -1716,7 +1799,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                 <stop offset="100%" stopColor="#060d1a"/>
               </radialGradient>
             </defs>
-            {COUNTRIES.map(c=>{
+            {[...COUNTRIES].sort((a,b)=>b.area-a.area).map(c=>{
               const owner=ownership[c.id];
               const isMe=owner===username;
               const ownerIdx=owner&&players[owner]?players[owner].cidx:null;
