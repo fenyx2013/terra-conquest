@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
-const SB_URL="https://yvgwtzjlchcjxoiquetg.supabase.co";
-const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3d0empsY2hjanhvaXF1ZXRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTM2NjgsImV4cCI6MjA4ODM2OTY2OH0.cglCteLErmG23ryVVwVvYir_s4OroeRg9GdmNiurQ8c";
+// All DB calls go through /api/db - no keys in the client
 const sb={
   from:(table)=>({
     select:(cols)=>({
       eq:(col,val)=>({
-        single:()=>fetch(SB_URL+"/rest/v1/"+table+"?"+col+"=eq."+val+"&select="+(cols||"*"),{headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY}}).then(r=>r.json()).then(d=>({data:Array.isArray(d)?d[0]:d,error:null})).catch(e=>({data:null,error:e}))
+        single:()=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"select",table,cols:cols||"*",filter:{col,val}})}).then(r=>r.json()).catch(e=>({data:null,error:e}))
       })
     }),
-    upsert:(data,opts)=>fetch(SB_URL+"/rest/v1/"+table,{method:"POST",headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(data)}).then(r=>({error:r.ok?null:{message:"HTTP "+r.status}})).catch(e=>({error:e}))
+    upsert:(data)=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"upsert",table,data})}).then(r=>r.json()).catch(e=>({error:e}))
   })
 };
 
@@ -618,6 +617,10 @@ export default function EarthConquest(){
   const svgRef=useRef(null);
   const ownershipRef=useRef({});
   const botInvRef=useRef({});
+  const menuAudioRef=useRef(null);
+  const mapAudioRef=useRef(null);
+  const [musicMuted,setMusicMuted]=useState(false);
+  const [musicVol,setMusicVol]=useState(0.5);
 
   const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
@@ -631,6 +634,29 @@ export default function EarthConquest(){
   };
 
   const flash=(msg,type="info")=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3500);};
+
+  // Play/pause music based on screen
+  useEffect(()=>{
+    const menu=menuAudioRef.current;
+    const map=mapAudioRef.current;
+    const isMenuScreen=screen==="home"||screen==="menu"||screen==="login";
+    const isMapScreen=screen==="map";
+    if(isMenuScreen){
+      if(menu){menu.volume=musicMuted?0:musicVol;menu.play().catch(()=>{});}
+      if(map){map.pause();map.currentTime=0;}
+    }else if(isMapScreen){
+      if(menu){menu.pause();menu.currentTime=0;}
+      if(map){map.volume=musicMuted?0:musicVol;map.play().catch(()=>{});}
+    }else{
+      if(menu){menu.pause();menu.currentTime=0;}
+      if(map){map.pause();map.currentTime=0;}
+    }
+  },[screen]);
+
+  useEffect(()=>{
+    if(menuAudioRef.current)menuAudioRef.current.volume=musicMuted?0:musicVol;
+    if(mapAudioRef.current)mapAudioRef.current.volume=musicMuted?0:musicVol;
+  },[musicVol,musicMuted]);
 
   useEffect(()=>{
     if(!attackMode||!username){setReachable(new Set());return;}
@@ -1056,6 +1082,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   if(screen==="home"){
     return(
       <div style={bgStyle}>
+        <audio ref={menuAudioRef} src="/menu.mp3" loop preload="auto"/>
         <Stars/><style>{starCss}</style>
         <div style={{...card,width:"380px",textAlign:"center"}}>
           <svg width="64" height="64" viewBox="0 0 64 64" style={{marginBottom:"12px",filter:"drop-shadow(0 0 18px rgba(245,200,66,.4))",animation:"pu 3s infinite"}}><circle cx="32" cy="32" r="28" fill="none" stroke="#f5c842" strokeWidth="2.5"/><ellipse cx="32" cy="32" rx="14" ry="28" fill="none" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="4" y1="32" x2="60" y2="32" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="32" y1="4" x2="32" y2="60" stroke="#f5c842" strokeWidth="1.5" opacity=".4"/><ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#f5c842" strokeWidth="1" opacity=".3"/></svg>
@@ -1067,7 +1094,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             onKeyDown={e=>e.key==="Enter"&&handleLogin()}
             style={{width:"100%",padding:"11px 14px",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.15)",borderRadius:"10px",color:"white",fontSize:"13px",fontFamily:"Georgia,serif",boxSizing:"border-box",marginBottom:"10px"}}/>
           {loginError&&<div style={{color:"#fca5a5",fontSize:"11px",marginBottom:"10px"}}>{loginError}</div>}
-          <button onClick={handleLogin}
+          <button onClick={()=>{menuAudioRef.current?.play().catch(()=>{});handleLogin();}}
             style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 28px rgba(212,160,23,.45)",transition:"all .2s ease"}}>
             LOGIN / REGISTER
           </button>
@@ -1091,6 +1118,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const digits=roomInput.split("").concat(Array(6).fill("")).slice(0,6);
     return(
       <div style={bgStyle}>
+        <audio ref={menuAudioRef} src="/menu.mp3" loop preload="auto"/>
         <Stars/><style>{starCss}</style>
         <div style={{...card,padding:"0",width:"480px",overflow:"hidden"}}>
           <div style={{padding:"28px 32px 0",textAlign:"center"}}>
@@ -1129,6 +1157,17 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                   style={{padding:"10px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"10px",color:"rgba(255,255,255,.35)",fontSize:"12px",cursor:"pointer",fontFamily:"Georgia,serif"}}>
                   Log Out
                 </button>
+                <div style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",background:"rgba(0,0,0,.25)",borderRadius:"10px",border:"1px solid rgba(255,255,255,.07)"}}>
+                  <span style={{color:"rgba(255,255,255,.35)",fontSize:"10px",letterSpacing:"1px",minWidth:"36px"}}>MUSIC</span>
+                  <input type="range" min="0" max="1" step="0.01" value={musicVol}
+                    onChange={e=>setMusicVol(parseFloat(e.target.value))}
+                    disabled={musicMuted}
+                    style={{flex:1,accentColor:"#f5c842",opacity:musicMuted?0.25:1,cursor:musicMuted?"not-allowed":"pointer"}}/>
+                  <button onClick={()=>setMusicMuted(m=>!m)}
+                    style={{padding:"4px 10px",background:musicMuted?"rgba(255,255,255,.05)":"rgba(245,200,66,.12)",border:"1px solid "+(musicMuted?"rgba(255,255,255,.1)":"rgba(245,200,66,.3)"),borderRadius:"6px",color:musicMuted?"rgba(255,255,255,.25)":"#f5c842",cursor:"pointer",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif",letterSpacing:"1px",transition:"all .2s",minWidth:"46px"}}>
+                    {musicMuted?"OFF":"ON"}
+                  </button>
+                </div>
               </div>
             )}
             {menuTab==="singleplayer"&&(
@@ -1262,6 +1301,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   return(
     <div style={{width:"100vw",height:"100vh",background:"#060d1a",display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"Georgia,serif",userSelect:"none"}}>
+      <audio ref={menuAudioRef} src="/menu.mp3" loop preload="auto"/>
+      <audio ref={mapAudioRef} src="/map.mp3" loop preload="auto"/>
       <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.15),0 0 16px rgba(239,68,68,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease}"}</style>
 
       {notif&&(
