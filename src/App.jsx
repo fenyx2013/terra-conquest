@@ -958,7 +958,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const matTick=setInterval(()=>{
       setMyInventory(inv=>{
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
-        let wood=0,stone=0,iron=0,gold=0,troops=0;
+        let wood=0,stone=0,iron=0,gold=0,troops=0,uranium=0;
         owned.forEach(id=>{
           const c=COUNTRIES.find(x=>x.id===id);
           if(!c?.bonus)return;
@@ -970,15 +970,15 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           const mines=(inv.buildings||[]).filter(b=>b==="mine").length;
           if(mines>0){iron+=mines;stone+=mines;}
         });
-        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0)return inv;
-        return{...inv,wood:(inv.wood||0)+wood,stone:(inv.stone||0)+stone,iron:(inv.iron||0)+iron,gold:(inv.gold||0)+gold,tank:(inv.tank||0)+troops};
-      });
-      // Uranium Extractor: convert 1 gold -> 1 uranium every 60s
-      setMyInventory(inv=>{
-        if(!(inv.buildings||[]).includes("uranium_ext"))return inv;
-        if((inv.gold||0)<1)return inv;
-        const next={...inv,gold:(inv.gold||0)-1,uranium:(inv.uranium||0)+1};
-        (async()=>{try{await saveInv(next);}catch(e){}})();
+        // Uranium Extractor: convert 1 gold -> 1 uranium every 60s
+        let goldCost=0;
+        if((inv.buildings||[]).includes("uranium_ext")&&((inv.gold||0)+gold)>=1){
+          uranium+=1;
+          goldCost=1;
+        }
+        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&uranium===0)return inv;
+        const next={...inv,wood:(inv.wood||0)+wood,stone:(inv.stone||0)+stone,iron:(inv.iron||0)+iron,gold:(inv.gold||0)+gold-goldCost,tank:(inv.tank||0)+troops,uranium:(inv.uranium||0)+uranium};
+        if(uranium>0)(async()=>{try{await saveInv(next);}catch(e){}})();
         return next;
       });
     },60000);
