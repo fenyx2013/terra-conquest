@@ -36,7 +36,7 @@ export default async function handler(req) {
     // Strip any keys that shouldn't be in inventory to prevent injection
     const ALLOWED_INV_KEYS = [
       "coins","tank","bomb","plane","missile","bomber","air_def","lastDaily",
-      "wood","stone","iron","gold","buildings","lastFactory","factoryCount",
+      "wood","stone","iron","gold","uranium","nuke_bomb","buildings","lastFactory","factoryCount",
       "academySpies","lastAcademy","spy",
       "_name","_pwd","_xp","_achievements","_dailyCount",
       "_missionProgress","_missionDate","_claimedMissions","_claimedPassLevels"
