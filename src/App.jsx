@@ -719,14 +719,11 @@ export default function EarthConquest(){
   const [hoveredCountry,setHoveredCountry]=useState(null);
   const [showCraftShop,setShowCraftShop]=useState(false);
 
-  const [nukedCountries,setNukedCountries]=useState({});
-  const nukedRef=useRef({});
-  const saveWorld=async(o,p,nuked)=>{
+  const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
     const rc=roomCodeRef.current||roomCode;
-    if(!rc)return; // never save with empty room code
-    const nk=nuked!==undefined?nuked:nukedRef.current;
-    try{await sb.from("world").upsert({room_code:rc,ownership:o,players:p,nuked:nk},{onConflict:"room_code"});}catch(e){}
+    if(!rc)return;
+    try{await sb.from("world").upsert({room_code:rc,ownership:o,players:p},{onConflict:"room_code"});}catch(e){}
   };
 
   const saveInv=async(inv,name)=>{
@@ -827,7 +824,7 @@ export default function EarthConquest(){
   const launchSatellite=async(country)=>{
     if((myInventory.satellite||0)<1){flash("No satellites!","error");return;}
     const targetOwner=ownership[country.id];
-    if(!targetOwner||targetOwner===username){flash("Must target an enemy country!","error");return;}
+    if(!targetOwner||targetOwner===username||targetOwner==="__nuked__"){flash("Must target an enemy country!","error");return;}
     const newInv={...myInventory,satellite:Math.max(0,(myInventory.satellite||0)-1)};
     setMyInventory(newInv);
     await saveInv(newInv);
@@ -856,8 +853,8 @@ export default function EarthConquest(){
       setChatMsgs(next._chat);
       (async()=>{
         try{
-          const {data:cur}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
-          if(cur)await sb.from("world").upsert({room_code:roomCode,ownership:cur.ownership,players:next,nuked:cur.nuked||{}},{onConflict:"room_code"});
+          const {data:cur}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
+          if(cur)await sb.from("world").upsert({room_code:roomCode,ownership:cur.ownership,players:next},{onConflict:"room_code"});
         }catch(e){}
       })();
       return next;
@@ -875,15 +872,13 @@ export default function EarthConquest(){
     if(!roomCode||screen!=="map")return;
     const poll=setInterval(async()=>{
       try{
-        const {data}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
+        const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
         if(data){
           setOwnership(prev=>{const inc=data.ownership||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;ownershipRef.current=inc;return inc;});
           const inc=data.players||{};
           setPlayers(prev=>{if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
           const msgs=inc._chat||[];
           setChatMsgs(prev=>{if(JSON.stringify(prev)===JSON.stringify(msgs))return prev;return msgs;});
-          const nk=data.nuked||{};
-          setNukedCountries(prev=>{if(JSON.stringify(prev)===JSON.stringify(nk))return prev;nukedRef.current=nk;return nk;});
         }
       }catch(e){}
     },3000);
@@ -1096,6 +1091,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
         let coins=0;
         owned.forEach(id=>{
+          if(ownership[id]==="__nuked__")return; // irradiated
           if(shockedCountries[id]&&shockedCountries[id]>now)return; // paralyzed
           const c=COUNTRIES.find(x=>x.id===id);
           if(c?.bonus?.coins) coins+=c.bonus.coins;
@@ -1180,10 +1176,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const code=roomInput;
     setRoomError("");
     try{
-      const {data}=await sb.from("world").select("ownership,players,nuked").eq("room_code",code).single();
-      let o={},p={},nk={};
-      if(data){o=data.ownership||{};p=data.players||{};nk=data.nuked||{};}
-      ownershipRef.current=o;setOwnership(o);setPlayers(p);nukedRef.current=nk;setNukedCountries(nk);
+      const {data}=await sb.from("world").select("ownership,players").eq("room_code",code).single();
+      let o={},p={};
+      if(data){o=data.ownership||{};p=data.players||{};}
+      ownershipRef.current=o;setOwnership(o);setPlayers(p);
       roomCodeRef.current=code;setRoomCode(code);
       setRecentRooms(prev=>[code,...prev.filter(r=>r!==code)].slice(0,5));
       setScreen("login");
@@ -1197,26 +1193,19 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     // Fetch fresh world state from DB right before saving
     let baseO={};
     let basePlayers={};
-    let baseNuked={};
     let fetchOk=false;
     try{
-      const {data:fresh,error}=await sb.from("world").select("ownership,players,nuked").eq("room_code",rc).single();
+      const {data:fresh,error}=await sb.from("world").select("ownership,players").eq("room_code",rc).single();
       if(fresh&&!error){
         baseO=fresh.ownership||{};
         basePlayers=fresh.players||{};
-        baseNuked=fresh.nuked||{};
         ownershipRef.current=baseO;
-        nukedRef.current=baseNuked;
         setOwnership(baseO);
-        setNukedCountries(baseNuked);
         fetchOk=true;
       }
     }catch(e){}
-    // Safety: if DB fetch failed and there are already countries in the world, abort to avoid wiping
     if(!fetchOk&&Object.keys(ownershipRef.current).length>0){
-      // Use cached state instead
       baseO={...ownershipRef.current};
-      baseNuked={...nukedRef.current};
     }
     const newO={...baseO};
     // Only assign new territory if player doesn't already own any countries
@@ -1227,9 +1216,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     }
     ownershipRef.current=newO;
     const newP={...basePlayers,[uname]:{cidx,joinedAt:Date.now()}};
-    // Build the upsert manually with explicit roomCode to prevent stale closure
     try{
-      await sb.from("world").upsert({room_code:rc,ownership:newO,players:newP,nuked:baseNuked},{onConflict:"room_code"});
+      await sb.from("world").upsert({room_code:rc,ownership:newO,players:newP},{onConflict:"room_code"});
     }catch(e){flash("Save error: "+e.message,"error");}
     setOwnership(newO);setPlayers(newP);
     roomCodeRef.current=rc;
@@ -1365,7 +1353,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   const startAttack=(country)=>{
     if(!attackMode)return;
-    if(nukedCountries[country.id]){flash(country.name+" is irradiated - permanently uninhabitable!","error");return;}
+    if(ownership[country.id]==="__nuked__"){flash(country.name+" is irradiated - permanently uninhabitable!","error");return;}
     if(shockedCountries[country.id]&&shockedCountries[country.id]>Date.now()){flash(country.name+" is paralyzed by satellite strike!","error");return;}
     const mine=Object.keys(ownership).filter(id=>ownership[id]===username);
     const reach=getReachable(mine,myInventory.plane>0?3:2);
@@ -1394,10 +1382,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       delete newO[country.id];
       setOwnership(newO);
       ownershipRef.current=newO;
-      const newNuked={...nukedRef.current,[country.id]:true};
-      nukedRef.current=newNuked;
-      setNukedCountries(newNuked);
-      await saveWorld(newO,players,newNuked);
+      newO[country.id]="__nuked__";
+      await saveWorld(newO,players);
       triggerAttackEffect(country);
       playSound("nuke");
       flash("NUCLEAR STRIKE on "+country.name+"! Territory irradiated - permanently uninhabitable.","success");
@@ -1446,7 +1432,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   const mine=Object.keys(ownership).filter(id=>ownership[id]===username);
   const myC=CLRS[cidx%CLRS.length];
-  const lb=Object.entries(Object.values(ownership).reduce((a,o)=>{a[o]=(a[o]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const lb=Object.entries(Object.values(ownership).filter(o=>o&&o!=="__nuked__").reduce((a,o)=>{a[o]=(a[o]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const canClaimDaily=myInventory.lastDaily!==todayStr();
   const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
   const vaultBonus=vaultCount*500;
@@ -2335,7 +2321,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               </radialGradient>
             </defs>
             {[...COUNTRIES].sort((a,b)=>b.area-a.area).map(c=>{
-              const owner=ownership[c.id];
+              const owner=ownership[c.id]==="__nuked__"?null:ownership[c.id];
               const isMe=owner===username;
               const ownerIdx=owner&&players[owner]?players[owner].cidx:null;
               const fillColor=owner?(CLRS[ownerIdx%CLRS.length]?.bg||"#555"):"#1e3a5f";
@@ -2343,7 +2329,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               const isHovered=hovered===c.id;
               const isShocked=shockedCountries[c.id]&&shockedCountries[c.id]>Date.now();
               const shockSecsLeft=isShocked?Math.ceil((shockedCountries[c.id]-Date.now())/1000):0;
-              const isNuked=nukedCountries[c.id];
+              const isNuked=ownership[c.id]==="__nuked__";
               let stroke="rgba(255,255,255,.18)";
               let sw=0.6;
               let fill=isNuked?"#0a1a0a":isShocked?"#0a0a0a":fillColor;
