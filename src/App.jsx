@@ -806,6 +806,18 @@ export default function EarthConquest(){
   };
 
   const [satelliteMode,setSatelliteMode]=useState(false);
+
+  // ESC key cancels attack/satellite mode
+  useEffect(()=>{
+    const h=(e)=>{
+      if(e.key==="Escape"){
+        if(satelliteMode)setSatelliteMode(false);
+        if(attackMode){setAttackMode(false);setAttackPlan(null);}
+      }
+    };
+    window.addEventListener("keydown",h);
+    return()=>window.removeEventListener("keydown",h);
+  },[satelliteMode,attackMode]);
   const [shockedCountries,setShockedCountries]=useState({}); // {countryId: expiresAt timestamp}
 
   // Clean up expired shocks
@@ -1482,7 +1494,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         <Stars/><style>{starCss}</style>
         <OnlineCount/>
         <div style={{...card,width:"380px",textAlign:"center"}}>
-          <svg width="64" height="64" viewBox="0 0 64 64" style={{marginBottom:"12px",filter:"drop-shadow(0 0 18px rgba(245,200,66,.4))",animation:"pu 3s infinite"}}><circle cx="32" cy="32" r="28" fill="none" stroke="#f5c842" strokeWidth="2.5"/><ellipse cx="32" cy="32" rx="14" ry="28" fill="none" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="4" y1="32" x2="60" y2="32" stroke="#f5c842" strokeWidth="1.5" opacity=".6"/><line x1="32" y1="4" x2="32" y2="60" stroke="#f5c842" strokeWidth="1.5" opacity=".4"/><ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#f5c842" strokeWidth="1" opacity=".3"/></svg>
+          <svg width="72" height="72" viewBox="0 0 64 64" style={{marginBottom:"12px",filter:"drop-shadow(0 0 24px rgba(245,200,66,.5))",animation:"pu 3s ease infinite"}}><circle cx="32" cy="32" r="28" fill="rgba(245,200,66,.06)" stroke="#f5c842" strokeWidth="2"/><ellipse cx="32" cy="32" rx="14" ry="28" fill="none" stroke="#f5c842" strokeWidth="1.5" opacity=".5"/><line x1="4" y1="32" x2="60" y2="32" stroke="#f5c842" strokeWidth="1.5" opacity=".5"/><line x1="32" y1="4" x2="32" y2="60" stroke="#f5c842" strokeWidth="1.5" opacity=".3"/><ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#f5c842" strokeWidth="1" opacity=".25"/><circle cx="32" cy="32" r="4" fill="#f5c842" opacity=".6"/></svg>
           <h1 style={{color:"#fff",fontSize:"26px",margin:"0 0 5px",letterSpacing:"5px",textTransform:"uppercase",textShadow:"0 0 30px rgba(245,200,66,.3)"}}>TERRA CONQUEST</h1>
           <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 28px",letterSpacing:"3px"}}>CONQUER THE WORLD</p>
           <input value={inputName} onChange={e=>setInputName(e.target.value)} placeholder="Username (leave blank for random)"
@@ -1681,7 +1693,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       <div style={bgStyle}>
         <Stars/><style>{starCss}</style>
         <div style={{...card,textAlign:"center"}}>
-          <h2 style={{color:"#f5c842",fontSize:"20px",margin:"0 0 6px",letterSpacing:"3px"}}>PICK YOUR COLOR</h2>
+          <h2 style={{color:"#f5c842",fontSize:"20px",margin:"0 0 6px",letterSpacing:"4px",textShadow:"0 0 30px rgba(245,200,66,.4)"}}>PICK YOUR COLOR</h2>
           <p style={{color:"rgba(255,255,255,.4)",fontSize:"11px",margin:"0 0 24px"}}>Choose your empire color</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:"10px",justifyContent:"center",marginBottom:"28px"}}>
             {CLRS.map((c,i)=>(
@@ -1695,7 +1707,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           </div>
           <button onClick={startGame}
             style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"12px",color:"#000",fontSize:"15px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif",boxShadow:"0 8px 28px rgba(212,160,23,.45)",transition:"all .2s ease"}}>
-            ENTER THE WORLD
+            ⚔ ENTER THE WORLD
           </button>
         </div>
       </div>
@@ -1706,13 +1718,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     <div style={{position:"fixed",inset:0,width:"100%",height:"100%",background:"#060d1a",display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"Georgia,serif",userSelect:"none"}}>
       <audio ref={menuAudioRef} src="/menu.mp3" loop preload="auto"/>
       <audio ref={mapAudioRef} src="/map.mp3" loop preload="auto"/>
-      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.15),0 0 16px rgba(239,68,68,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease}"}</style>
+      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 8px rgba(239,68,68,.15),0 0 20px rgba(239,68,68,.35)}} @keyframes prBlue{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 0 8px rgba(99,102,241,.2),0 0 20px rgba(99,102,241,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-10px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes nukeShake{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,3px)}80%{transform:translate(2px,-1px)}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease}"}</style>
 
       {notif&&(
-        <div style={{position:"fixed",top:"16px",left:"50%",transform:"translateX(-50%)",zIndex:9999,
-          padding:"10px 20px",borderRadius:"10px",fontSize:"13px",fontWeight:"bold",fontFamily:"Georgia,serif",
-          background:notif.type==="success"?"#16a34a":notif.type==="error"?"#dc2626":"#2563eb",
-          color:"white",boxShadow:"0 8px 32px rgba(0,0,0,.6)",animation:"coinIn .3s ease",whiteSpace:"nowrap",letterSpacing:".3px"}}>
+        <div style={{position:"fixed",top:"60px",left:"50%",transform:"translateX(-50%)",zIndex:9999,
+          padding:"10px 22px 10px 16px",borderRadius:"12px",fontSize:"12px",fontWeight:"bold",fontFamily:"Georgia,serif",
+          background:notif.type==="success"?"linear-gradient(135deg,#14532d,#16a34a)":notif.type==="error"?"linear-gradient(135deg,#7f1d1d,#dc2626)":"linear-gradient(135deg,#1e3a5f,#2563eb)",
+          color:"white",boxShadow:"0 12px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.1)",animation:"coinIn .25s cubic-bezier(.34,1.56,.64,1)",whiteSpace:"nowrap",letterSpacing:".3px",display:"flex",alignItems:"center",gap:"8px"}}>
+          <div style={{width:"6px",height:"6px",borderRadius:"50%",background:notif.type==="success"?"#4ade80":notif.type==="error"?"#fca5a5":"#93c5fd",flexShrink:0,boxShadow:"0 0 8px currentColor"}}/>
           {notif.msg}
         </div>
       )}
@@ -2027,7 +2040,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         <div style={{position:"absolute",top:"50px",right:"210px",zIndex:1000,background:"rgba(4,10,22,.97)",border:"1px solid rgba(34,197,94,.25)",borderRadius:"14px",padding:"20px",width:"280px",boxShadow:"0 20px 60px rgba(0,0,0,.7)",animation:"modalIn .2s ease"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"14px"}}>
             <div>
-              <div style={{color:"#22c55e",fontSize:"13px",fontWeight:"bold",letterSpacing:"1px"}}>Weapons Lab</div>
+              <div style={{color:"#4ade80",fontSize:"14px",fontWeight:"bold",letterSpacing:"2px",textTransform:"uppercase"}}>⚗ Weapons Lab</div>
               <div style={{color:"rgba(255,255,255,.3)",fontSize:"10px",marginTop:"2px"}}>Craft advanced weapons</div>
             </div>
             <button onClick={()=>setShowCraftShop(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,.3)",cursor:"pointer",fontSize:"18px",lineHeight:"1"}}>X</button>
@@ -2182,70 +2195,57 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       {/* layout: topbar + map area */}
       <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,overflow:"hidden"}}>
       {/* top bar */}
-      <div style={{position:"fixed",top:0,left:0,right:0,height:"44px",background:"rgba(4,10,22,.95)",borderBottom:"1px solid rgba(255,255,255,.1)",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",zIndex:100}}>
-        {/* left: player info */}
-        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-          <div style={{width:"9px",height:"9px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 6px "+myC.bg}}/>
-          <span style={{color:"white",fontSize:"12px",fontWeight:"bold"}}>{username}</span>
-          <span style={{color:myC.light,fontSize:"11px"}}>{mine.length} terr</span>
-          <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px",marginLeft:"4px"}}>{myInventory.coins.toLocaleString()} coins</span>
+      <div style={{position:"fixed",top:0,left:0,right:0,height:"48px",background:"linear-gradient(180deg,rgba(4,10,22,.99) 0%,rgba(4,10,22,.95) 100%)",borderBottom:"1px solid rgba(255,255,255,.08)",padding:"0 14px",display:"flex",alignItems:"center",justifyContent:"space-between",zIndex:100,backdropFilter:"blur(12px)"}}>
+        {/* left: player badge */}
+        <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:"180px"}}>
+          <div style={{width:"28px",height:"28px",borderRadius:"8px",background:"rgba(255,255,255,.06)",border:"1px solid "+myC.bg+"66",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <div style={{width:"10px",height:"10px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 8px "+myC.bg}}/>
+          </div>
+          <div>
+            <div style={{color:"white",fontSize:"12px",fontWeight:"bold",letterSpacing:".3px",lineHeight:1}}>{username}</div>
+            <div style={{display:"flex",gap:"6px",marginTop:"2px"}}>
+              <span style={{color:myC.light,fontSize:"9px",opacity:.8}}>{mine.length} territories</span>
+              <span style={{color:"#f5c842",fontSize:"10px",fontWeight:"bold"}}>{myInventory.coins.toLocaleString()}<span style={{color:"rgba(255,200,50,.4)",fontSize:"8px",marginLeft:"2px"}}>coins</span></span>
+            </div>
+          </div>
         </div>
 
-        {/* center: weapons + buildings inventory strip */}
-        <div style={{display:"flex",alignItems:"center",gap:"2px",flex:1,justifyContent:"center",flexWrap:"nowrap",overflow:"hidden",padding:"0 12px"}}>
+        {/* center: weapon quick-bar */}
+        <div style={{display:"flex",alignItems:"center",gap:"3px",flex:1,justifyContent:"center",overflow:"hidden",padding:"0 8px"}}>
           {[
-            {id:"tank",    label:"Tank",    color:"#f59e0b"},
-            {id:"bomb",    label:"Bomb",    color:"#ef4444"},
-            {id:"plane",   label:"Plane",   color:"#3b82f6"},
-            {id:"missile", label:"Missile", color:"#f97316"},
-            {id:"bomber",  label:"Bomber",  color:"#dc2626"},
-            {id:"air_def",    label:"Air Def",  color:"#6366f1"},
-            {id:"academySpies",label:"Spies",    color:"#10b981"},
-          ].map(w=>{
-            const qty=myInventory[w.id]||0;
-            return(
-              <div key={w.id} style={{display:"flex",alignItems:"center",gap:"3px",padding:"3px 7px",background:qty>0?"rgba(255,255,255,.06)":"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?w.color+"44":"rgba(255,255,255,.06)"),minWidth:"52px",justifyContent:"center"}}>
-                <span style={{color:qty>0?w.color:"rgba(255,255,255,.2)",fontSize:"9px",letterSpacing:".3px"}}>{w.label}</span>
-                <span style={{color:qty>0?"white":"rgba(255,255,255,.2)",fontWeight:"bold",fontSize:"11px",marginLeft:"2px"}}>{qty}</span>
-              </div>
-            );
-          })}
-          {(myInventory.buildings||[]).length>0&&(
-            <>
-              <div style={{width:"1px",height:"18px",background:"rgba(255,255,255,.1)",margin:"0 4px"}}/>
-              {Object.entries((myInventory.buildings||[]).reduce((a,b)=>{a[b]=(a[b]||0)+1;return a;},{})).map(([id,cnt])=>{
-                const bld=BUILDINGS.find(b=>b.id===id);
-                return(
-                  <div key={id} style={{display:"flex",alignItems:"center",gap:"3px",padding:"3px 7px",background:"rgba(34,197,94,.06)",borderRadius:"6px",border:"1px solid rgba(34,197,94,.25)",minWidth:"52px",justifyContent:"center"}}>
-                    <span style={{color:"#86efac",fontSize:"9px"}}>{bld?bld.label:id}</span>
-                    <span style={{color:"white",fontWeight:"bold",fontSize:"11px",marginLeft:"2px"}}>{cnt}</span>
-                  </div>
-                );
-              })}
-            </>
-          )}
+            {id:"tank",icon:"T",color:"#f59e0b"},{id:"bomb",icon:"B",color:"#ef4444"},
+            {id:"plane",icon:"P",color:"#3b82f6"},{id:"missile",icon:"M",color:"#f97316"},
+            {id:"artillery",icon:"A",color:"#e879f9"},{id:"drone",icon:"D",color:"#06b6d4"},
+            {id:"bomber",icon:"X",color:"#dc2626"},{id:"air_def",icon:"AD",color:"#6366f1"},
+            {id:"spy",icon:"S",color:"#10b981"},{id:"satellite",icon:"SAT",color:"#a5b4fc"},
+            {id:"nuke_bomb",icon:"N",color:"#22c55e"},
+          ].filter(w=>(myInventory[w.id]||0)>0).map(w=>(
+            <div key={w.id} title={w.id} style={{display:"flex",alignItems:"center",gap:"2px",padding:"3px 6px",background:"rgba(255,255,255,.05)",borderRadius:"5px",border:"1px solid "+w.color+"33",flexShrink:0}}>
+              <span style={{color:w.color,fontSize:"8px",fontWeight:"bold",letterSpacing:".5px"}}>{w.icon}</span>
+              <span style={{color:"rgba(255,255,255,.8)",fontWeight:"bold",fontSize:"10px"}}>{myInventory[w.id]}</span>
+            </div>
+          ))}
         </div>
 
-        {/* right: attack + exit */}
-        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
-
+        {/* right: action buttons */}
+        <div style={{display:"flex",alignItems:"center",gap:"6px",minWidth:"fit-content"}}>
           <button onClick={()=>setShowCraftShop(s=>!s)}
-            style={{padding:"5px 10px",background:showCraftShop?"rgba(34,197,94,.2)":"rgba(255,255,255,.06)",border:"1px solid "+(showCraftShop?"rgba(34,197,94,.4)":"rgba(255,255,255,.12)"),borderRadius:"7px",color:showCraftShop?"#22c55e":"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
-            W LAB
+            style={{padding:"5px 11px",height:"30px",background:showCraftShop?"linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.1))":"rgba(255,255,255,.05)",border:"1px solid "+(showCraftShop?"rgba(34,197,94,.5)":"rgba(255,255,255,.1)"),borderRadius:"7px",color:showCraftShop?"#4ade80":"rgba(255,255,255,.45)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",letterSpacing:"1px",fontWeight:"bold",transition:"all .2s"}}>
+            ⚗ W LAB
           </button>
           {(myInventory.satellite||0)>0&&(
             <button onClick={()=>{setSatelliteMode(s=>!s);setAttackMode(false);setAttackPlan(null);}}
-              style={{padding:"5px 10px",background:satelliteMode?"rgba(99,102,241,.35)":"rgba(99,102,241,.1)",border:"1px solid "+(satelliteMode?"rgba(99,102,241,.7)":"rgba(99,102,241,.3)"),borderRadius:"7px",color:satelliteMode?"#a5b4fc":"rgba(99,102,241,.7)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",letterSpacing:"1px",animation:satelliteMode?"pr 1.5s infinite":undefined}}>
-              SAT STRIKE ({myInventory.satellite})
+              style={{padding:"5px 11px",height:"30px",background:satelliteMode?"linear-gradient(135deg,rgba(99,102,241,.4),rgba(99,102,241,.2))":"rgba(99,102,241,.08)",border:"1px solid "+(satelliteMode?"#6366f1":"rgba(99,102,241,.25)"),borderRadius:"7px",color:satelliteMode?"#c7d2fe":"rgba(99,102,241,.6)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",letterSpacing:".5px",fontWeight:"bold",animation:satelliteMode?"pr 1.5s infinite":undefined,transition:"all .2s"}}>
+              ◈ SAT ({myInventory.satellite})
             </button>
           )}
           <button onClick={()=>setAttackMode(m=>!m)}
-            style={{padding:"5px 14px",background:attackMode?"linear-gradient(135deg,#dc2626,#ef4444)":"rgba(255,255,255,.08)",border:attackMode?"none":"1px solid rgba(255,255,255,.15)",borderRadius:"7px",color:attackMode?"white":"rgba(255,255,255,.7)",cursor:"pointer",fontSize:"11px",fontWeight:"bold",fontFamily:"Georgia,serif",animation:attackMode?"pr 1.5s infinite":undefined}}>
-            {attackMode?"CANCEL ATTACK":"ENTER ATTACK MODE"}
+            style={{padding:"5px 14px",height:"30px",background:attackMode?"linear-gradient(135deg,#991b1b,#dc2626)":"rgba(239,68,68,.08)",border:"1px solid "+(attackMode?"#ef4444":"rgba(239,68,68,.2)"),borderRadius:"7px",color:attackMode?"white":"rgba(239,68,68,.7)",cursor:"pointer",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif",letterSpacing:"1px",animation:attackMode?"pr 1.5s infinite":undefined,transition:"all .2s",whiteSpace:"nowrap"}}>
+            {attackMode?"✕ CANCEL":"⚔ ATTACK"}
           </button>
-          <button onClick={()=>{setAttackMode(false);setScreen("menu");setRoomInput("");setRoomCode("");setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
-            style={{padding:"5px 12px",background:"transparent",border:"1px solid rgba(255,255,255,.12)",borderRadius:"7px",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif"}}>
-            Exit
+          <button onClick={()=>{setAttackMode(false);setSatelliteMode(false);setScreen("menu");setRoomInput("");roomCodeRef.current="";setRoomCode("");ownershipRef.current={};setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
+            style={{padding:"5px 10px",height:"30px",background:"transparent",border:"1px solid rgba(255,255,255,.08)",borderRadius:"7px",color:"rgba(255,255,255,.3)",cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif",transition:"all .2s"}}>
+            ← Exit
           </button>
         </div>
       </div>
@@ -2254,12 +2254,20 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       <div style={{flex:1,display:"flex",flexDirection:"row",overflow:"hidden",minHeight:0}}>
 
         {/* map */}
-        <div style={{position:"fixed",top:"44px",left:0,right:"220px",bottom:0,overflow:"hidden"}}>
+        <div style={{position:"fixed",top:"48px",left:0,right:"230px",bottom:0,overflow:"hidden",background:"radial-gradient(ellipse at 50% 40%,#061428 0%,#030810 60%,#020608 100%)"}}>
 
           {/* Attack flash effects */}
           {satelliteMode&&(
-            <div style={{position:"absolute",top:"10px",left:"50%",transform:"translateX(-50%)",zIndex:500,background:"rgba(99,102,241,.9)",border:"1px solid #6366f1",borderRadius:"10px",padding:"8px 20px",color:"white",fontSize:"12px",fontWeight:"bold",letterSpacing:"1px",pointerEvents:"none",animation:"pr 1.5s infinite"}}>
-              SATELLITE TARGETING - Click any enemy country
+            <div style={{position:"absolute",top:"12px",left:"50%",transform:"translateX(-50%)",zIndex:500,background:"linear-gradient(135deg,rgba(49,46,129,.95),rgba(67,56,202,.95))",border:"1px solid rgba(99,102,241,.7)",borderRadius:"12px",padding:"9px 22px",color:"#e0e7ff",fontSize:"11px",fontWeight:"bold",letterSpacing:"1.5px",pointerEvents:"none",animation:"prBlue 1.5s infinite",boxShadow:"0 8px 32px rgba(99,102,241,.4)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",gap:"8px"}}>
+              <span style={{animation:"pu 1s ease infinite",display:"inline-block"}}>◈</span>
+              SATELLITE TARGETING — Click enemy country
+              <span style={{fontSize:"9px",color:"rgba(255,255,255,.4)",letterSpacing:"0"}}>ESC to cancel</span>
+            </div>
+          )}
+          {attackMode&&!satelliteMode&&(
+            <div style={{position:"absolute",top:"12px",left:"50%",transform:"translateX(-50%)",zIndex:500,background:"linear-gradient(135deg,rgba(127,29,29,.95),rgba(185,28,28,.95))",border:"1px solid rgba(239,68,68,.5)",borderRadius:"12px",padding:"9px 22px",color:"#fecaca",fontSize:"11px",fontWeight:"bold",letterSpacing:"1.5px",pointerEvents:"none",animation:"pr 1.5s infinite",boxShadow:"0 8px 32px rgba(239,68,68,.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",gap:"8px"}}>
+              <span style={{animation:"pu 1.2s ease infinite",display:"inline-block"}}>⚔</span>
+              ATTACK MODE — Click a highlighted country
             </div>
           )}
           <style>{"@keyframes boom{0%{opacity:1;transform:scale(0.5)}60%{opacity:0.8;transform:scale(1.4)}100%{opacity:0;transform:scale(1.8)}}"}</style>
@@ -2306,7 +2314,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               </button>
             </div>
           )}
-          <svg ref={svgRef} viewBox="0 0 1800 950" preserveAspectRatio="xMinYMin meet" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",display:"block"}}
+          <svg ref={svgRef} viewBox="0 0 1800 950" preserveAspectRatio="xMinYMin meet" style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",display:"block",background:"radial-gradient(ellipse at 50% 50%,#0d1f3c 0%,#060f20 60%,#020810 100%)"}}
             onMouseMove={e=>{
               const r=svgRef.current?.getBoundingClientRect();
               if(r)setTip(t=>({...t,x:e.clientX-r.left,y:e.clientY-r.top}));
@@ -2344,7 +2352,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               return(
                 <g key={c.id}>
                   <path d={c.d} fill={fill} stroke={stroke} strokeWidth={sw} opacity={opacity}
-                    style={{cursor:isNuked?"not-allowed":(satelliteMode&&owner&&owner!==username&&!isShocked)?"cell":(!isShocked&&!isNuked&&attackMode&&inReach&&!isMe)?"crosshair":"default",transition:"fill .15s,opacity .15s"}}
+                    style={{cursor:isNuked?"not-allowed":(satelliteMode&&owner&&owner!==username&&!isShocked)?"cell":(!isShocked&&!isNuked&&attackMode&&inReach&&!isMe)?"crosshair":"default",transition:"fill .2s ease,opacity .2s ease,stroke-width .15s ease",filter:isHovered&&!isNuked&&!isShocked?"brightness(1.3)":undefined}}
                     onMouseEnter={e=>{
                       setHovered(c.id);
                       const r=svgRef.current?.getBoundingClientRect();
@@ -2389,10 +2397,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           </svg>
 
           {tip.show&&tip.c&&(
-            <div style={{position:"absolute",left:tip.x+14,top:tip.y-10,pointerEvents:"none",zIndex:100,
-              background:"rgba(6,13,26,.97)",border:"1px solid rgba(255,255,255,.18)",borderRadius:"10px",padding:"10px 14px",minWidth:"170px",boxShadow:"0 4px 20px rgba(0,0,0,.5)"}}>
-              <div style={{color:"white",fontWeight:"bold",fontSize:"13px",marginBottom:"2px"}}>{tip.c.name}</div>
-              {tip.c.continent&&<div style={{color:"rgba(255,255,255,.35)",fontSize:"9px",letterSpacing:"1px",marginBottom:"4px",textTransform:"uppercase"}}>{tip.c.continent}</div>}
+            <div style={{position:"absolute",left:tip.x+16,top:tip.y-12,pointerEvents:"none",zIndex:100,
+              background:"linear-gradient(160deg,rgba(6,14,28,.98),rgba(4,10,20,.98))",border:"1px solid rgba(255,255,255,.12)",borderRadius:"12px",padding:"11px 15px",minWidth:"180px",boxShadow:"0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04)",backdropFilter:"blur(8px)"}}>
+              <div style={{color:"white",fontWeight:"bold",fontSize:"13px",marginBottom:"2px",letterSpacing:".2px"}}>{tip.c.name}</div>
+              {tip.c.continent&&<div style={{color:"rgba(255,255,255,.3)",fontSize:"8px",letterSpacing:"1.5px",marginBottom:"5px",textTransform:"uppercase"}}>{tip.c.continent}</div>}
               <div style={{display:"flex",gap:"8px",marginBottom:"4px"}}>
                 <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px"}}>Area: <span style={{color:"rgba(255,255,255,.7)"}}>{tip.c.area}</span></div>
                 {tip.c.pop&&<div style={{color:"rgba(255,255,255,.4)",fontSize:"10px"}}>Pop: <span style={{color:"rgba(255,255,255,.7)"}}>{tip.c.pop}</span></div>}
@@ -2412,89 +2420,110 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         </div>
 
         {/* right sidebar */}
-        <div style={{position:"fixed",top:"44px",right:0,bottom:0,width:"220px",background:"rgba(4,10,22,.98)",borderLeft:"1px solid rgba(255,255,255,.1)",display:"flex",flexDirection:"column",overflowY:"auto",padding:"10px 8px",gap:"6px",zIndex:50}}>
+        <div style={{position:"fixed",top:"48px",right:0,bottom:0,width:"230px",background:"linear-gradient(180deg,rgba(3,8,20,.99) 0%,rgba(4,10,22,.99) 100%)",borderLeft:"1px solid rgba(255,255,255,.07)",display:"flex",flexDirection:"column",overflowY:"auto",padding:"10px 9px",gap:"7px",zIndex:50}}>
 
           {/* player card */}
-          <div style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"10px",padding:"10px 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px"}}>
-              <div style={{width:"10px",height:"10px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 6px "+myC.bg,flexShrink:0}}/>
-              <span style={{color:"white",fontSize:"11px",fontWeight:"bold",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{username}</span>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"3px"}}><span style={{color:myC.light,fontSize:"10px"}}>{mine.length} territories</span><span style={{color:"rgba(255,255,255,.25)",fontSize:"9px"}}>|</span><span style={{color:myC.light,fontSize:"9px",opacity:.7}}>{myC.name}</span></div>
-            <div style={{color:"#f5c842",fontWeight:"bold",fontSize:"13px"}}>{myInventory.coins.toLocaleString()}</div>
-            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px"}}>coins</div>
-            <div style={{marginTop:"8px"}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}>
-                <span style={{color:"rgba(255,255,255,.3)",fontSize:"8px",letterSpacing:"1px",textTransform:"uppercase"}}>Terra Pass Lv {curLevel+1}</span>
-                <span style={{color:"#c4b5fd",fontSize:"8px"}}>{playerXP} XP</span>
+          <div style={{background:"linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.02))",border:"1px solid rgba(255,255,255,.09)",borderRadius:"12px",padding:"11px 13px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}}>
+              <div style={{width:"32px",height:"32px",borderRadius:"9px",background:"linear-gradient(135deg,"+myC.bg+"33,"+myC.bg+"11)",border:"1px solid "+myC.bg+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <div style={{width:"11px",height:"11px",borderRadius:"50%",background:myC.bg,boxShadow:"0 0 8px "+myC.bg}}/>
               </div>
-              <div style={{height:"4px",background:"rgba(255,255,255,.08)",borderRadius:"2px",overflow:"hidden"}}>
-                <div style={{height:"100%",width:xpPct+"%",background:"linear-gradient(90deg,#7c3aed,#c4b5fd)",borderRadius:"2px",transition:"width .5s"}}/>
+              <div style={{flex:1,overflow:"hidden"}}>
+                <div style={{color:"white",fontSize:"12px",fontWeight:"bold",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{username}</div>
+                <div style={{color:myC.light,fontSize:"9px",opacity:.7}}>{myC.name} · {mine.length} terr</div>
+              </div>
+            </div>
+            <div style={{display:"flex",alignItems:"baseline",gap:"4px",marginBottom:"8px"}}>
+              <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"16px",letterSpacing:"-0.5px"}}>{myInventory.coins.toLocaleString()}</span>
+              <span style={{color:"rgba(245,200,66,.4)",fontSize:"9px"}}>coins</span>
+            </div>
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}>
+                <span style={{color:"rgba(255,255,255,.3)",fontSize:"8px",letterSpacing:"1px",textTransform:"uppercase"}}>Pass Lv {curLevel+1}</span>
+                <span style={{color:"#c4b5fd",fontSize:"8px",fontWeight:"bold"}}>{playerXP} XP</span>
+              </div>
+              <div style={{height:"5px",background:"rgba(255,255,255,.06)",borderRadius:"3px",overflow:"hidden"}}>
+                <div style={{height:"100%",width:xpPct+"%",background:"linear-gradient(90deg,#6d28d9,#a78bfa,#c4b5fd)",borderRadius:"3px",transition:"width .6s ease",boxShadow:"0 0 6px rgba(167,139,250,.4)"}}/>
               </div>
             </div>
           </div>
 
-          {/* daily reward */}
+          {/* daily reward - pulsing gold */}
           {canClaimDaily&&(
-            <button onClick={()=>setShowDaily(true)}
-              style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,#92400e,#d4a017)",border:"none",borderRadius:"9px",color:"#fff8dc",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
-              DAILY REWARD
+            <button onClick={()=>setShowDaily(true)} className="sidebar-btn"
+              style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#78350f,#b45309,#d97706)",border:"1px solid rgba(245,158,11,.4)",borderRadius:"10px",color:"#fef3c7",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",letterSpacing:"1.5px",boxShadow:"0 4px 20px rgba(217,119,6,.3)",animation:"pu 2s ease infinite"}}>
+              ✦ DAILY REWARD
             </button>
           )}
 
           {/* action buttons */}
           {[
-            {label:"War Shop",       color:"#ef4444", bg:"rgba(239,68,68,.15)",  border:"rgba(239,68,68,.35)",  action:()=>setShowShop(true)},
-            {label:"Material Shop",  color:"#84cc16", bg:"rgba(132,204,22,.15)", border:"rgba(132,204,22,.35)", action:()=>setShowMatShop(true)},
-            {label:"Build Shop",     color:"#22c55e", bg:"rgba(34,197,94,.15)",  border:"rgba(34,197,94,.35)",  action:()=>setShowBuildShop(true)},
-            {label:"Black Market",   color:"#8b5cf6", bg:"rgba(139,92,246,.15)", border:"rgba(139,92,246,.35)", action:()=>setShowBlackMarket(true), disabled:!(myInventory.buildings||[]).includes("black_market")},
-            {label:"Terra Pass",     color:"#a78bfa", bg:"rgba(139,92,246,.15)", border:"rgba(139,92,246,.35)", action:()=>setShowTerraPass(true)},
+            {label:"War Shop",      icon:"⚔",color:"#f87171",bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  action:()=>setShowShop(true)},
+            {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>setShowMatShop(true)},
+            {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>setShowBuildShop(true)},
+            {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>setShowBlackMarket(true), disabled:!(myInventory.buildings||[]).includes("black_market")},
+            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)},
           ].map(btn=>(
-            <button key={btn.label} onClick={btn.disabled?undefined:btn.action}
-              style={{width:"100%",padding:"9px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.2)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:"0.5px",opacity:btn.disabled?0.5:1}}>
-              {btn.label}{btn.disabled?" locked":""}
+            <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
+              style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
+              <span style={{fontSize:"12px",opacity:.85}}>{btn.icon}</span>
+              {btn.label}{btn.disabled&&<span style={{marginLeft:"auto",fontSize:"8px",color:"rgba(255,255,255,.2)",letterSpacing:"1px"}}>LOCKED</span>}
             </button>
           ))}
 
           {/* divider */}
-          <div style={{borderTop:"1px solid rgba(255,255,255,.07)",margin:"2px 0"}}/>
+          <div style={{borderTop:"1px solid rgba(255,255,255,.06)",margin:"1px 0"}}/>
+
+          {/* materials strip */}
+          <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"9px 11px"}}>
+            <div style={{color:"rgba(255,255,255,.25)",fontSize:"8px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Resources</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"5px"}}>
+              {MATERIALS.map(m=>{
+                const qty=myInventory[m.id]||0;
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:"5px",padding:"4px 6px",background:"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?m.color+"22":"rgba(255,255,255,.04)")}}>
+                    <div style={{width:"6px",height:"6px",borderRadius:"2px",background:qty>0?m.color:"rgba(255,255,255,.15)",flexShrink:0,boxShadow:qty>0?"0 0 4px "+m.color+"80":undefined}}/>
+                    <span style={{color:qty>0?"rgba(255,255,255,.6)":"rgba(255,255,255,.2)",fontSize:"8px",flex:1}}>{m.label}</span>
+                    <span style={{color:qty>0?m.color:"rgba(255,255,255,.2)",fontSize:"10px",fontWeight:"bold"}}>{qty}</span>
+                  </div>
+                );
+              })}
+              {[{id:"uranium",label:"Uranium",color:"#4ade80"},{id:"nuke_bomb",label:"Nukes",color:"#22c55e"}].map(m=>{
+                const qty=myInventory[m.id]||0;
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:"5px",padding:"4px 6px",background:"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?m.color+"22":"rgba(255,255,255,.04)")}}>
+                    <div style={{width:"6px",height:"6px",borderRadius:"50%",background:qty>0?m.color:"rgba(255,255,255,.15)",flexShrink:0,boxShadow:qty>0?"0 0 4px "+m.color+"80":undefined}}/>
+                    <span style={{color:qty>0?"rgba(255,255,255,.6)":"rgba(255,255,255,.2)",fontSize:"8px",flex:1}}>{m.label}</span>
+                    <span style={{color:qty>0?m.color:"rgba(255,255,255,.2)",fontSize:"10px",fontWeight:"bold"}}>{qty}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* leaderboard */}
-          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"10px 12px",flex:1}}>
-            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"10px"}}>Leaderboard</div>
+          <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"9px 11px",flex:1}}>
+            <div style={{color:"rgba(255,255,255,.25)",fontSize:"8px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"9px"}}>Leaderboard</div>
             {lb.map(([name,cnt],i)=>{
               const pl=players[name];
               const color=pl?CLRS[pl.cidx%CLRS.length].bg:"#555";
               const isMe=name===username;
               const pct=Math.round((cnt/COUNTRIES.length)*100);
+              const medals=["🥇","🥈","🥉"];
               return(
-                <div key={name} style={{marginBottom:"8px"}}>
+                <div key={name} style={{marginBottom:"9px",animation:"floatUp .3s ease both",animationDelay:(i*0.05)+"s"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"5px",marginBottom:"3px"}}>
-                    <span style={{color:"rgba(255,255,255,.25)",fontSize:"9px",width:"12px"}}>{i+1}</span>
-                    <div style={{width:"7px",height:"7px",borderRadius:"50%",background:color,flexShrink:0}}/>
+                    <span style={{fontSize:"10px",width:"14px",textAlign:"center"}}>{medals[i]||<span style={{color:"rgba(255,255,255,.2)",fontSize:"9px"}}>{i+1}</span>}</span>
+                    <div style={{width:"7px",height:"7px",borderRadius:"50%",background:color,boxShadow:isMe?"0 0 6px "+color:undefined,flexShrink:0}}/>
                     <span style={{color:isMe?"#f5c842":"rgba(255,255,255,.7)",fontSize:"10px",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:isMe?"bold":"normal"}}>{name}</span>
-                    <span style={{color:"rgba(255,255,255,.5)",fontSize:"10px"}}>{cnt}</span>
+                    <span style={{color:isMe?"#f5c842":"rgba(255,255,255,.4)",fontSize:"10px",fontWeight:isMe?"bold":"normal"}}>{cnt}</span>
                   </div>
-                  <div style={{height:"3px",background:"rgba(255,255,255,.06)",borderRadius:"2px",overflow:"hidden",marginLeft:"17px"}}>
-                    <div style={{height:"100%",width:pct+"%",background:color,opacity:0.7,borderRadius:"2px"}}/>
+                  <div style={{height:"3px",background:"rgba(255,255,255,.05)",borderRadius:"2px",overflow:"hidden",marginLeft:"19px"}}>
+                    <div style={{height:"100%",width:pct+"%",background:isMe?"linear-gradient(90deg,"+color+",#f5c842)":color,opacity:isMe?1:0.65,borderRadius:"2px",transition:"width .6s ease"}}/>
                   </div>
                 </div>
               );
             })}
-          </div>
-
-          {/* materials */}
-          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:"10px",padding:"10px 12px"}}>
-            <div style={{color:"rgba(255,255,255,.3)",fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",marginBottom:"8px"}}>Materials</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"5px"}}>
-              {MATERIALS.map(m=>(
-                <div key={m.id} style={{display:"flex",alignItems:"center",gap:"4px"}}>
-                  <div style={{width:"6px",height:"6px",borderRadius:"2px",background:m.color,flexShrink:0}}/>
-                  <span style={{color:"rgba(255,255,255,.5)",fontSize:"9px"}}>{m.label}</span>
-                  <span style={{color:m.color,fontSize:"10px",fontWeight:"bold",marginLeft:"auto"}}>{myInventory[m.id]||0}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
         </div>
