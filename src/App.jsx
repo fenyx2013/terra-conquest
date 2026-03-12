@@ -723,8 +723,10 @@ export default function EarthConquest(){
   const nukedRef=useRef({});
   const saveWorld=async(o,p,nuked)=>{
     if(isSingleplayer)return;
+    const rc=roomCodeRef.current||roomCode;
+    if(!rc)return; // never save with empty room code
     const nk=nuked!==undefined?nuked:nukedRef.current;
-    try{await sb.from("world").upsert({room_code:roomCodeRef.current||roomCode,ownership:o,players:p,nuked:nk},{onConflict:"room_code"});}catch(e){}
+    try{await sb.from("world").upsert({room_code:rc,ownership:o,players:p,nuked:nk},{onConflict:"room_code"});}catch(e){}
   };
 
   const saveInv=async(inv,name)=>{
@@ -1189,13 +1191,17 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const startGame=async()=>{
-    // Always fetch fresh world state from DB right before saving to avoid race conditions
+    const rc=roomCodeRef.current||roomCode;
+    const uname=usernameRef.current||username;
+    if(!rc||!uname){flash("Connection error - please re-enter room code","error");return;}
+    // Fetch fresh world state from DB right before saving
     let baseO={};
     let basePlayers={};
     let baseNuked={};
+    let fetchOk=false;
     try{
-      const {data:fresh}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCodeRef.current).single();
-      if(fresh){
+      const {data:fresh,error}=await sb.from("world").select("ownership,players,nuked").eq("room_code",rc).single();
+      if(fresh&&!error){
         baseO=fresh.ownership||{};
         basePlayers=fresh.players||{};
         baseNuked=fresh.nuked||{};
@@ -1203,11 +1209,17 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         nukedRef.current=baseNuked;
         setOwnership(baseO);
         setNukedCountries(baseNuked);
+        fetchOk=true;
       }
     }catch(e){}
+    // Safety: if DB fetch failed and there are already countries in the world, abort to avoid wiping
+    if(!fetchOk&&Object.keys(ownershipRef.current).length>0){
+      // Use cached state instead
+      baseO={...ownershipRef.current};
+      baseNuked={...nukedRef.current};
+    }
     const newO={...baseO};
     // Only assign new territory if player doesn't already own any countries
-    const uname=usernameRef.current||username;
     const alreadyOwns=Object.values(newO).some(v=>v===uname);
     if(!alreadyOwns){
       const terr=startTerr(newO);
@@ -1215,10 +1227,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     }
     ownershipRef.current=newO;
     const newP={...basePlayers,[uname]:{cidx,joinedAt:Date.now()}};
-    await saveWorld(newO,newP,baseNuked);  // roomCodeRef used inside saveWorld
+    // Build the upsert manually with explicit roomCode to prevent stale closure
+    try{
+      await sb.from("world").upsert({room_code:rc,ownership:newO,players:newP,nuked:baseNuked},{onConflict:"room_code"});
+    }catch(e){flash("Save error: "+e.message,"error");}
     setOwnership(newO);setPlayers(newP);
+    roomCodeRef.current=rc;
+    setRoomCode(rc);
     if(myInventory.lastDaily!==todayStr())setShowDaily(true);
-    // Randomize black market items
     const shuffled=[...BLACK_MARKET_POOL].sort(()=>Math.random()-0.5).slice(0,3);
     setBlackMarketItems(shuffled);
     setScreen("map");
