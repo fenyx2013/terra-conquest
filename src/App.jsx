@@ -24,7 +24,7 @@ const CLRS=[
 ];
 
 const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8};
-const DAILY_REWARD=3000;
+const DAILY_REWARD=1000000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
@@ -653,7 +653,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0});
+  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,uranium:10000,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -873,7 +873,7 @@ export default function EarthConquest(){
       try{
         const {data}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
         if(data){
-          setOwnership(prev=>{const inc=data.ownership||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
+          setOwnership(prev=>{const inc=data.ownership||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;ownershipRef.current=inc;return inc;});
           const inc=data.players||{};
           setPlayers(prev=>{if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
           const msgs=inc._chat||[];
@@ -1179,7 +1179,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       const {data}=await sb.from("world").select("ownership,players,nuked").eq("room_code",code).single();
       let o={},p={},nk={};
       if(data){o=data.ownership||{};p=data.players||{};nk=data.nuked||{};}
-      setOwnership(o);setPlayers(p);nukedRef.current=nk;setNukedCountries(nk);
+      ownershipRef.current=o;setOwnership(o);setPlayers(p);nukedRef.current=nk;setNukedCountries(nk);
       setRoomCode(code);
       setRecentRooms(prev=>[code,...prev.filter(r=>r!==code)].slice(0,5));
       setScreen("login");
@@ -1187,12 +1187,21 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const startGame=async()=>{
-    // Re-fetch latest world state to avoid overwriting other players' changes
-    let baseO={...ownership};
-    let baseNuked={...nukedRef.current};
+    // Always fetch fresh world state from DB right before saving to avoid race conditions
+    let baseO={};
+    let basePlayers={};
+    let baseNuked={};
     try{
       const {data:fresh}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
-      if(fresh){baseO=fresh.ownership||{};baseNuked=fresh.nuked||{};nukedRef.current=baseNuked;setNukedCountries(baseNuked);}
+      if(fresh){
+        baseO=fresh.ownership||{};
+        basePlayers=fresh.players||{};
+        baseNuked=fresh.nuked||{};
+        ownershipRef.current=baseO;
+        nukedRef.current=baseNuked;
+        setOwnership(baseO);
+        setNukedCountries(baseNuked);
+      }
     }catch(e){}
     const newO={...baseO};
     // Only assign new territory if player doesn't already own any countries
@@ -1201,7 +1210,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       const terr=startTerr(newO);
       terr.forEach(id=>{newO[id]=username;});
     }
-    const newP={...players,[username]:{cidx,joinedAt:Date.now()}};
+    ownershipRef.current=newO;
+    const newP={...basePlayers,[username]:{cidx,joinedAt:Date.now()}};
     await saveWorld(newO,newP,baseNuked);
     setOwnership(newO);setPlayers(newP);
     if(myInventory.lastDaily!==todayStr())setShowDaily(true);
@@ -1246,7 +1256,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
     const vaultBonus=vaultCount*500;
     const total=DAILY_REWARD+vaultBonus;
-    const newInv={...myInventory,coins:myInventory.coins+total,lastDaily:todayStr(),_dailyCount:(myInventory._dailyCount||0)+1};
+    const newInv={...myInventory,coins:myInventory.coins+total,uranium:(myInventory.uranium||0)+10000,iron:(myInventory.iron||0)+999,gold:(myInventory.gold||0)+999,wood:(myInventory.wood||0)+999,stone:(myInventory.stone||0)+999,lastDaily:todayStr(),_dailyCount:(myInventory._dailyCount||0)+1};
     setMyInventory(newInv);
     await saveInv(newInv);
     setShowDaily(false);
