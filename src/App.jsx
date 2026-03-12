@@ -852,8 +852,8 @@ export default function EarthConquest(){
       setChatMsgs(next._chat);
       (async()=>{
         try{
-          const {data:cur}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
-          if(cur)await sb.from("world").upsert({room_code:roomCode,ownership:cur.ownership,players:next},{onConflict:"room_code"});
+          const {data:cur}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
+          if(cur)await sb.from("world").upsert({room_code:roomCode,ownership:cur.ownership,players:next,nuked:cur.nuked||{}},{onConflict:"room_code"});
         }catch(e){}
       })();
       return next;
@@ -1176,10 +1176,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const code=roomInput;
     setRoomError("");
     try{
-      const {data}=await sb.from("world").select("ownership,players").eq("room_code",code).single();
-      let o={},p={};
-      if(data){o=data.ownership||{};p=data.players||{};}
-      setOwnership(o);setPlayers(p);
+      const {data}=await sb.from("world").select("ownership,players,nuked").eq("room_code",code).single();
+      let o={},p={},nk={};
+      if(data){o=data.ownership||{};p=data.players||{};nk=data.nuked||{};}
+      setOwnership(o);setPlayers(p);nukedRef.current=nk;setNukedCountries(nk);
       setRoomCode(code);
       setRecentRooms(prev=>[code,...prev.filter(r=>r!==code)].slice(0,5));
       setScreen("login");
@@ -1191,7 +1191,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const terr=startTerr(newO);
     terr.forEach(id=>{newO[id]=username;});
     const newP={...players,[username]:{cidx,joinedAt:Date.now()}};
-    await saveWorld(newO,newP);
+    await saveWorld(newO,newP,nukedRef.current);
     setOwnership(newO);setPlayers(newP);
     if(myInventory.lastDaily!==todayStr())setShowDaily(true);
     // Randomize black market items
