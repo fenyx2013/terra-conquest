@@ -1187,11 +1187,22 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const startGame=async()=>{
-    const newO={...ownership};
-    const terr=startTerr(newO);
-    terr.forEach(id=>{newO[id]=username;});
+    // Re-fetch latest world state to avoid overwriting other players' changes
+    let baseO={...ownership};
+    let baseNuked={...nukedRef.current};
+    try{
+      const {data:fresh}=await sb.from("world").select("ownership,players,nuked").eq("room_code",roomCode).single();
+      if(fresh){baseO=fresh.ownership||{};baseNuked=fresh.nuked||{};nukedRef.current=baseNuked;setNukedCountries(baseNuked);}
+    }catch(e){}
+    const newO={...baseO};
+    // Only assign new territory if player doesn't already own any countries
+    const alreadyOwns=Object.values(newO).some(v=>v===username);
+    if(!alreadyOwns){
+      const terr=startTerr(newO);
+      terr.forEach(id=>{newO[id]=username;});
+    }
     const newP={...players,[username]:{cidx,joinedAt:Date.now()}};
-    await saveWorld(newO,newP,nukedRef.current);
+    await saveWorld(newO,newP,baseNuked);
     setOwnership(newO);setPlayers(newP);
     if(myInventory.lastDaily!==todayStr())setShowDaily(true);
     // Randomize black market items
@@ -1476,18 +1487,20 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   if(screen==="menu"){
     const TUTORIAL_STEPS=[
-      {title:"The Map",text:"The world is divided into 100 countries. Your territories glow in your color. Hover a country to see its name, continent, population and any bonus it gives."},
-      {title:"Attacking",text:"Click ENTER ATTACK MODE in the top bar. Red-highlighted countries are within reach. Click one to open the Deploy Forces panel and launch an attack."},
-      {title:"Weapons",text:"In the War Shop, buy Tanks (0.5dmg), Bombs (2dmg), Planes (3dmg), Missiles (6dmg) or Bombers (10dmg). Deploy them in the attack modal. More firepower = higher win chance."},
-      {title:"Nuclear Bomb",text:"Craft a Nuclear Bomb via the N CRAFT button (top bar). It requires 10 Uranium, 7 Iron, 2 Gold and 2000 coins. A nuke instantly irradiates a territory - it becomes permanently uninhabitable."},
-      {title:"Materials",text:"Wood, Stone, Iron, Gold and Uranium are materials. Buy most from the Material Shop. Uranium is only obtainable by building a Uranium Extractor, which converts 1 Gold into 1 Uranium per minute."},
-      {title:"Buildings",text:"The Build Shop lets you construct Barracks, Airbases, Coin Factories, Vaults, Spy Academies, Watchtowers, Ports, Mines, Uranium Extractors and a Nuclear Reactor. Each costs materials."},
-      {title:"Nuclear Reactor",text:"The Nuclear Reactor boosts ALL weapon damage by 50%. A purple NUCLEAR x1.5 badge appears in your attack modal when active. It costs 5 Iron, 3 Uranium and 7 Stone to build."},
-      {title:"Country Bonuses",text:"Some countries give special bonuses every second: USA +50 coins/sec, Japan +35 coins/sec. Others give per-minute bonuses: Russia +3 tanks, China +2 tanks, Canada +2 wood, Saudi Arabia & S. Africa +1 gold. Shown as gold badges on hover."},
-      {title:"Economy",text:"Coin Factories generate 5 coins/sec. Gold Vaults boost your Daily Reward by +500. Mines produce +1 Iron and Stone per tick. Claim your Daily Reward every 24 hours for a big coin bonus."},
-      {title:"Spies & Defence",text:"Build a Spy Academy and wait 20 min to generate a spy. Each spy adds +1% win chance to your attacks. Air Defence units each reduce enemy win chance by 5% when they attack you."},
-      {title:"Terra Pass",text:"Earn XP by winning battles, owning territories and completing missions. Level up your Terra Pass for coin and material rewards. Check the Terra Pass tab in the sidebar."},
-    ];
+  {title:"Welcome to Terra Conquest",text:"Conquer the world by capturing countries on the map. You start with 1-2 territories and grow your empire through combat, economy, and strategy."},
+  {title:"The Map",text:"The map has 100 countries. Your countries glow white. Enemy countries are colored by their owner. Unowned countries are dark blue."},
+  {title:"Attacking",text:"Click 'Attack Mode' in the sidebar, then click an enemy or neutral country adjacent to yours. Pick your weapons and confirm the attack. Win chance depends on your firepower vs their defence."},
+  {title:"Weapons",text:"Buy weapons in the Shop: Tanks (0.5 dmg), Bombs (2), Planes (3), Missiles (6), Artillery (4), Drones (8), Bombers (10). More damage = higher win chance."},
+  {title:"Weapons Lab",text:"Click 'W LAB' in the top bar to craft advanced weapons. Build a Nuclear Bomb (10 Uranium, 7 Iron, 2 Gold, 2000 coins) to irradiate a country permanently - it turns dark green with ☢ RAD and becomes uninhabitable. Build a Satellite (5 Uranium, 10 Iron, 2 Gold) to paralyze an enemy country for 5 minutes."},
+  {title:"Satellite Strike",text:"Craft a Satellite in the W LAB (requires Watchtower building). Once crafted, a 'SAT STRIKE' button appears in the top bar. Click it then click any enemy country - it goes dark and paralyzed for 5 minutes. The owner cannot attack from it or gain its bonuses."},
+  {title:"Materials",text:"Build a Mine to gather Wood, Stone, Iron and Gold over time. Materials are needed for buildings, crafting, and advanced weapons."},
+  {title:"Buildings",text:"Open the Build Shop in the sidebar to construct buildings. Barracks give extra troops, Coin Factory generates coins, Watchtower unlocks the Satellite recipe, Fortress reduces enemy win chance, Black Market unlocks special items, and more."},
+  {title:"Nuclear Reactor",text:"Build a Nuclear Reactor (requires Uranium Extractor) to boost all your attack damage by 50%. Very powerful late-game upgrade."},
+  {title:"Country Bonuses",text:"Owning certain countries gives passive bonuses every second or minute. USA gives +50 coins/sec, Japan +35 coins/sec, Russia +3 tanks/min, China +2 tanks/min, Canada +2 wood/min, Saudi Arabia and South Africa +1 gold/min."},
+  {title:"Economy",text:"Coins are earned from the Coin Factory building, country bonuses, and the daily reward. Use coins to buy weapons, build structures, and craft items."},
+  {title:"Spies & Defence",text:"Buy Air Defence in the shop to intercept enemy planes and missiles. Train Spies via the Spy Academy building - use them to steal 500 coins from enemies or send them on spy missions."},
+  {title:"Terra Pass",text:"Complete daily missions to earn XP and level up your Terra Pass for exclusive rewards. Claim your daily reward each day for bonus coins and resources."},
+];
     const step=TUTORIAL_STEPS[tutStep]||TUTORIAL_STEPS[0];
     const digits=roomInput.split("").concat(Array(6).fill("")).slice(0,6);
     return(
@@ -2203,7 +2216,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
           <button onClick={()=>setShowCraftShop(s=>!s)}
             style={{padding:"5px 10px",background:showCraftShop?"rgba(34,197,94,.2)":"rgba(255,255,255,.06)",border:"1px solid "+(showCraftShop?"rgba(34,197,94,.4)":"rgba(255,255,255,.12)"),borderRadius:"7px",color:showCraftShop?"#22c55e":"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"10px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
-            N CRAFT
+            W LAB
           </button>
           {(myInventory.satellite||0)>0&&(
             <button onClick={()=>{setSatelliteMode(s=>!s);setAttackMode(false);setAttackPlan(null);}}
