@@ -20,10 +20,9 @@ const CLRS=[
   {bg:"#7c3aed",light:"#c4b5fd",name:"Purple"},
   {bg:"#0891b2",light:"#67e8f9",name:"Cyan"},
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
-  {bg:"#65a30d",light:"#bef264",name:"Lime"},
-];
+  {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8};
+const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:14};
 const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
@@ -37,16 +36,18 @@ const SHOP_ITEMS=[
   {id:"artillery", label:"Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
   {id:"drone",     label:"Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
   {id:"bomber",    label:"Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
-  {id:"air_def",   label:"Air Def",   desc:"Reduces enemy win chance by 5% each.",       price:900,  dmg:0,             color:"#6366f1"},
-];
+  {id:"air_def",      label:"Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1"},
+  {id:"chem_bomb",    label:"Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
+  {id:"emp",          label:"EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
+  {id:"stealth_bomber",label:"Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
   {id:"stone",   label:"Stone",   color:"#94a3b8"},
   {id:"iron",    label:"Iron",    color:"#6b7280"},
   {id:"gold",    label:"Gold",    color:"#f59e0b"},
-  {id:"uranium", label:"Uranium", color:"#4ade80"},
-];
+  {id:"oil",     label:"Oil",     color:"#78350f"},
+  {id:"uranium", label:"Uranium", color:"#4ade80"}];
 
 const BUILDINGS=[
   {id:"barracks",    label:"Barracks",    desc:"Discounts Tanks by 20% per barracks.",    max:3, cost:{wood:3,stone:2},      color:"#f59e0b"},
@@ -61,8 +62,10 @@ const BUILDINGS=[
   {id:"uranium_ext", label:"Uranium Extractor",desc:"Converts 1 Gold into 1 Uranium/min.",max:1, cost:{iron:4,stone:3},    color:"#4ade80"},
   {id:"nuclear_reactor",label:"Nuclear Reactor",desc:"Boosts ALL weapon damage by 50%.", max:1, cost:{iron:5,uranium:3,stone:7}, color:"#a78bfa"},
   {id:"fortress",    label:"Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:8,iron:5},  color:"#f43f5e"},
-  {id:"black_market",label:"Black Market",desc:"Unlocks the Black Market for rare deals.", max:1, cost:{gold:4,iron:3},     color:"#8b5cf6"},
-];
+  {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:4,iron:3},           color:"#8b5cf6"},
+  {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:4,stone:3,gold:1},   color:"#78350f"},
+  {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
+  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"}];
 
 // Black market pool - 3 random items shown per session
 const BLACK_MARKET_POOL=[
@@ -75,18 +78,24 @@ const BLACK_MARKET_POOL=[
   {id:"bm_shield",  label:"Attack Shield",   desc:"Blocks the next enemy attack on you",     cost:{coins:3500,iron:4}, reward:{shield:1}},
   {id:"bm_bomber2", label:"2 Bombers",       desc:"Devastating carpet bombers",              cost:{coins:2000,iron:3}, reward:{bomber:2}},
   {id:"bm_xp500",   label:"XP Boost",        desc:"Instantly gain 500 Terra Pass XP",       cost:{coins:4000},        reward:{xp:500}},
-  {id:"bm_artillery3",label:"3 Artillery",   desc:"Heavy cannon units",                      cost:{coins:1000,iron:2}, reward:{artillery:3}},
-];
+  {id:"bm_artillery3",  label:"3 Artillery",    desc:"Heavy cannon units",                    cost:{coins:1000,iron:2},      reward:{artillery:3}},
+  {id:"bm_oil5",        label:"5 Oil Barrels",  desc:"Smuggled crude oil",                    cost:{coins:1500,gold:1},      reward:{oil:5}},
+  {id:"bm_chem2",       label:"2 Chem Bombs",   desc:"Illegal chemical weapons",              cost:{coins:2500,oil:3},       reward:{chem_bomb:2}},
+  {id:"bm_emp1",        label:"EMP Device",     desc:"Single-use electromagnetic pulse",      cost:{coins:2000,iron:3},      reward:{emp:1}},
+  {id:"bm_ghost1",      label:"Ghost Bomber",   desc:"Stealth aircraft, bypasses air def",    cost:{coins:3500,gold:2},      reward:{stealth_bomber:1}},
+  {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const ALL_MISSIONS=[
-  {id:"m_win",     stat:"wins",         goal:1,  label:"Win 1 battle",          xp:50,  coins:500},
-  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories", xp:75,  coins:800},
-  {id:"m_coins",   stat:"coinsEarned",  goal:5000,label:"Earn 5,000 coins",     xp:60,  coins:600},
-  {id:"m_build",   stat:"builds",       goal:2,  label:"Build 2 structures",    xp:80,  coins:700},
-  {id:"m_buy3",    stat:"weaponsBought",goal:3,  label:"Buy 3 weapons",         xp:50,  coins:500},
-  {id:"m_bomber",  stat:"bombersUsed",  goal:1,  label:"Use a Bomber",          xp:100, coins:1000},
-  {id:"m_spy",     stat:"spiesUsed",    goal:1,  label:"Use a Spy",             xp:80,  coins:800},
-];
+  {id:"m_win",     stat:"wins",         goal:1,  label:"Win 1 battle",           xp:50,  coins:500},
+  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories",  xp:75,  coins:800},
+  {id:"m_coins",   stat:"coinsEarned",  goal:5000,label:"Earn 5,000 coins",      xp:60,  coins:600},
+  {id:"m_build",   stat:"builds",       goal:2,  label:"Build 2 structures",     xp:80,  coins:700},
+  {id:"m_buy3",    stat:"weaponsBought",goal:3,  label:"Buy 3 weapons",          xp:50,  coins:500},
+  {id:"m_bomber",  stat:"bombersUsed",  goal:1,  label:"Use a Bomber",           xp:100, coins:1000},
+  {id:"m_spy",     stat:"spiesUsed",    goal:1,  label:"Use a Spy",              xp:80,  coins:800},
+  {id:"m_intel",   stat:"intelOps",     goal:1,  label:"Run an Intel operation", xp:90,  coins:900},
+  {id:"m_emp",     stat:"empsUsed",     goal:1,  label:"Deploy an EMP",          xp:120, coins:1200},
+  {id:"m_oil10",   stat:"oilGathered",  goal:10, label:"Collect 10 Oil",         xp:70,  coins:700}];
 
 const TERRA_PASS=[
   {level:1,  xpNeeded:0,    label:"Rookie",      reward:null},
@@ -98,8 +107,7 @@ const TERRA_PASS=[
   {level:7,  xpNeeded:2000, label:"Major",       reward:{type:"coins",  amount:3000}},
   {level:8,  xpNeeded:2800, label:"Colonel",     reward:{type:"bomber", amount:1}},
   {level:9,  xpNeeded:3800, label:"General",     reward:{type:"iron",   amount:5}},
-  {level:10, xpNeeded:5000, label:"Commander",   reward:{type:"coins",  amount:10000}},
-];
+  {level:10, xpNeeded:5000, label:"Commander",   reward:{type:"coins",  amount:10000}}];
 
 const ACHIEVEMENTS=[
   {id:"first_blood", name:"First Blood",   desc:"Win your first battle",         xp:100,  emoji:"\uD83C\uDF96"},
@@ -114,7 +122,10 @@ const ACHIEVEMENTS=[
   {id:"bomber_used", name:"Carpet Bomb",   desc:"Use a bomber in battle",        xp:150,  emoji:"\uD83D\uDCA5"},
   {id:"daily7",      name:"Loyal Player",  desc:"Claim 7 daily rewards",        xp:200,  emoji:"\uD83D\uDCC5"},
   {id:"survived",    name:"Survivor",      desc:"Own territories after 1 hour",  xp:200,  emoji:"\uD83D\uDC9A"},
-];
+  {id:"nuke_used",   name:"Nuclear Strike", desc:"Fire a nuclear bomb",           xp:300,  emoji:"\u2622\uFE0F"},
+  {id:"emp_used",    name:"Blackout",       desc:"Deploy an EMP",                 xp:150,  emoji:"\u26A1"},
+  {id:"intel_op",    name:"Shadow Agent",   desc:"Run an Intel operation",        xp:150,  emoji:"\uD83D\uDD75"},
+  {id:"oil_baron",   name:"Oil Baron",      desc:"Collect 50 Oil",                xp:200,  emoji:"\uD83D\uDEE2\uFE0F"}];
 
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
@@ -132,7 +143,7 @@ function rndName(){
   return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
 }
 
-function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0){
+function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0){
   return Math.round((
     tank*DMG.tank+
     bomb*DMG.bomb+
@@ -140,7 +151,9 @@ function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0){
     missile*DMG.missile+
     bomber*DMG.bomber+
     artillery*DMG.artillery+
-    drone*DMG.drone
+    drone*DMG.drone+
+    chem_bomb*DMG.chem_bomb+
+    stealth_bomber*DMG.stealth_bomber
   )*10)/10;
 }
 
@@ -192,7 +205,7 @@ const COUNTRIES = [
     borders:["venezuela","ecuador","peru","brazil","panama","guatemala"],
     d:"M220,405 L352,402 L358,418 L350,432 L358,448 L342,460 L320,452 L298,465 L274,456 L250,468 L225,458 L208,445 L215,428 L205,415 Z"
   },
-  { id:"venezuela", name:"Venezuela", area:35, lx:368, ly:428,
+  { id:"venezuela", name:"Venezuela", area:35, bonus:{oil:1, label:"+1 oil/min"}, lx:368, ly:428,
     borders:["colombia","brazil","guyana","trinidad"],
     d:"M350,402 L445,400 L452,415 L444,428 L452,442 L436,454 L412,446 L388,458 L362,448 L350,435 L358,420 Z"
   },
@@ -327,11 +340,11 @@ const COUNTRIES = [
     d:"M818,285 L925,282 L932,310 L924,342 L895,358 L858,362 L820,355 L808,325 Z"
   },
   { id:"libya", name:"Libya", area:45, lx:928, ly:315,
-    borders:["algeria","tunisia","egypt","niger","chad","sudan"],
+    borders:["algeria","tunisia","egypt","niger","chad"],
     d:"M922,280 L1010,278 L1018,308 L1010,342 L982,358 L945,362 L920,348 L912,318 Z"
   },
   { id:"egypt", name:"Egypt", area:40, lx:1014, ly:308,
-    borders:["libya","sudan","israel","jordan","saudi"],
+    borders:["libya","israel","jordan","saudi"],
     d:"M1008,278 L1082,275 L1090,305 L1082,335 L1052,348 L1018,345 L1005,320 Z"
   },
   { id:"mauritania", name:"Mauritania", area:30, lx:782, ly:358,
@@ -347,13 +360,10 @@ const COUNTRIES = [
     d:"M920,330 L1008,328 L1014,360 L1006,392 L972,400 L935,405 L910,395 L905,362 Z"
   },
   { id:"chad", name:"Chad", area:40, lx:992, ly:368,
-    borders:["niger","libya","sudan","cameroon","nigeria","car"],
+    borders:["niger","libya","cameroon","nigeria","car"],
     d:"M1005,328 L1078,325 L1085,358 L1076,392 L1044,402 L1008,405 L992,392 L990,360 Z"
   },
-  { id:"sudan", name:"Sudan", area:42, lx:1065, ly:358,
-    borders:["egypt","libya","chad","car","south_sudan","ethiopia","eritrea"],
-    d:"M1080,305 L1148,302 L1155,335 L1148,370 L1118,385 L1082,388 L1058,375 L1052,342 Z"
-  },
+
   { id:"senegal", name:"Senegal", area:10, lx:752, ly:402,
     borders:["mauritania","mali","guinea","gambia"],
     d:"M730,380 L778,378 L782,395 L774,412 L752,415 L730,408 Z"
@@ -371,7 +381,7 @@ const COUNTRIES = [
     d:"M945,392 L1010,390 L1016,415 L1008,442 L978,450 L948,448 L940,425 Z"
   },
   { id:"ethiopia", name:"Ethiopia", area:40, lx:1108, ly:408,
-    borders:["sudan","eritrea","djibouti","somalia","kenya","south_sudan"],
+    borders:["eritrea","djibouti","somalia","kenya","south_sudan"],
     d:"M1072,385 L1155,382 L1162,408 L1152,435 L1120,448 L1085,452 L1060,438 L1052,412 Z"
   },
   { id:"somalia", name:"Somalia", area:28, lx:1165, ly:420,
@@ -379,7 +389,7 @@ const COUNTRIES = [
     d:"M1150,378 L1205,375 L1215,405 L1205,442 L1178,462 L1152,458 L1140,435 L1142,408 Z"
   },
   { id:"south_sudan", name:"S. Sudan", area:28, lx:1065, ly:418,
-    borders:["sudan","ethiopia","car","drc","uganda","kenya"],
+    borders:["ethiopia","car","drc","uganda","kenya"],
     d:"M1040,385 L1120,382 L1126,408 L1116,432 L1082,438 L1048,432 L1035,412 Z"
   },
   { id:"kenya", name:"Kenya", area:24, lx:1122, ly:455,
@@ -431,7 +441,7 @@ const COUNTRIES = [
     borders:["jordan","iraq","iran","uae","oman","qatar","bahrain","yemen"],
     d:"M1055,310 L1148,305 L1155,332 L1148,368 L1118,388 L1078,395 L1042,385 L1025,355 L1032,325 Z"
   },
-  { id:"iraq", name:"Iraq", area:22, lx:1075, ly:292,
+  { id:"iraq", name:"Iraq", area:22, bonus:{oil:2, label:"+2 oil/min"}, lx:1075, ly:292,
     borders:["turkey","iran","saudi","jordan","syria","kuwait"],
     d:"M1045,262 L1112,258 L1120,278 L1112,302 L1085,315 L1052,312 L1038,292 Z"
   },
@@ -443,7 +453,7 @@ const COUNTRIES = [
     borders:["syria","iraq","saudi","israel"],
     d:"M1012,275 L1055,272 L1062,292 L1052,312 L1025,318 L1008,302 Z"
   },
-  { id:"iran", name:"Iran", area:55, lx:1135, ly:288,
+  { id:"iran", name:"Iran", area:55, bonus:{oil:1, label:"+1 oil/min"}, lx:1135, ly:288,
     borders:["turkey","iraq","saudi","uae","oman","pakistan","afghanistan","turkmenistan","armenia","azerbaijan"],
     d:"M1082,252 L1195,248 L1205,275 L1198,308 L1165,328 L1122,335 L1082,325 L1068,298 Z"
   },
@@ -467,6 +477,10 @@ const COUNTRIES = [
   { id:"uzbekistan", name:"Uzbekistan", area:16, lx:1218, ly:268,
     borders:["kazakhstan","tajikistan","kyrgyzstan","afghanistan","turkmenistan"],
     d:"M1185,248 L1260,245 L1268,265 L1258,285 L1222,288 L1185,280 Z"
+  },
+  { id:"turkmenistan", name:"Turkmenistan", area:18, lx:1190, ly:290,
+    borders:["kazakhstan","uzbekistan","afghanistan","iran"],
+    d:"M1155,272 L1228,268 L1235,290 L1228,312 L1195,318 L1162,312 L1152,292 Z"
   },
   { id:"afghanistan", name:"Afghanistan", area:28, lx:1228, ly:298,
     borders:["iran","pakistan","tajikistan","uzbekistan","turkmenistan","china"],
@@ -557,8 +571,7 @@ const COUNTRIES = [
   { id:"new_zealand", name:"New Zealand", area:16, lx:1755, ly:618,
     borders:["australia"],
     d:"M1728,588 L1775,582 L1785,610 L1772,645 L1742,658 L1718,642 L1715,618 Z"
-  },
-];
+  }];
 
 function buildAdj(){
   const m={};
@@ -655,7 +668,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0});
+  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -669,7 +682,7 @@ export default function EarthConquest(){
   const [showBlackMarket,setShowBlackMarket]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
   const [difficulty,setDifficulty]=useState("normal");
@@ -723,7 +736,10 @@ export default function EarthConquest(){
     if(isSingleplayer)return;
     const rc=roomCodeRef.current||roomCode;
     if(!rc)return;
-    try{await sb.from("world").upsert({room_code:rc,ownership:o,players:p},{onConflict:"room_code"});}catch(e){}
+    // always preserve __nuked__ entries so they are never lost on save
+    const nuked=Object.fromEntries(Object.entries(ownershipRef.current||{}).filter(([,v])=>v==="__nuked__"));
+    const safeO={...o,...nuked};
+    try{await sb.from("world").upsert({room_code:rc,ownership:safeO,players:p},{onConflict:"room_code"});}catch(e){}
   };
 
   const saveInv=async(inv,name)=>{
@@ -746,6 +762,7 @@ export default function EarthConquest(){
       if(menu){menu.pause();menu.currentTime=0;}
       if(map){map.volume=musicMuted?0:musicVol;map.play().catch(()=>{});}
     }else{
+      // eliminated, color picker, or any other screen — stop all music
       if(menu){menu.pause();menu.currentTime=0;}
       if(map){map.pause();map.currentTime=0;}
     }
@@ -765,8 +782,7 @@ export default function EarthConquest(){
     {id:"rush",  label:"Stop rushing", msg:"Stop rushing me!"},
     {id:"letsgo",label:"LET'S GO!",    msg:"LETS GOOO"},
     {id:"truce", label:"Truce?",       msg:"Can we have a truce?"},
-    {id:"nice",  label:"Nice attack",  msg:"Nice attack!"},
-  ];
+    {id:"nice",  label:"Nice attack",  msg:"Nice attack!"}];
 
 
   const NUKE_RECIPE={uranium:10,iron:7,gold:2,coins:2000};
@@ -818,7 +834,9 @@ export default function EarthConquest(){
     window.addEventListener("keydown",h);
     return()=>window.removeEventListener("keydown",h);
   },[satelliteMode,attackMode]);
-  const [shockedCountries,setShockedCountries]=useState({}); // {countryId: expiresAt timestamp}
+  const [shockedCountries,setShockedCountries]=useState({});
+  const [poisonedCountries,setPoisonedCountries]=useState({}); // {countryId: expiresAt} — -20% win for attacker
+  const [empCountries,setEmpCountries]=useState({});           // {ownerUsername: expiresAt} — buildings disabled // {countryId: expiresAt timestamp}
 
   // Clean up expired shocks
   useEffect(()=>{
@@ -886,7 +904,15 @@ export default function EarthConquest(){
       try{
         const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
         if(data){
-          setOwnership(prev=>{const inc=data.ownership||{};if(JSON.stringify(prev)===JSON.stringify(inc))return prev;ownershipRef.current=inc;return inc;});
+          setOwnership(prev=>{
+            const inc=data.ownership||{};
+            // preserve any __nuked__ entries from current state that incoming data may have lost
+            const nukedFromPrev=Object.fromEntries(Object.entries(prev).filter(([,v])=>v==="__nuked__"));
+            const merged={...inc,...nukedFromPrev};
+            if(JSON.stringify(prev)===JSON.stringify(merged))return prev;
+            ownershipRef.current=merged;
+            return merged;
+          });
           const inc=data.players||{};
           setPlayers(prev=>{if(JSON.stringify(prev)===JSON.stringify(inc))return prev;return inc;});
           const msgs=inc._chat||[];
@@ -901,7 +927,30 @@ export default function EarthConquest(){
     if(!username||screen!=="map")return;
     const tick=setInterval(()=>{
       setMyInventory(inv=>{
-        const fc=(inv.buildings||[]).filter(b=>b==="coin_factory").length;
+        // EMP disables all buildings including coin factory
+      const myBldDisabled=empCountries[username]&&empCountries[username]>Date.now();
+      if(myBldDisabled)return inv;
+      const fc=(inv.buildings||[]).filter(b=>b==="coin_factory").length;
+        // oil rig generates oil
+        const oilRigs=(inv.buildings||[]).filter(b=>b==="oil_rig").length;
+        if(oilRigs>0){
+          const now=Date.now();
+          const last=inv.lastOilTick||0;
+          if(now-last>=120000){// every 2 min
+            const gained=oilRigs;
+            return {...inv,oil:(inv.oil||0)+gained,lastOilTick:now};
+          }
+        }
+        // territory taxation: 1 coin per 5 territories every 2 min
+        const myTerritories=Object.values(ownershipRef.current||{}).filter(v=>v===username).length;
+        if(myTerritories>0){
+          const taxNow=Date.now();
+          const lastTax=inv.lastTax||0;
+          if(taxNow-lastTax>=120000&&myTerritories>=5){
+            const tax=Math.floor(myTerritories/5);
+            return {...inv,coins:inv.coins+tax,lastTax:taxNow};
+          }
+        }
         if(fc===0)return inv;
         const vc=(inv.buildings||[]).filter(b=>b==="vault").length;
         const perF=COIN_FACTORY_YIELD+(vc*2);
@@ -947,32 +996,35 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         return;
       }
 
-      BOT_NAMES.forEach(bot=>{
-        const bMine=Object.keys(o).filter(id=>o[id]===bot);
+      const activeBots=BOT_NAMES;
+      let currentO={...o};
+      let currentBInv={...bInv};
+      activeBots.forEach(bot=>{
+        const bMine=Object.keys(currentO).filter(id=>currentO[id]===bot);
         if(bMine.length===0)return;
         if(Math.random()>cfg.attackChance)return;
         const reach=getReachable(bMine,2);
-        const targets=[...reach].filter(id=>o[id]!==bot);
+        const targets=[...reach].filter(id=>currentO[id]!==bot);
         if(targets.length===0)return;
-        // hard bots prefer player territories; easy bots pick randomly
         let target;
+        const playerTargets=targets.filter(id=>currentO[id]===username);
         if(difficulty==="hard"){
-          const playerTargets=targets.filter(id=>o[id]===username);
           target=(playerTargets.length>0&&Math.random()<0.6)?playerTargets[Math.floor(Math.random()*playerTargets.length)]:targets[Math.floor(Math.random()*targets.length)];
         }else if(difficulty==="easy"){
           target=targets[Math.floor(Math.random()*targets.length)];
         }else{
           target=targets.sort((a,b)=>{const ca=COUNTRIES.find(c=>c.id===a);const cb=COUNTRIES.find(c=>c.id===b);return (ca?.area||99)-(cb?.area||99);})[0];
         }
-        const newO={...o,[target]:bot};
-        ownershipRef.current=newO;
-        setOwnership(newO);
-        const inv=bInv[bot]||{coins:cfg.startCoins,tank:cfg.startTank,bomb:cfg.startBomb,plane:1,missile:cfg.startMissile,bomber:cfg.startBomber};
+        currentO[target]=bot;
+        const inv=currentBInv[bot]||{coins:cfg.startCoins,tank:cfg.startTank,bomb:cfg.startBomb,plane:1,missile:cfg.startMissile,bomber:cfg.startBomber};
         const newInv={...inv,coins:inv.coins+cfg.coinsPerTick};
-        const newBInv={...bInv,[bot]:newInv};
-        botInvRef.current=newBInv;
-        setBotInventories(newBInv);
+        currentBInv={...currentBInv,[bot]:newInv};
       });
+      ownershipRef.current=currentO;
+      setOwnership({...currentO});
+      botInvRef.current=currentBInv;
+      setBotInventories({...currentBInv});
+
     },cfg.tickMs);
     return()=>clearInterval(tick);
   },[isSingleplayer,screen,difficulty]);
@@ -997,6 +1049,26 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     addXP(10);
     setAttackPlan(null);
     setAttackMode(false);
+  };
+
+  // Intel spy: reveal enemy inventory
+  const [intelTarget,setIntelTarget]=useState(null);
+  const [intelData,setIntelData]=useState(null);
+  const [showIntel,setShowIntel]=useState(false);
+
+  const runIntel=async(country)=>{
+    if((myInventory.spy||0)<1&&(myInventory.academySpies||0)<1){flash("Need at least 1 spy for Intel!","error");return;}
+    const newInv={...myInventory};
+    if((newInv.spy||0)>0)newInv.spy--;else newInv.academySpies=Math.max(0,(newInv.academySpies||0)-1);
+    setMyInventory(newInv);await saveInv(newInv);
+    const owner=ownership[country.id];
+    if(!owner||owner===username){flash("No enemy to spy on!","error");return;}
+    try{
+      const {data}=await sb.from("inventory").select("data").eq("username",owner).single();
+      if(data?.data){setIntelData({owner,inv:data.data});setShowIntel(true);flash("Intel on "+owner+" gathered!","success");addXP(10);unlockAchievement("intel_op");progressMission("intelOps",1);}
+      else flash("Could not retrieve intel.","error");
+    }catch(e){flash("Intel op failed.","error");}
+    setAttackPlan(null);setAttackMode(false);
   };
 
   // Buy from black market
@@ -1049,19 +1121,21 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const progressMission=(stat,amount)=>{
-    if(amount===0)return;
+    if(!amount||amount<=0)return;
     setMissionProgress(prev=>{
       const next={...prev,[stat]:(prev[stat]||0)+amount};
+      // Check for newly completed missions (compare before/after)
       const today=getTodayMissions();
-      setClaimedMissions(claimed=>{
-        today.forEach(m=>{
-          if(next[m.stat]>=m.goal&&!claimed.includes(m.id)){
-            flash("[Trophy] Mission complete: "+m.label+" - open Daily to claim!","success");
-            addXP(m.xp);
-          }
-        });
-        return claimed;
+      today.forEach(m=>{
+        const wasComplete=(prev[m.stat]||0)>=m.goal;
+        const nowComplete=next[m.stat]>=m.goal;
+        if(nowComplete&&!wasComplete){
+          setTimeout(()=>{
+            flash("Mission complete: "+m.label+" — open Daily to claim!","success");
+          },100);
+        }
       });
+      // Persist to inventory
       setMyInventory(inv=>{
         const newInv={...inv,_missionProgress:next,_missionDate:todayStr()};
         (async()=>{try{await saveInv(newInv);}catch(e){}})();
@@ -1116,7 +1190,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const matTick=setInterval(async()=>{
       setMyInventory(inv=>{
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
-        let wood=0,stone=0,iron=0,gold=0,troops=0,uranium=0,goldCost=0;
+        let wood=0,stone=0,iron=0,gold=0,troops=0,uranium=0,goldCost=0,oil=0;
         owned.forEach(id=>{
           const c=COUNTRIES.find(x=>x.id===id);
           if(!c?.bonus)return;
@@ -1124,6 +1198,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(c.bonus.stone)stone+=c.bonus.stone;
           if(c.bonus.iron)iron+=c.bonus.iron;
           if(c.bonus.gold)gold+=c.bonus.gold;
+          if(c.bonus.oil)oil+=c.bonus.oil;
           if(c.bonus.troops)troops+=c.bonus.troops;
           const mines=(inv.buildings||[]).filter(b=>b==="mine").length;
           if(mines>0){iron+=mines;stone+=mines;}
@@ -1133,7 +1208,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           const availableGold=(inv.gold||0)+gold;
           if(availableGold>=1){goldCost=1;uranium=1;}
         }
-        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&uranium===0)return inv;
+        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&uranium===0&&oil===0)return inv;
         const next={...inv,
           wood:(inv.wood||0)+wood,
           stone:(inv.stone||0)+stone,
@@ -1141,6 +1216,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           gold:(inv.gold||0)+gold-goldCost,
           tank:(inv.tank||0)+troops,
           uranium:(inv.uranium||0)+uranium,
+          oil:(inv.oil||0)+oil,
         };
         // Save to DB immediately inside the updater via a microtask
         setTimeout(()=>saveInv(next),0);
@@ -1180,6 +1256,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       setMissionProgress(inv._missionProgress||{});
       setClaimedMissions(inv._claimedMissions||[]);
     }else{setMissionProgress({});setClaimedMissions([]);}
+    // Normalize — fill in any missing keys from new updates
+    const defaults={chem_bomb:0,emp:0,stealth_bomber:0,oil:0,satellite:0,artillery:0,drone:0,air_def:0,spy:0,nuke_bomb:0,stealth_kit:0,shield:0,academySpies:0};
+    let changed=false;
+    Object.entries(defaults).forEach(([k,v])=>{if(inv[k]===undefined){inv[k]=v;changed=true;}});
+    if(changed){setMyInventory({...inv});saveInv(inv);}
     setClaimedPassLevels(inv._claimedPassLevels||[]);
     setScreen("menu");
   };
@@ -1241,9 +1322,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const DIFF={
-    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:20, attackChance:0.5},
-    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:50, attackChance:0.75},
-    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:100,attackChance:1.0},
+    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:20,  attackChance:0.5},
+    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:50,  attackChance:0.75},
+    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:100, attackChance:1.0},
+    blitz: {tickMs:500,  startCoins:2500, startTank:12, startBomb:6, startMissile:3, startBomber:2, coinsPerTick:150, attackChance:1.0},
   };
 
   const startSingleplayer=(diff)=>{
@@ -1270,6 +1352,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setIsSingleplayer(true);
     setScreen("map");
   };
+
 
   const claimDaily=async()=>{
     const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
@@ -1314,14 +1397,16 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const buildings=myInventory.buildings||[];
     const price=getItemPrice(item,buildings);
     if(myInventory.coins<price){flash("Not enough coins!","error");return;}
+    if(item.oilCost&&(myInventory.oil||0)<item.oilCost){flash("Need "+item.oilCost+" Oil to buy "+item.label+"!","error");return;}
     if(item.id==="air_def"&&(myInventory.air_def||0)>=5){flash("Air Defence is maxed at 5!","error");return;}
     const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+1};
+    if(item.oilCost)newInv.oil=Math.max(0,(myInventory.oil||0)-item.oilCost);
     setMyInventory(newInv);
     await saveInv(newInv);
     playSound("buy");
     flash("Bought "+item.label+"!","success");
     progressMission("weaponsBought",1);
-    if(item.id==="bomber")progressMission("bombersUsed",0);
+    if(item.id==="bomber")progressMission("bombersUsed",1);
     checkAchievements(newInv,ownership);
     if(achievements.filter(a=>SHOP_ITEMS.find(s=>s.id===a)).length>=10||Object.values(newInv).reduce((s,v)=>typeof v==="number"?s+v:s,0)>10)unlockAchievement("weapons10");
   };
@@ -1349,9 +1434,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     {id:"wood",  label:"Wood",  color:"#84cc16", prices:[{qty:1,cost:200},{qty:5,cost:900},{qty:10,cost:1600}]},
     {id:"stone", label:"Stone", color:"#94a3b8", prices:[{qty:1,cost:250},{qty:5,cost:1100},{qty:10,cost:2000}]},
     {id:"iron",  label:"Iron",  color:"#6b7280", prices:[{qty:1,cost:400},{qty:5,cost:1800},{qty:10,cost:3200}]},
-    {id:"gold",  label:"Gold",  color:"#f59e0b", prices:[{qty:1,cost:800},{qty:5,cost:3500},{qty:10,cost:6500}]},
-
-  ];
+    {id:"gold",  label:"Gold",  color:"#f59e0b", prices:[{qty:1,cost:800},{qty:5,cost:3500},{qty:10,cost:6500}]}];
 
   const buyMaterial=async(matId,qty,cost)=>{
     if(myInventory.coins<cost){flash("Not enough coins!","error");return;}
@@ -1371,21 +1454,37 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const reach=getReachable(mine,myInventory.plane>0?3:2);
     if(!reach.has(country.id)||ownership[country.id]===username)return;
     setAttackPlan({country});
-    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0});
+    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0});
   };
 
   const confirmAttack=async()=>{
     if(!attackPlan)return;
     const country=attackPlan.country;
     // Validate: can't deploy more than owned
+    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","nuke_bomb"];
     for(const[id,qty]of Object.entries(deploy)){
+      if(!weaponKeys.includes(id))continue;
       if(qty>0&&qty>(myInventory[id]||0)){
-        flash("You don't have enough "+id+"!","error");
+        flash("Not enough "+id.replace("_"," ")+"!","error");
         setDeploy(d=>({...d,[id]:myInventory[id]||0}));
         return;
       }
     }
     playSound("attack");
+    // EMP strike — disable defender buildings
+    if((deploy.emp||0)>0){
+      const newInv={...myInventory,emp:(myInventory.emp||0)-(deploy.emp||0)};
+      setMyInventory(newInv);
+      await saveInv(newInv);
+      const defender=ownership[country.id];
+      if(defender&&defender!==username){
+        const expires=Date.now()+4*60*1000;
+        setEmpCountries(prev=>({...prev,[defender]:expires}));
+        flash("EMP strike! "+country.name+"'s owner has all buildings disabled for 4 minutes!","success");unlockAchievement("emp_used");progressMission("empsUsed",1);
+      }
+      setAttackPlan(null);setAttackMode(false);
+      return;
+    }
     if((deploy.nuke_bomb||0)>0){
       const newInv={...myInventory,nuke_bomb:(myInventory.nuke_bomb||0)-1};
       setMyInventory(newInv);
@@ -1398,19 +1497,28 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       await saveWorld(newO,players);
       triggerAttackEffect(country);
       playSound("nuke");
-      flash("NUCLEAR STRIKE on "+country.name+"! Territory irradiated - permanently uninhabitable.","success");
+      flash("NUCLEAR STRIKE on "+country.name+"! Territory irradiated - permanently uninhabitable.","success");unlockAchievement("nuke_used");
       setAttackPlan(null);
       setAttackMode(false);
       return;
     }
     const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
-      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0);
+    // stealth bomber bypasses air defence
+    const hasStealthBomber=(deploy.stealth_bomber||0)>0;
+      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0);
     const damage=hasReactor?Math.round(rawDamage*1.5*10)/10:rawDamage;
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
     const defenderHasFortress=false; // can't read opponent buildings in multiplayer
+    // EMP: if the current player's buildings are disabled, coin factory etc don't apply
+    const myBuildingsDisabled=empCountries[username]&&empCountries[username]>Date.now();
     const stealthKit=(myInventory.stealth_kit||0)>0;
-    const chance=calcWinChance(country.area||20,damage,myInventory.spy||0,myInventory.academySpies||0,0,defenderHasFortress,stealthKit)+embassyBonus;
+    // poison penalty on target country
+    const isPoisoned=poisonedCountries[country.id]&&poisonedCountries[country.id]>Date.now();
+    const poisonPenalty=isPoisoned?-0.20:0;
+    // stealth bomber ignores air defence
+    const effectiveAirDef=hasStealthBomber?0:(myInventory.air_def||0);
+    const chance=Math.max(0.02,Math.min(0.97,calcWinChance(country.area||20,damage,myInventory.spy||0,myInventory.academySpies||0,effectiveAirDef,defenderHasFortress,stealthKit)+embassyBonus+poisonPenalty));
     const pct=Math.round(Math.min(0.97,chance)*100);
     const usedSpy=(myInventory.spy||0)>0||(myInventory.academySpies||0)>0;
     const newInv={...myInventory};
@@ -1420,18 +1528,37 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     triggerAttackEffect(country);
     if(won){
       playSound("win");
+      if(ownership[country.id]==="__nuked__"){flash("Can't conquer irradiated territory!","error");setAttackPlan(null);return;}
       const newO={...ownership,[country.id]:username};
       ownershipRef.current=newO;
       setOwnership(newO);
       await saveWorld(newO,players);
-      flash("[Win] Conquered "+country.name+"! "+damage+" dmg, "+pct+"% chance"+(usedSpy?" [Spy]":"")+(stealthKit?" [Stealth]":""),"success");
+      // chem bomb: poison the country for 2 minutes
+      if((deploy.chem_bomb||0)>0){
+        const poisonExpires=Date.now()+2*60*1000;
+        setPoisonedCountries(prev=>({...prev,[country.id]:poisonExpires}));
+        flash("[Win] Conquered "+country.name+"! Poisoned for 2 min — next attacker gets -20% win chance.","success");
+      } else {
+        flash("[Win] Conquered "+country.name+"! "+damage+" dmg, "+pct+"% chance"+(usedSpy?" [Spy]":"")+(stealthKit?" [Stealth]":""),"success");
+      }
       progressMission("wins",1);
       progressMission("conquests",1);
       addXP(20);
       checkAchievements(newInv,newO);
     }else{
       playSound("lose");
-      flash("[Loss] Failed attack on "+country.name+". "+damage+" dmg, "+pct+"% chance - try more firepower!","error");
+      const hasHospital=(myInventory.buildings||[]).includes("hospital");
+      if(hasHospital){
+        const recoveredTanks=Math.floor((deploy.tank||0)*0.3);
+        if(recoveredTanks>0){
+          newInv.tank=(newInv.tank||0)+recoveredTanks;
+          flash("[Loss] Failed on "+country.name+" — Hospital recovered "+recoveredTanks+" tanks!","error");
+        } else {
+          flash("[Loss] Failed attack on "+country.name+". "+damage+" dmg, "+pct+"% chance - try more firepower!","error");
+        }
+      } else {
+        flash("[Loss] Failed attack on "+country.name+". "+damage+" dmg, "+pct+"% chance - try more firepower!","error");
+      }
       addXP(5);
     }
     if(usedSpy)unlockAchievement("spy_used");
@@ -1454,13 +1581,24 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   const prevXP=TERRA_PASS[curLevel]?.xpNeeded||0;
   const xpPct=nextLevelData?Math.round(((playerXP-prevXP)/(nextLevelData.xpNeeded-prevXP))*100):100;
   const todayMissions=getTodayMissions();
-  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)>0;
+  // Reset mission progress automatically when day changes
+  const todayStr2=todayStr();
+  const [lastMissionDate,setLastMissionDate]=useState(todayStr2);
+  if(lastMissionDate!==todayStr2&&screen==="map"){
+    setLastMissionDate(todayStr2);
+    setMissionProgress({});
+    setClaimedMissions([]);
+  }
+  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)>0;
   const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
   const hasFortress=(myInventory.buildings||[]).includes("fortress");
   const stealthKit=(myInventory.stealth_kit||0)>0;
-  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
+  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
   const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
-  const atkChance=attackPlan?calcWinChance(attackPlan.country.area||20,atkDamage,myInventory.spy||0,myInventory.academySpies||0,0,false,stealthKit):0;
+  const atkHasStealthBomber=attackPlan&&(deploy.stealth_bomber||0)>0;
+  const atkEffectiveAirDef=atkHasStealthBomber?0:(myInventory.air_def||0);
+  const atkIsPoisoned=attackPlan&&poisonedCountries[attackPlan.country.id]&&poisonedCountries[attackPlan.country.id]>Date.now();
+  const atkChance=attackPlan?Math.max(0.02,Math.min(0.97,calcWinChance(attackPlan.country.area||20,atkDamage,myInventory.spy||0,myInventory.academySpies||0,atkEffectiveAirDef,false,stealthKit)+(atkIsPoisoned?-0.20:0))):0;
   const atkPct=Math.round(atkChance*100);
   const atkBarColor=atkPct>=70?"#22c55e":atkPct>=40?"#f59e0b":"#ef4444";
 
@@ -1478,7 +1616,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             <div style={{color:"#f5c842",fontSize:"18px",fontWeight:"bold",marginBottom:"6px"}}>{myInventory.coins.toLocaleString()} coins remaining</div>
           </div>
           <br/>
-          <button onClick={()=>{setScreen("menu");setMenuTab("multiplayer");setOwnership({});setPlayers({});setRoomCode("");}}
+          <button onClick={()=>{setShockedCountries({});setScreen("menu");setMenuTab("multiplayer");setOwnership({});setPlayers({});roomCodeRef.current="";setRoomCode("");setIsSingleplayer(false);setBotInventories({});}}
             style={{padding:"13px 32px",background:"linear-gradient(135deg,#1e3a5f,#2563eb)",border:"none",borderRadius:"12px",color:"white",fontSize:"14px",fontWeight:"bold",cursor:"pointer",letterSpacing:"2px",fontFamily:"Georgia,serif"}}>
             Back to Lobby
           </button>
@@ -1514,20 +1652,20 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   if(screen==="menu"){
     const TUTORIAL_STEPS=[
-  {title:"Welcome to Terra Conquest",text:"Conquer the world by capturing countries on the map. You start with 1-2 territories and grow your empire through combat, economy, and strategy."},
-  {title:"The Map",text:"The map has 100 countries. Your countries glow white. Enemy countries are colored by their owner. Unowned countries are dark blue."},
-  {title:"Attacking",text:"Click 'Attack Mode' in the sidebar, then click an enemy or neutral country adjacent to yours. Pick your weapons and confirm the attack. Win chance depends on your firepower vs their defence."},
-  {title:"Weapons",text:"Buy weapons in the Shop: Tanks (0.5 dmg), Bombs (2), Planes (3), Missiles (6), Artillery (4), Drones (8), Bombers (10). More damage = higher win chance."},
-  {title:"Weapons Lab",text:"Click 'W LAB' in the top bar to craft advanced weapons. Build a Nuclear Bomb (10 Uranium, 7 Iron, 2 Gold, 2000 coins) to irradiate a country permanently - it turns dark green with ☢ RAD and becomes uninhabitable. Build a Satellite (5 Uranium, 10 Iron, 2 Gold) to paralyze an enemy country for 5 minutes."},
-  {title:"Satellite Strike",text:"Craft a Satellite in the W LAB (requires Watchtower building). Once crafted, a 'SAT STRIKE' button appears in the top bar. Click it then click any enemy country - it goes dark and paralyzed for 5 minutes. The owner cannot attack from it or gain its bonuses."},
-  {title:"Materials",text:"Build a Mine to gather Wood, Stone, Iron and Gold over time. Materials are needed for buildings, crafting, and advanced weapons."},
-  {title:"Buildings",text:"Open the Build Shop in the sidebar to construct buildings. Barracks give extra troops, Coin Factory generates coins, Watchtower unlocks the Satellite recipe, Fortress reduces enemy win chance, Black Market unlocks special items, and more."},
-  {title:"Nuclear Reactor",text:"Build a Nuclear Reactor (requires Uranium Extractor) to boost all your attack damage by 50%. Very powerful late-game upgrade."},
-  {title:"Country Bonuses",text:"Owning certain countries gives passive bonuses every second or minute. USA gives +50 coins/sec, Japan +35 coins/sec, Russia +3 tanks/min, China +2 tanks/min, Canada +2 wood/min, Saudi Arabia and South Africa +1 gold/min."},
-  {title:"Economy",text:"Coins are earned from the Coin Factory building, country bonuses, and the daily reward. Use coins to buy weapons, build structures, and craft items."},
-  {title:"Spies & Defence",text:"Buy Air Defence in the shop to intercept enemy planes and missiles. Train Spies via the Spy Academy building - use them to steal 500 coins from enemies or send them on spy missions."},
-  {title:"Terra Pass",text:"Complete daily missions to earn XP and level up your Terra Pass for exclusive rewards. Claim your daily reward each day for bonus coins and resources."},
-];
+  {title:"Welcome to Terra Conquest",text:"Conquer the world by capturing countries on the map. You start with a few territories and grow your empire through combat, buildings, economy, and strategy. Be the last player standing — or the first to dominate the map."},
+  {title:"The Map",text:"The world map has over 140 countries. Your territories glow in your color. Enemy countries are colored by their owner. Dark blue countries are unclaimed — easy pickings early on. Hover any country to see its name, owner, and any bonuses it gives."},
+  {title:"Attacking",text:"Press the red ATTACK button in the top bar, then click an enemy or neutral country next to yours. A deploy screen opens — pick your weapons and hit Confirm. Your win chance is shown before you commit. Planes extend your attack range to 3 countries away. Press ESC to cancel."},
+  {title:"Standard Weapons",text:"Buy weapons in the War Shop: Tanks (0.5 dmg, cheapest), Bombs (2 dmg), Planes (3 dmg + extended range), Missiles (6 dmg), Artillery (4 dmg), Drones (8 dmg), Bombers (10 dmg, most expensive). Stack weapons for higher damage and better win chance."},
+  {title:"Advanced Weapons",text:"Three powerful weapons are bought in the War Shop but require Oil: Chem Bomb (12 dmg + poisons the country for 2 min, costs 3 Oil), EMP (disables ALL enemy buildings for 4 minutes, costs 2 Oil), Ghost Bomber (14 dmg, completely bypasses Air Defence). Oil is earned by owning Iraq, Iran, Venezuela, or building an Oil Rig."},
+  {title:"Weapons Lab (W LAB)",text:"Click W LAB in the top bar to craft the most powerful weapons. Nuclear Bomb (10 Uranium + 7 Iron + 2 Gold + 2000 coins) permanently irradiates a country — it turns into a radioactive wasteland nobody can own. Satellite (5 Uranium + 10 Iron + 2 Gold, requires Watchtower) paralyzes any enemy country for 5 minutes. EMP Device (5 Iron + 2 Gold + 800 coins) disables all enemy buildings. Chem Bomb (4 Oil + 3 Iron + 1500 coins) poisons a country. Ghost Bomber (3 Uranium + 5 Gold + 3000 coins) ignores all Air Defence."},
+  {title:"Satellite Strike",text:"Once you craft a Satellite (needs a Watchtower building first), a SAT button appears in the top bar showing how many you have. Click it, then click any enemy country — it goes dark with a purple border and is paralyzed for 5 minutes. The owner cannot attack from it or receive its bonuses during this time."},
+  {title:"Oil & Resources",text:"Oil is a new resource used to buy and craft advanced weapons. Earn Oil by: owning Iraq (+2/min), Iran (+1/min), or Venezuela (+1/min), building an Oil Rig (+1 every 2 min per rig, max 2). Oil appears in your Resources panel in the sidebar. Plan ahead — Chem Bombs and EMPs both need it."},
+  {title:"Materials",text:"Materials (Wood, Stone, Iron, Gold, Uranium) are gathered passively from country bonuses and buildings. Wood & Stone come from building Mines. Gold is produced by Saudi Arabia and South Africa. Uranium is extracted by the Uranium Extractor building (costs 1 Gold per Uranium). Materials are used to build structures and craft advanced weapons."},
+  {title:"Buildings",text:"Open Build Shop in the sidebar to construct buildings using materials. Key buildings: Barracks (cheaper tanks), Airbase (cheaper planes), Coin Factory (passive income), Watchtower (unlocks Satellite + reveals attacker weapons), Fortress (enemies get -10% win chance against you), Oil Rig (+1 Oil/2 min), Hospital (recover 30% of tanks after a loss), Radar Station (see incoming attack weapon counts), Black Market (unlocks rare deals)."},
+  {title:"Nuclear Reactor & Economy",text:"Build a Nuclear Reactor to boost ALL your weapon damage by 50% — extremely powerful late game. Earn coins from: Coin Factory buildings (5 coins/sec each), country bonuses (USA +50/sec, Japan +35/sec), territory taxation (1 coin per 5 territories every 2 min), and the daily reward. Vault buildings give +2 coins/sec per factory and boost your daily reward."},
+  {title:"Country Bonuses",text:"Certain countries give powerful bonuses when you own them. Coins: USA (+50/sec), Japan (+35/sec). Troops: Russia (+3 tanks/min), China (+2 tanks/min). Resources: Canada (+2 wood/min), Brazil (+1 wood/min), South Africa & Saudi Arabia (+1 gold/min), DRC (+1 stone/min). Oil: Iraq (+2/min), Iran & Venezuela (+1/min). Hover any country to see its bonus."},
+  {title:"Spies & Intel",text:"Buy Air Defence to reduce enemy win chance by 5% per unit (max 5). Train Spies via the Spy Academy building. In the attack panel you have two spy options: Spy Thief (steals 500 coins from the enemy) and Intel (reveals the enemy's full inventory — coins, weapons, nukes, everything). Intel costs 1 spy and is your best strategic tool."},
+  {title:"Daily Missions & Terra Pass",text:"Three daily missions refresh every day — complete them to earn coins and XP. XP levels up your Terra Pass, unlocking rewards like weapons, coins, and rare materials at each level. Claim your Daily Reward each day for a base 3000 coins plus bonuses from Gold Vault buildings. Don't miss it — it resets daily."}];
     const step=TUTORIAL_STEPS[tutStep]||TUTORIAL_STEPS[0];
     const digits=roomInput.split("").concat(Array(6).fill("")).slice(0,6);
     return(
@@ -1594,11 +1732,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                   <div style={{color:"white",fontSize:"14px",fontWeight:"bold",letterSpacing:"2px",marginBottom:"4px"}}>CHOOSE DIFFICULTY</div>
                   <div style={{color:"rgba(255,255,255,.35)",fontSize:"10px"}}>4 AI opponents</div>
                 </div>
+
                 {[
                   {diff:"easy",   label:"EASY",   sub:"Slow bots - Small army",       grad:"linear-gradient(135deg,#166534,#16a34a)", glow:"rgba(22,163,74,.4)",   desc:"Attack every 3.5s, 50% skip chance"},
                   {diff:"normal", label:"NORMAL", sub:"Balanced challenge",               grad:"linear-gradient(135deg,#1e3a5f,#2563eb)", glow:"rgba(37,99,235,.4)",   desc:"Attack every 2s, prefers small countries"},
-                  {diff:"hard",   label:"HARD",   sub:"Aggressive - Targets you",      grad:"linear-gradient(135deg,#7f1d1d,#dc2626)", glow:"rgba(220,38,38,.4)",   desc:"Attack every 1s, hunts your territories"},
-                ].map(({diff,label,sub,grad,glow,desc})=>(
+                  {diff:"hard",   label:"HARD",   sub:"Aggressive - Targets you",      grad:"linear-gradient(135deg,#7f1d1d,#dc2626)", glow:"rgba(220,38,38,.4)",   desc:"Attack every 1s, hunts your territories"}].map(({diff,label,sub,grad,glow,desc})=>(
                   <button key={diff} onClick={()=>startSingleplayer(diff)}
                     style={{padding:"14px 16px",background:grad,border:"none",borderRadius:"12px",color:"white",cursor:"pointer",fontFamily:"Georgia,serif",textAlign:"left",boxShadow:"0 6px 24px "+glow,display:"flex",flexDirection:"column",gap:"4px",transition:"transform .15s"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -1718,7 +1856,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     <div style={{position:"fixed",inset:0,width:"100%",height:"100%",background:"#060d1a",display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"Georgia,serif",userSelect:"none"}}>
       <audio ref={menuAudioRef} src="/menu.mp3" loop preload="auto"/>
       <audio ref={mapAudioRef} src="/map.mp3" loop preload="auto"/>
-      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 8px rgba(239,68,68,.15),0 0 20px rgba(239,68,68,.35)}} @keyframes prBlue{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 0 8px rgba(99,102,241,.2),0 0 20px rgba(99,102,241,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-10px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes nukeShake{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,3px)}80%{transform:translate(2px,-1px)}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease}"}</style>
+      <style>{"@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 8px rgba(239,68,68,.2),0 0 20px rgba(239,68,68,.35)}} @keyframes prBlue{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}50%{box-shadow:0 0 0 8px rgba(99,102,241,.2),0 0 20px rgba(99,102,241,.3)}} @keyframes coinIn{from{opacity:0;transform:translateY(-10px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes modalIn{from{opacity:0;transform:translateY(-18px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes nukeShake{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,3px)}80%{transform:translate(2px,-1px)}} @keyframes toxicPulse{0%,100%{opacity:1}50%{opacity:.5}} @keyframes empFlash{0%,100%{opacity:1}25%,75%{opacity:.3}} .cp{transition:all .15s ease} .cp:hover{filter:brightness(1.18);transform:scale(1.04)} button{transition:all .15s ease} .toxic-country{animation:toxicPulse 1.5s ease infinite} .emp-country{animation:empFlash 0.8s ease infinite}"}</style>
 
       {notif&&(
         <div style={{position:"fixed",top:"60px",left:"50%",transform:"translateX(-50%)",zIndex:9999,
@@ -1730,6 +1868,39 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         </div>
       )}
 
+      {showIntel&&intelData&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setShowIntel(false)}>
+          <div style={{background:"linear-gradient(160deg,#0a1a0a,#0a0a1a)",border:"1px solid rgba(16,185,129,.3)",borderRadius:"20px",padding:"28px",width:"360px",animation:"modalIn .25s ease",boxShadow:"0 32px 80px rgba(0,0,0,.7)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"18px"}}>
+              <span style={{fontSize:"22px"}}>🕵</span>
+              <div>
+                <div style={{color:"#10b981",fontSize:"13px",fontWeight:"bold",letterSpacing:"2px"}}>INTEL REPORT</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px"}}>Enemy: {intelData.owner}</div>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"18px"}}>
+              {[
+                {label:"Coins",val:(intelData.inv.coins||0).toLocaleString(),color:"#f5c842"},
+                {label:"Tanks",val:intelData.inv.tank||0,color:"#f59e0b"},
+                {label:"Missiles",val:intelData.inv.missile||0,color:"#f97316"},
+                {label:"Bombers",val:intelData.inv.bomber||0,color:"#dc2626"},
+                {label:"Drones",val:intelData.inv.drone||0,color:"#06b6d4"},
+                {label:"Nukes",val:intelData.inv.nuke_bomb||0,color:"#22c55e"},
+                {label:"Satellites",val:intelData.inv.satellite||0,color:"#a5b4fc"},
+                {label:"Air Def",val:intelData.inv.air_def||0,color:"#6366f1"},
+              ].map(({label,val,color})=>(
+                <div key={label} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:"8px",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{color:"rgba(255,255,255,.4)",fontSize:"10px"}}>{label}</span>
+                  <span style={{color:color,fontWeight:"bold",fontSize:"12px"}}>{val}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={()=>setShowIntel(false)} style={{width:"100%",padding:"10px",background:"rgba(16,185,129,.15)",border:"1px solid rgba(16,185,129,.3)",borderRadius:"10px",color:"#10b981",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
+              CLOSE INTEL
+            </button>
+          </div>
+        </div>
+      )}
       {showDaily&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"linear-gradient(135deg,#0a1628,#0f2040)",border:"1px solid rgba(212,160,23,.5)",borderRadius:"20px",padding:"48px 44px",textAlign:"center",maxWidth:"360px",boxShadow:"0 0 60px rgba(212,160,23,.25)",animation:"modalIn .4s ease"}}>
@@ -1790,9 +1961,13 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                       <button onClick={async()=>{
                         const next=[...claimedMissions,m.id];
                         setClaimedMissions(next);
-                        setMissionProgress(p=>({...p}));
-                        setMyInventory(inv=>{const ni={...inv,coins:inv.coins+m.coins,_claimedMissions:next,_missionProgress:missionProgress};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
-                        flash("Mission claimed: +"+m.coins+" coins!","success");
+                        addXP(m.xp);
+                        setMyInventory(inv=>{
+                          const ni={...inv,coins:inv.coins+m.coins,_claimedMissions:next,_missionProgress:inv._missionProgress||{}};
+                          (async()=>{try{await saveInv(ni);}catch(e){}})();
+                          return ni;
+                        });
+                        flash("Mission claimed: +"+m.coins+" coins + "+m.xp+" XP!","success");
                       }} style={{width:"100%",padding:"6px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"7px",color:"#000",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif"}}>
                         Claim +{m.coins} coins
                       </button>
@@ -1903,17 +2078,23 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {SHOP_ITEMS.map(item=>{
               const buildings=myInventory.buildings||[];
               const price=getItemPrice(item,buildings);
-              const can=myInventory.coins>=price;
+              const canAffordCoins=myInventory.coins>=price;
+              const canAffordOil=!item.oilCost||(myInventory.oil||0)>=item.oilCost;
+              const can=canAffordCoins&&canAffordOil;
               const owned=myInventory[item.id]||0;
               return(
-                <div key={item.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.08)",borderRadius:"12px",marginBottom:"8px"}}>
+                <div key={item.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px",background:"rgba(255,255,255,.03)",border:"1px solid "+(can?"rgba(255,255,255,.08)":"rgba(255,255,255,.04)"),borderRadius:"12px",marginBottom:"8px"}}>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"3px"}}>
                       <span style={{color:item.color,fontWeight:"bold",fontSize:"13px"}}>{item.label}</span>
                       <span style={{background:"rgba(255,255,255,.08)",borderRadius:"6px",padding:"1px 7px",color:"rgba(255,255,255,.5)",fontSize:"10px"}}>x{owned}</span>
                       {item.dmg>0&&<span style={{background:"rgba(239,68,68,.12)",borderRadius:"6px",padding:"1px 7px",color:"#fca5a5",fontSize:"10px"}}>{item.dmg} dmg</span>}
                     </div>
-                    <p style={{color:"rgba(255,255,255,.4)",fontSize:"10px",margin:0}}>{item.desc}</p>
+                    <p style={{color:"rgba(255,255,255,.4)",fontSize:"10px",margin:"0 0 3px"}}>{item.desc}</p>
+                    {item.oilCost&&<div style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                      <div style={{width:"6px",height:"6px",borderRadius:"2px",background:"#78350f",flexShrink:0}}/>
+                      <span style={{color:canAffordOil?"#a16207":"#ef4444",fontSize:"10px",fontWeight:"bold"}}>+{item.oilCost} Oil required {!canAffordOil&&"(have "+(myInventory.oil||0)+")"}</span>
+                    </div>}
                   </div>
                   <button onClick={()=>buyItem(item)} disabled={!can}
                     style={{padding:"8px 16px",marginLeft:"12px",background:can?"linear-gradient(135deg,"+item.color+"99,"+item.color+")":"rgba(255,255,255,.05)",border:"none",borderRadius:"8px",color:can?"white":"rgba(255,255,255,.2)",cursor:can?"pointer":"not-allowed",fontSize:"12px",fontWeight:"bold",fontFamily:"Georgia,serif",whiteSpace:"nowrap"}}>
@@ -2077,6 +2258,60 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             </button>
           </div>
 
+          {/* Chem Bomb recipe card */}
+          <div style={{background:"rgba(132,204,22,.06)",border:"1px solid rgba(132,204,22,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
+              <div>
+                <div style={{color:"#84cc16",fontSize:"13px",fontWeight:"bold"}}>☣ Chemical Bomb</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>12 dmg • Poisons country 2 min • -20% for next attacker</div>
+              </div>
+              <div style={{color:"#84cc16",fontWeight:"bold",fontSize:"14px"}}>{myInventory.chem_bomb||0} owned</div>
+            </div>
+            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 4 Oil + 3 Iron + 1500 coins</p>
+            <button onClick={async()=>{
+              if((myInventory.oil||0)<4||(myInventory.iron||0)<3||(myInventory.coins||0)<1500){flash("Need 4 Oil + 3 Iron + 1500 coins","error");return;}
+              const n={...myInventory,oil:(myInventory.oil||0)-4,iron:(myInventory.iron||0)-3,coins:(myInventory.coins||0)-1500,chem_bomb:(myInventory.chem_bomb||0)+1};
+              setMyInventory(n);await saveInv(n);addXP(15);flash("Chemical Bomb crafted!","success");
+            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#365314,#4d7c0f)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
+              CRAFT CHEM BOMB
+            </button>
+          </div>
+          {/* Ghost Bomber recipe card */}
+          <div style={{background:"rgba(192,132,252,.06)",border:"1px solid rgba(192,132,252,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
+              <div>
+                <div style={{color:"#c084fc",fontSize:"13px",fontWeight:"bold"}}>👻 Ghost Bomber</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>14 dmg • Bypasses Air Defence completely</div>
+              </div>
+              <div style={{color:"#c084fc",fontWeight:"bold",fontSize:"14px"}}>{myInventory.stealth_bomber||0} owned</div>
+            </div>
+            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 3 Uranium + 5 Gold + 3000 coins</p>
+            <button onClick={async()=>{
+              if((myInventory.uranium||0)<3||(myInventory.gold||0)<5||(myInventory.coins||0)<3000){flash("Need 3 Uranium + 5 Gold + 3000 coins","error");return;}
+              const n={...myInventory,uranium:(myInventory.uranium||0)-3,gold:(myInventory.gold||0)-5,coins:(myInventory.coins||0)-3000,stealth_bomber:(myInventory.stealth_bomber||0)+1};
+              setMyInventory(n);await saveInv(n);addXP(20);flash("Ghost Bomber crafted!","success");
+            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#3b0764,#7c3aed)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
+              CRAFT GHOST BOMBER
+            </button>
+          </div>
+          {/* EMP recipe card */}
+          <div style={{background:"rgba(240,171,252,.06)",border:"1px solid rgba(240,171,252,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
+              <div>
+                <div style={{color:"#f0abfc",fontSize:"13px",fontWeight:"bold"}}>⚡ EMP Device</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>Disables ALL enemy buildings for 4 minutes</div>
+              </div>
+              <div style={{color:"#f0abfc",fontWeight:"bold",fontSize:"14px"}}>{myInventory.emp||0} owned</div>
+            </div>
+            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 5 Iron + 2 Gold + 800 coins</p>
+            <button onClick={async()=>{
+              if((myInventory.iron||0)<5||(myInventory.gold||0)<2||(myInventory.coins||0)<800){flash("Need 5 Iron + 2 Gold + 800 coins","error");return;}
+              const n={...myInventory,iron:(myInventory.iron||0)-5,gold:(myInventory.gold||0)-2,coins:(myInventory.coins||0)-800,emp:(myInventory.emp||0)+1};
+              setMyInventory(n);await saveInv(n);addXP(12);flash("EMP Device crafted!","success");
+            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#4a044e,#a21caf)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
+              CRAFT EMP
+            </button>
+          </div>
           {/* Satellite recipe card */}
           <div style={{marginTop:"12px",background:"rgba(99,102,241,.05)",border:"1px solid rgba(99,102,241,.2)",borderRadius:"12px",padding:"14px",opacity:(myInventory.buildings||[]).includes("watchtower")?1:0.5}}>
             <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px"}}>
@@ -2133,16 +2368,22 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {id:"artillery", label:"Artillery",  dmg:DMG.artillery, color:"#a78bfa"},
               {id:"drone",     label:"Drones",     dmg:DMG.drone,     color:"#06b6d4"},
               {id:"bomber",    label:"Bombers",    dmg:DMG.bomber,    color:"#dc2626"},
-              {id:"nuke_bomb", label:"Nuke",       dmg:999,           color:"#22c55e"},
-            ].map(({id,label,dmg,color})=>{
+              {id:"nuke_bomb",      label:"Nuke",         dmg:999,              color:"#22c55e"},
+            {id:"chem_bomb",      label:"Chem Bomb",    dmg:DMG.chem_bomb,    color:"#84cc16"},
+            {id:"emp",            label:"EMP",          dmg:0,                color:"#f0abfc"},
+            {id:"stealth_bomber", label:"Ghost Bomber", dmg:DMG.stealth_bomber,color:"#c084fc"}].map(({id,label,dmg,color})=>{
               const max=myInventory[id]||0;
               const val=deploy[id]||0;
+              if(max===0&&["nuke_bomb","chem_bomb","emp","stealth_bomber","satellite"].includes(id))return null;
               return(
                 <div key={id} style={{marginBottom:"14px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                       <span style={{color:"white",fontWeight:"bold",fontSize:"13px"}}>{label}</span>
-                      <span style={{color:"rgba(255,255,255,.35)",fontSize:"10px"}}>{dmg} dmg each</span>
+                      {dmg>0&&<span style={{color:"rgba(255,255,255,.35)",fontSize:"10px"}}>{dmg} dmg</span>}
+                      {id==="emp"&&<span style={{color:"#f0abfc",fontSize:"9px",background:"rgba(240,171,252,.1)",padding:"1px 5px",borderRadius:"4px"}}>disables buildings</span>}
+                      {id==="chem_bomb"&&<span style={{color:"#84cc16",fontSize:"9px",background:"rgba(132,204,22,.1)",padding:"1px 5px",borderRadius:"4px"}}>poisons 2 min</span>}
+                      {id==="stealth_bomber"&&<span style={{color:"#c084fc",fontSize:"9px",background:"rgba(192,132,252,.1)",padding:"1px 5px",borderRadius:"4px"}}>bypasses air def</span>}
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
                       <button onClick={()=>setDeploy(d=>({...d,[id]:Math.max(0,(d[id]||0)-1)}))} style={{width:"26px",height:"26px",borderRadius:"6px",background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.15)",color:"white",fontSize:"16px",cursor:"pointer",lineHeight:"1"}}>-</button>
@@ -2218,8 +2459,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {id:"artillery",icon:"A",color:"#e879f9"},{id:"drone",icon:"D",color:"#06b6d4"},
             {id:"bomber",icon:"X",color:"#dc2626"},{id:"air_def",icon:"AD",color:"#6366f1"},
             {id:"spy",icon:"S",color:"#10b981"},{id:"satellite",icon:"SAT",color:"#a5b4fc"},
-            {id:"nuke_bomb",icon:"N",color:"#22c55e"},
-          ].filter(w=>(myInventory[w.id]||0)>0).map(w=>(
+            {id:"nuke_bomb",icon:"N",color:"#22c55e"}].filter(w=>(myInventory[w.id]||0)>0).map(w=>(
             <div key={w.id} title={w.id} style={{display:"flex",alignItems:"center",gap:"2px",padding:"3px 6px",background:"rgba(255,255,255,.05)",borderRadius:"5px",border:"1px solid "+w.color+"33",flexShrink:0}}>
               <span style={{color:w.color,fontSize:"8px",fontWeight:"bold",letterSpacing:".5px"}}>{w.icon}</span>
               <span style={{color:"rgba(255,255,255,.8)",fontWeight:"bold",fontSize:"10px"}}>{myInventory[w.id]}</span>
@@ -2243,7 +2483,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             style={{padding:"5px 14px",height:"30px",background:attackMode?"linear-gradient(135deg,#991b1b,#dc2626)":"rgba(239,68,68,.08)",border:"1px solid "+(attackMode?"#ef4444":"rgba(239,68,68,.2)"),borderRadius:"7px",color:attackMode?"white":"rgba(239,68,68,.7)",cursor:"pointer",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif",letterSpacing:"1px",animation:attackMode?"pr 1.5s infinite":undefined,transition:"all .2s",whiteSpace:"nowrap"}}>
             {attackMode?"✕ CANCEL":"⚔ ATTACK"}
           </button>
-          <button onClick={()=>{setAttackMode(false);setSatelliteMode(false);setScreen("menu");setRoomInput("");roomCodeRef.current="";setRoomCode("");ownershipRef.current={};setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
+          <button onClick={()=>{setAttackMode(false);setSatelliteMode(false);setShockedCountries({});setPoisonedCountries({});setEmpCountries({});setScreen("menu");setRoomInput("");roomCodeRef.current="";setRoomCode("");ownershipRef.current={};setOwnership({});setPlayers({});setMenuTab("multiplayer");setIsSingleplayer(false);setBotInventories({});}}
             style={{padding:"5px 10px",height:"30px",background:"transparent",border:"1px solid rgba(255,255,255,.08)",borderRadius:"7px",color:"rgba(255,255,255,.3)",cursor:"pointer",fontSize:"11px",fontFamily:"Georgia,serif",transition:"all .2s"}}>
             ← Exit
           </button>
@@ -2338,6 +2578,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               const isShocked=shockedCountries[c.id]&&shockedCountries[c.id]>Date.now();
               const shockSecsLeft=isShocked?Math.ceil((shockedCountries[c.id]-Date.now())/1000):0;
               const isNuked=ownership[c.id]==="__nuked__";
+              const isPoisoned=poisonedCountries[c.id]&&poisonedCountries[c.id]>Date.now();
+              const ownerEMPd=owner&&empCountries[owner]&&empCountries[owner]>Date.now();
               let stroke="rgba(255,255,255,.18)";
               let sw=0.6;
               let fill=isNuked?"#0a1a0a":isShocked?"#0a0a0a":fillColor;
@@ -2380,6 +2622,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         fontWeight="bold" opacity="0.95"
                         paintOrder="stroke" stroke="rgba(0,0,0,.8)" strokeWidth="2.5" strokeLinejoin="round">
                         ☢ RAD
+                      {isPoisoned&&<text x={c.lx} y={c.ly+12} textAnchor="middle" fill="#84cc16" fontSize="7" fontWeight="bold">☣ TOXIC</text>}
+                      {ownerEMPd&&<text x={c.lx} y={c.ly+12} textAnchor="middle" fill="#f0abfc" fontSize="7" fontWeight="bold">⚡ EMP</text>}
                       </text>
                     </g>
                   )}
@@ -2408,6 +2652,12 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {tip.c.bonus&&(
                 <div style={{background:"rgba(245,200,66,.08)",border:"1px solid rgba(245,200,66,.2)",borderRadius:"6px",padding:"3px 7px",marginBottom:"4px"}}>
                   <span style={{color:"#f5c842",fontSize:"9px",fontWeight:"bold"}}>{tip.c.bonus.label}</span>
+                </div>
+              )}
+              {tip.c&&poisonedCountries[tip.c.id]&&poisonedCountries[tip.c.id]>Date.now()&&(
+                <div style={{background:"rgba(132,204,22,.1)",border:"1px solid rgba(132,204,22,.25)",borderRadius:"6px",padding:"3px 7px",marginBottom:"4px",display:"flex",gap:"5px",alignItems:"center"}}>
+                  <span style={{color:"#84cc16",fontSize:"9px",fontWeight:"bold"}}>☣ POISONED</span>
+                  <span style={{color:"rgba(255,255,255,.4)",fontSize:"9px"}}>{Math.max(0,Math.ceil((poisonedCountries[tip.c.id]-Date.now())/1000))}s</span>
                 </div>
               )}
               {tip.owner
@@ -2462,8 +2712,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>setShowMatShop(true)},
             {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>setShowBuildShop(true)},
             {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>setShowBlackMarket(true), disabled:!(myInventory.buildings||[]).includes("black_market")},
-            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)},
-          ].map(btn=>(
+            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
               style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
               <span style={{fontSize:"12px",opacity:.85}}>{btn.icon}</span>
@@ -2488,7 +2737,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                   </div>
                 );
               })}
-              {[{id:"uranium",label:"Uranium",color:"#4ade80"},{id:"nuke_bomb",label:"Nukes",color:"#22c55e"}].map(m=>{
+              {[{id:"nuke_bomb",label:"Nukes",color:"#22c55e"}].map(m=>{
                 const qty=myInventory[m.id]||0;
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:"5px",padding:"4px 6px",background:"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?m.color+"22":"rgba(255,255,255,.04)")}}>
