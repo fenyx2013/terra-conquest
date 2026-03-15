@@ -1656,8 +1656,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   {title:"The Map",text:"The world map has over 140 countries. Your territories glow in your color. Enemy countries are colored by their owner. Dark blue countries are unclaimed — easy pickings early on. Hover any country to see its name, owner, and any bonuses it gives."},
   {title:"Attacking",text:"Press the red ATTACK button in the top bar, then click an enemy or neutral country next to yours. A deploy screen opens — pick your weapons and hit Confirm. Your win chance is shown before you commit. Planes extend your attack range to 3 countries away. Press ESC to cancel."},
   {title:"Standard Weapons",text:"Buy weapons in the War Shop: Tanks (0.5 dmg, cheapest), Bombs (2 dmg), Planes (3 dmg + extended range), Missiles (6 dmg), Artillery (4 dmg), Drones (8 dmg), Bombers (10 dmg, most expensive). Stack weapons for higher damage and better win chance."},
-  {title:"Advanced Weapons",text:"Three powerful weapons are bought in the War Shop but require Oil: Chem Bomb (12 dmg + poisons the country for 2 min, costs 3 Oil), EMP (disables ALL enemy buildings for 4 minutes, costs 2 Oil), Ghost Bomber (14 dmg, completely bypasses Air Defence). Oil is earned by owning Iraq, Iran, Venezuela, or building an Oil Rig."},
-  {title:"Weapons Lab (W LAB)",text:"Click W LAB in the top bar to craft the most powerful weapons. Nuclear Bomb (10 Uranium + 7 Iron + 2 Gold + 2000 coins) permanently irradiates a country — it turns into a radioactive wasteland nobody can own. Satellite (5 Uranium + 10 Iron + 2 Gold, requires Watchtower) paralyzes any enemy country for 5 minutes. EMP Device (5 Iron + 2 Gold + 800 coins) disables all enemy buildings. Chem Bomb (4 Oil + 3 Iron + 1500 coins) poisons a country. Ghost Bomber (3 Uranium + 5 Gold + 3000 coins) ignores all Air Defence."},
+  {title:"Advanced Weapons",text:"Three powerful weapons are bought directly from the War Shop: Chem Bomb (12 dmg, poisons the country for 2 min so the next attacker gets -20% win chance — requires 3 Oil), EMP (0 dmg but disables ALL enemy buildings for 4 minutes — requires 2 Oil), Ghost Bomber (14 dmg, highest in the game, completely bypasses Air Defence). Oil is earned by owning Iraq, Iran, Venezuela, or building an Oil Rig."},
+  {title:"Weapons Lab (W LAB)",text:"Click W LAB in the top bar to craft the two most powerful weapons in the game. Nuclear Bomb (10 Uranium + 7 Iron + 2 Gold + 2000 coins) permanently irradiates a country — it turns dark green with a radiation symbol and nobody can ever own it again. Satellite (5 Uranium + 10 Iron + 2 Gold, requires a Watchtower building) paralyzes any enemy country for 5 minutes. Chem Bomb, EMP, and Ghost Bomber are bought directly from the War Shop."},
   {title:"Satellite Strike",text:"Once you craft a Satellite (needs a Watchtower building first), a SAT button appears in the top bar showing how many you have. Click it, then click any enemy country — it goes dark with a purple border and is paralyzed for 5 minutes. The owner cannot attack from it or receive its bonuses during this time."},
   {title:"Oil & Resources",text:"Oil is a new resource used to buy and craft advanced weapons. Earn Oil by: owning Iraq (+2/min), Iran (+1/min), or Venezuela (+1/min), building an Oil Rig (+1 every 2 min per rig, max 2). Oil appears in your Resources panel in the sidebar. Plan ahead — Chem Bombs and EMPs both need it."},
   {title:"Materials",text:"Materials (Wood, Stone, Iron, Gold, Uranium) are gathered passively from country bonuses and buildings. Wood & Stone come from building Mines. Gold is produced by Saudi Arabia and South Africa. Uranium is extracted by the Uranium Extractor building (costs 1 Gold per Uranium). Materials are used to build structures and craft advanced weapons."},
@@ -2255,61 +2255,6 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               disabled={(myInventory.uranium||0)<10||(myInventory.iron||0)<7||(myInventory.gold||0)<2||(myInventory.coins||0)<2000}
               style={{width:"100%",padding:"10px",background:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"linear-gradient(135deg,#052010,#166534)":"rgba(255,255,255,.04)",border:"1px solid "+((myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"rgba(34,197,94,.5)":"rgba(255,255,255,.08)"),borderRadius:"8px",color:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"#22c55e":"rgba(255,255,255,.2)",cursor:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"pointer":"not-allowed",fontWeight:"bold",fontSize:"12px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
               CRAFT NUCLEAR BOMB
-            </button>
-          </div>
-
-          {/* Chem Bomb recipe card */}
-          <div style={{background:"rgba(132,204,22,.06)",border:"1px solid rgba(132,204,22,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
-              <div>
-                <div style={{color:"#84cc16",fontSize:"13px",fontWeight:"bold"}}>☣ Chemical Bomb</div>
-                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>12 dmg • Poisons country 2 min • -20% for next attacker</div>
-              </div>
-              <div style={{color:"#84cc16",fontWeight:"bold",fontSize:"14px"}}>{myInventory.chem_bomb||0} owned</div>
-            </div>
-            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 4 Oil + 3 Iron + 1500 coins</p>
-            <button onClick={async()=>{
-              if((myInventory.oil||0)<4||(myInventory.iron||0)<3||(myInventory.coins||0)<1500){flash("Need 4 Oil + 3 Iron + 1500 coins","error");return;}
-              const n={...myInventory,oil:(myInventory.oil||0)-4,iron:(myInventory.iron||0)-3,coins:(myInventory.coins||0)-1500,chem_bomb:(myInventory.chem_bomb||0)+1};
-              setMyInventory(n);await saveInv(n);addXP(15);flash("Chemical Bomb crafted!","success");
-            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#365314,#4d7c0f)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
-              CRAFT CHEM BOMB
-            </button>
-          </div>
-          {/* Ghost Bomber recipe card */}
-          <div style={{background:"rgba(192,132,252,.06)",border:"1px solid rgba(192,132,252,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
-              <div>
-                <div style={{color:"#c084fc",fontSize:"13px",fontWeight:"bold"}}>👻 Ghost Bomber</div>
-                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>14 dmg • Bypasses Air Defence completely</div>
-              </div>
-              <div style={{color:"#c084fc",fontWeight:"bold",fontSize:"14px"}}>{myInventory.stealth_bomber||0} owned</div>
-            </div>
-            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 3 Uranium + 5 Gold + 3000 coins</p>
-            <button onClick={async()=>{
-              if((myInventory.uranium||0)<3||(myInventory.gold||0)<5||(myInventory.coins||0)<3000){flash("Need 3 Uranium + 5 Gold + 3000 coins","error");return;}
-              const n={...myInventory,uranium:(myInventory.uranium||0)-3,gold:(myInventory.gold||0)-5,coins:(myInventory.coins||0)-3000,stealth_bomber:(myInventory.stealth_bomber||0)+1};
-              setMyInventory(n);await saveInv(n);addXP(20);flash("Ghost Bomber crafted!","success");
-            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#3b0764,#7c3aed)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
-              CRAFT GHOST BOMBER
-            </button>
-          </div>
-          {/* EMP recipe card */}
-          <div style={{background:"rgba(240,171,252,.06)",border:"1px solid rgba(240,171,252,.2)",borderRadius:"14px",padding:"18px 20px",marginBottom:"16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
-              <div>
-                <div style={{color:"#f0abfc",fontSize:"13px",fontWeight:"bold"}}>⚡ EMP Device</div>
-                <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>Disables ALL enemy buildings for 4 minutes</div>
-              </div>
-              <div style={{color:"#f0abfc",fontWeight:"bold",fontSize:"14px"}}>{myInventory.emp||0} owned</div>
-            </div>
-            <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:"0 0 10px"}}>Recipe: 5 Iron + 2 Gold + 800 coins</p>
-            <button onClick={async()=>{
-              if((myInventory.iron||0)<5||(myInventory.gold||0)<2||(myInventory.coins||0)<800){flash("Need 5 Iron + 2 Gold + 800 coins","error");return;}
-              const n={...myInventory,iron:(myInventory.iron||0)-5,gold:(myInventory.gold||0)-2,coins:(myInventory.coins||0)-800,emp:(myInventory.emp||0)+1};
-              setMyInventory(n);await saveInv(n);addXP(12);flash("EMP Device crafted!","success");
-            }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,#4a044e,#a21caf)",border:"none",borderRadius:"10px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px",letterSpacing:"1px"}}>
-              CRAFT EMP
             </button>
           </div>
           {/* Satellite recipe card */}
