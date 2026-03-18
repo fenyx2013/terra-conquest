@@ -86,12 +86,13 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},  cost:{coins:15000,iron:8,gold:5},   color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
-  {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},   cost:{coins:12000,stone:10,iron:6},  color:"#ef4444", desc:"Controls Eastern Europe & Asia. Army grows fast."},
-  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{shield:1,  label:"Extra shield/day"},cost:{coins:14000,stone:12,iron:4},  color:"#f59e0b", desc:"Controls East Asia. Blocks 1 attack per day automatically."},
-  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},    cost:{coins:10000,stone:8,gold:3},   color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
-  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{xp:10,     label:"+10 XP/min"},     cost:{coins:11000,iron:6,gold:4},    color:"#a78bfa", desc:"Controls Western Europe. XP accelerator."},
-  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},    cost:{coins:9000,wood:8,stone:4},    color:"#22c55e", desc:"Controls South America. Resource engine."},
+  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:15000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
+  {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:12000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
+  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{troops:3,  label:"+3 tanks/min"},    cost:{coins:14000,stone:12,iron:4},      color:"#f59e0b", desc:"The mightiest fortification ever built. Troops pour in constantly."},
+  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:10000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
+  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:11000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
+  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:9000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
+  {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -1353,6 +1354,15 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(w.bonus.gold)gold+=w.bonus.gold;
           if(w.bonus.wood)wood+=w.bonus.wood;
           if(w.bonus.oil)oil+=w.bonus.oil;
+          // Dracula's Castle: +3 spies every 8 hours
+          if(w.id==="dracula"&&w.bonus.spy){
+            const now=Date.now();
+            const last=inv._lastDraculaSpy||0;
+            if(now-last>=8*60*60*1000){
+              inv={...inv,spy:(inv.spy||0)+3,_lastDraculaSpy:now};
+              flash("🧛 Dracula's Castle granted you 3 spies!","success");
+            }
+          }
         });
         if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&uranium===0&&oil===0)return inv;
         const next={...inv,
@@ -1731,6 +1741,9 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
     const defenderHasFortress=false; // can't read opponent buildings in multiplayer
+    // Dracula's Castle: -15% for all attackers against wonder owner's territories
+    const draculaOwner=Object.entries(worldWondersRef.current||{}).find(([id])=>id==="dracula");
+    const draculaPenalty=draculaOwner&&draculaOwner[1]&&draculaOwner[1]===ownership[country.id]?-0.15:0;
     // EMP: if the current player's buildings are disabled, coin factory etc don't apply
     const myBuildingsDisabled=empCountries[username]&&empCountries[username]>Date.now();
     const stealthKit=(myInventory.stealth_kit||0)>0;
@@ -1739,7 +1752,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const poisonPenalty=isPoisoned?-0.20:0;
     // stealth bomber ignores air defence
     const effectiveAirDef=hasStealthBomber?0:(myInventory.air_def||0);
-    const chance=Math.max(0.02,Math.min(0.97,calcWinChance(country.area||20,damage,myInventory.spy||0,myInventory.academySpies||0,effectiveAirDef,defenderHasFortress,stealthKit)+embassyBonus+poisonPenalty));
+    const chance=Math.max(0.02,Math.min(0.97,calcWinChance(country.area||20,damage,myInventory.spy||0,myInventory.academySpies||0,effectiveAirDef,defenderHasFortress,stealthKit)+embassyBonus+poisonPenalty+draculaPenalty));
     const pct=Math.round(Math.min(0.97,chance)*100);
     const usedSpy=(myInventory.spy||0)>0||(myInventory.academySpies||0)>0;
     const newInv={...myInventory};
@@ -2139,6 +2152,65 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         </div>
       )}
 
+      {showWonders&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)setShowWonders(false);}}>
+          <div style={{background:"linear-gradient(160deg,#0a0a00,#1a1400)",border:"1px solid rgba(245,200,66,.3)",borderRadius:"22px",padding:"28px",width:"520px",maxHeight:"85vh",overflowY:"auto",boxShadow:"0 40px 80px rgba(0,0,0,.8)",animation:"modalIn .25s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+              <div>
+                <h2 style={{color:"#f5c842",fontSize:"18px",margin:"0 0 3px",letterSpacing:"2px"}}>🏛 World Wonders</h2>
+                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Build in the listed country for a permanent empire-wide bonus</p>
+              </div>
+              <button onClick={()=>setShowWonders(false)} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>X</button>
+            </div>
+            {WORLD_WONDERS.map(w=>{
+              const owner=worldWonders[w.id];
+              const isMine=owner===username;
+              const canBuild=ownership[w.country]===username&&!owner;
+              const costMet=canBuild&&Object.entries(w.cost).every(([res,amt])=>(myInventory[res]||0)>=amt);
+              const countryName=COUNTRIES.find(c=>c.id===w.country)?.name||w.country;
+              return(
+                <div key={w.id} style={{background:w.special?"rgba(220,38,38,.06)":isMine?"rgba(245,200,66,.08)":"rgba(255,255,255,.03)",border:"1px solid "+(w.special?"rgba(220,38,38,.3)":isMine?"rgba(245,200,66,.35)":canBuild?"rgba(34,197,94,.3)":"rgba(255,255,255,.08)"),borderRadius:"14px",padding:"14px 16px",marginBottom:"10px"}}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:"6px"}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"3px"}}>
+                        <span style={{color:w.color,fontWeight:"bold",fontSize:"13px"}}>{w.name}</span>
+                        {w.special&&<span style={{background:"rgba(220,38,38,.2)",border:"1px solid rgba(220,38,38,.4)",borderRadius:"10px",padding:"1px 8px",color:"#fca5a5",fontSize:"9px",fontWeight:"bold",letterSpacing:"1px"}}>SPECIAL</span>}
+                        {isMine&&<span style={{background:"rgba(245,200,66,.15)",border:"1px solid rgba(245,200,66,.3)",borderRadius:"10px",padding:"1px 8px",color:"#f5c842",fontSize:"9px",fontWeight:"bold"}}>YOURS</span>}
+                        {owner&&!isMine&&<span style={{color:"rgba(255,255,255,.4)",fontSize:"9px"}}>{owner}</span>}
+                      </div>
+                      <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginBottom:"4px"}}>{w.desc}</div>
+                      <div style={{color:w.color,fontSize:"10px",fontWeight:"bold",marginBottom:"4px"}}>{w.bonus.label}</div>
+                      <div style={{color:"rgba(255,255,255,.25)",fontSize:"9px"}}>Must own: {countryName}</div>
+                    </div>
+                    <div style={{marginLeft:"12px",flexShrink:0}}>
+                      {!owner&&canBuild&&(
+                        <button onClick={async()=>{
+                          if(!costMet){flash("Not enough resources!","error");return;}
+                          const n={...myInventory};
+                          Object.entries(w.cost).forEach(([res,amt])=>{n[res]=Math.max(0,(n[res]||0)-amt);});
+                          setMyInventory(n);await saveInv(n);
+                          const newW={...worldWondersRef.current,[w.id]:username};
+                          setWorldWondersSync(newW);
+                          if(roomCode){try{const d2=await sb.from("world").select("players").eq("room_code",roomCode).single();if(d2.data)await sb.from("world").upsert({room_code:roomCode,ownership:ownershipRef.current,players:{...d2.data.players,_wonders:newW}},{onConflict:"room_code"});}catch(e){}}
+                          flash("🏛 "+w.name+" built! "+w.bonus.label+" active!","success");addXP(50);
+                        }} style={{padding:"8px 14px",background:costMet?"linear-gradient(135deg,#d4a017,#f5c842)":"rgba(255,255,255,.06)",border:"none",borderRadius:"8px",color:costMet?"#000":"rgba(255,255,255,.2)",cursor:costMet?"pointer":"not-allowed",fontSize:"11px",fontWeight:"bold",fontFamily:"Georgia,serif"}}>
+                          BUILD
+                        </button>
+                      )}
+                      {!owner&&!canBuild&&<div style={{color:"rgba(255,255,255,.2)",fontSize:"9px",textAlign:"right"}}>Need<br/>{countryName}</div>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                    {Object.entries(w.cost).map(([res,amt])=>(
+                      <span key={res} style={{fontSize:"9px",color:(myInventory[res]||0)>=amt?"#a3e635":"#f87171",background:"rgba(255,255,255,.06)",padding:"2px 7px",borderRadius:"4px"}}>{res}: {amt}</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {showDaily&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"linear-gradient(135deg,#0a1628,#0f2040)",border:"1px solid rgba(212,160,23,.5)",borderRadius:"20px",padding:"48px 44px",textAlign:"center",maxWidth:"360px",boxShadow:"0 0 60px rgba(212,160,23,.25)",animation:"modalIn .4s ease"}}>
@@ -2869,7 +2941,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>setShowMatShop(true)},
             {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>setShowBuildShop(true)},
             {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>setShowBlackMarket(true), disabled:!(myInventory.buildings||[]).includes("black_market")},
-            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)}].map(btn=>(
+            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)},
+            {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>setShowWonders(true)}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
               style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
               <span style={{fontSize:"12px",opacity:.85}}>{btn.icon}</span>
@@ -2894,16 +2967,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                   </div>
                 );
               })}
-              {[{id:"nuke_bomb",label:"Nukes",color:"#22c55e"}].map(m=>{
-                const qty=myInventory[m.id]||0;
-                return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:"5px",padding:"4px 6px",background:"rgba(255,255,255,.02)",borderRadius:"6px",border:"1px solid "+(qty>0?m.color+"22":"rgba(255,255,255,.04)")}}>
-                    <div style={{width:"6px",height:"6px",borderRadius:"50%",background:qty>0?m.color:"rgba(255,255,255,.15)",flexShrink:0,boxShadow:qty>0?"0 0 4px "+m.color+"80":undefined}}/>
-                    <span style={{color:qty>0?"rgba(255,255,255,.6)":"rgba(255,255,255,.2)",fontSize:"8px",flex:1}}>{m.label}</span>
-                    <span style={{color:qty>0?m.color:"rgba(255,255,255,.2)",fontSize:"10px",fontWeight:"bold"}}>{qty}</span>
-                  </div>
-                );
-              })}
+
             </div>
           </div>
 
