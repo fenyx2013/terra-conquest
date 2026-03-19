@@ -22,7 +22,7 @@ const CLRS=[
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:14,orbital:999,dirty_bomb:8};
+const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:14,droner_ghoster: 17,orbital:999,dirty_bomb:8};
 const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
@@ -32,14 +32,15 @@ const SHOP_ITEMS=[
   {id:"tank",      label:"Tank",      desc:"Basic ground unit. Cheap & reliable.",        price:120,  dmg:DMG.tank,      color:"#f59e0b"},
   {id:"bomb",      label:"Bomb",      desc:"Explosive. High damage.",                     price:200,  dmg:DMG.bomb,      color:"#ef4444"},
   {id:"plane",     label:"Plane",     desc:"Air unit. Extends attack radius to 3.",       price:350,  dmg:DMG.plane,     color:"#3b82f6"},
-  {id:"missile",   label:"Missile",   desc:"Ballistic strike. Very high damage.",         price:500,  dmg:DMG.missile,   color:"#f97316"},
+  {id:"missile",   label:"Missile",   desc:"Ballistic strike. Very high damage.",         price:550,  dmg:DMG.missile,   color:"#f97316"},
   {id:"artillery", label:"Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
   {id:"drone",     label:"Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
   {id:"bomber",    label:"Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
   {id:"air_def",      label:"Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1"},
   {id:"chem_bomb",    label:"Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
   {id:"emp",          label:"EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
-  {id:"stealth_bomber",label:"Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"}];
+  {id:"stealth_bomber",label:"Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"},
+  {id: "droner_ghoster", label:"L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 3750,  dmg:DMG.droner_ghoster, color:"#A020F0"}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
@@ -82,7 +83,7 @@ const BLACK_MARKET_POOL=[
   {id:"bm_oil5",        label:"5 Oil Barrels",  desc:"Smuggled crude oil",                    cost:{coins:1500,gold:1},      reward:{oil:5}},
   {id:"bm_chem2",       label:"2 Chem Bombs",   desc:"Illegal chemical weapons",              cost:{coins:2500,oil:3},       reward:{chem_bomb:2}},
   {id:"bm_emp1",        label:"EMP Device",     desc:"Single-use electromagnetic pulse",      cost:{coins:2000,iron:3},      reward:{emp:1}},
-  {id:"bm_ghost1",      label:"Ghost Bomber",   desc:"Stealth aircraft, bypasses air def",    cost:{coins:3500,gold:2},      reward:{stealth_bomber:1}},
+  {id:"bm_ghost1",      label:"Ghost Bomber",   desc:"Stealth aircraft, bypasses air def",    cost:{coins:3500,gold:2},      reward:{stealth_bomber:3}},
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
@@ -164,7 +165,7 @@ function rndName(){
   return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
 }
 
-function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0,dirty_bomb=0){
+function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0,droner_ghoster=0,dirty_bomb=0){
   return Math.round((
     tank*DMG.tank+
     bomb*DMG.bomb+
@@ -691,7 +692,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,orbital:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
+  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -705,7 +706,7 @@ export default function EarthConquest(){
   const [showBlackMarket,setShowBlackMarket]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,orbital:0,dirty_bomb:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
   const [blitzTimeLeft,setBlitzTimeLeft]=useState(0);
@@ -1642,14 +1643,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const reach=getReachable(mine,myInventory.plane>0?3:2);
     if(!reach.has(country.id)||ownership[country.id]===username)return;
     setAttackPlan({country});
-    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,orbital:0,dirty_bomb:0});
+    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0});
   };
 
   const confirmAttack=async()=>{
     if(!attackPlan)return;
     const country=attackPlan.country;
     // Validate: can't deploy more than owned
-    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","nuke_bomb","orbital","dirty_bomb"];
+    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","droner_ghoster","nuke_bomb","orbital","dirty_bomb"];
     for(const[id,qty]of Object.entries(deploy)){
       if(!weaponKeys.includes(id))continue;
       if(qty>0&&qty>(myInventory[id]||0)){
@@ -1736,7 +1737,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(hasStealthBomber&&!(myInventory.buildings||[]).includes("airbase")){
       flash("Ghost Bomber requires an Airbase to deploy!","error");return;
     }
-      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0);
+      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0);
     const damage=hasReactor?Math.round(rawDamage*1.5*10)/10:rawDamage;
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
@@ -1843,11 +1844,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setMissionProgress({});
     setClaimedMissions([]);
   }
-  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)>0;
+  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)>0;
   const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
   const hasFortress=(myInventory.buildings||[]).includes("fortress");
   const stealthKit=(myInventory.stealth_kit||0)>0;
-  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
+  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
   const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
   const atkHasStealthBomber=attackPlan&&(deploy.stealth_bomber||0)>0;
   const atkEffectiveAirDef=atkHasStealthBomber?0:(myInventory.air_def||0);
@@ -1907,7 +1908,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   if(screen==="menu"){
     const TUTORIAL_STEPS=[
   {title:"Welcome to Terra Conquest",text:"Conquer the world by capturing countries on the map. You start with a few territories and grow your empire through combat, buildings, economy, and strategy. Be the last player standing — or the first to dominate the map."},
-  {title:"The Map",text:"The world map has over 140 countries. Your territories glow in your color. Enemy countries are colored by their owner. Dark blue countries are unclaimed — easy pickings early on. Hover any country to see its name, owner, and any bonuses it gives."},
+  {title:"The Map",text:"The world map has 100 countries. Your territories glow in your color. Enemy countries are colored by their owner. Dark blue countries are unclaimed — easy pickings early on. Hover any country to see its name, owner, and any bonuses it gives."},
   {title:"Attacking",text:"Press the red ATTACK button in the top bar, then click an enemy or neutral country next to yours. A deploy screen opens — pick your weapons and hit Confirm. Your win chance is shown before you commit. Planes extend your attack range to 3 countries away. Press ESC to cancel."},
   {title:"Standard Weapons",text:"Buy weapons in the War Shop: Tanks (0.5 dmg, cheapest), Bombs (2 dmg), Planes (3 dmg + extended range), Missiles (6 dmg), Artillery (4 dmg), Drones (8 dmg), Bombers (10 dmg, most expensive). Stack weapons for higher damage and better win chance."},
   {title:"Advanced Weapons",text:"Three powerful weapons are bought directly from the War Shop: Chem Bomb (12 dmg, poisons the country for 2 min so the next attacker gets -20% win chance — requires 3 Oil), EMP (0 dmg but disables ALL enemy buildings for 4 minutes — requires 2 Oil), Ghost Bomber (14 dmg, highest in the game, completely bypasses Air Defence). Oil is earned by owning Iraq, Iran, Venezuela, or building an Oil Rig."},
@@ -2614,6 +2615,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {id:"artillery", label:"Artillery",  dmg:DMG.artillery, color:"#a78bfa"},
               {id:"drone",     label:"Drones",     dmg:DMG.drone,     color:"#06b6d4"},
               {id:"bomber",    label:"Bombers",    dmg:DMG.bomber,    color:"#dc2626"},
+              {id:"droner_ghoster",    label:"L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
               {id:"nuke_bomb", label:"Nuke",       dmg:999,           color:"#22c55e"}].map(({id,label,dmg,color})=>{
               const max=myInventory[id]||0;
               const val=deploy[id]||0;
