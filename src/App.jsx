@@ -176,6 +176,7 @@ function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb
     drone*DMG.drone+
     chem_bomb*DMG.chem_bomb+
     stealth_bomber*DMG.stealth_bomber+
+    droner_ghoster*DMG.droner_ghoster+
     dirty_bomb*DMG.dirty_bomb
   )*10)/10;
 }
