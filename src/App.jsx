@@ -29,18 +29,18 @@ const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
 
 const SHOP_ITEMS=[
-  {id:"tank",      label:"Tank",      desc:"Basic ground unit. Cheap & reliable.",        price:120,  dmg:DMG.tank,      color:"#f59e0b"},
-  {id:"bomb",      label:"Bomb",      desc:"Explosive. High damage.",                     price:200,  dmg:DMG.bomb,      color:"#ef4444"},
-  {id:"plane",     label:"Plane",     desc:"Air unit. Extends attack radius to 3.",       price:350,  dmg:DMG.plane,     color:"#3b82f6"},
-  {id:"missile",   label:"Missile",   desc:"Ballistic strike. Very high damage.",         price:550,  dmg:DMG.missile,   color:"#f97316"},
-  {id:"artillery", label:"Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
-  {id:"drone",     label:"Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
-  {id:"bomber",    label:"Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
-  {id:"air_def",      label:"Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1"},
-  {id:"chem_bomb",    label:"Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
-  {id:"emp",          label:"EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
-  {id:"stealth_bomber",label:"Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"},
-  {id: "droner_ghoster", label:"L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 3750,  dmg:DMG.droner_ghoster, color:"#A020F0"}];
+  {id:"tank",      label:"\u{1FA96} Tank",      desc:"Basic ground unit. Cheap & reliable.",        price:120,  dmg:DMG.tank,      color:"#f59e0b"},
+  {id:"bomb",      label:"\u{1F4A3} Bomb",      desc:"Explosive. High damage.",                     price:200,  dmg:DMG.bomb,      color:"#ef4444"},
+  {id:"plane",     label:"✈️ Plane",     desc:"Air unit. Extends attack radius to 3.",       price:350,  dmg:DMG.plane,     color:"#3b82f6"},
+  {id:"missile",   label:"🚀 Missile",   desc:"Ballistic strike. Very high damage.",         price:550,  dmg:DMG.missile,   color:"#f97316"},
+  {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
+  {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
+  {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
+  {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1"},
+  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
+  {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
+  {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"},
+  {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 3750,  dmg:DMG.droner_ghoster, color:"#A020F0"}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
@@ -93,6 +93,7 @@ const WORLD_WONDERS=[
   {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:10000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
   {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:11000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
   {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:9000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
+  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3,    label:"+3 Gold/min"},     cost:{coins:12000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources God"},
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
 ];
 
@@ -2378,7 +2379,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           <div style={{background:"linear-gradient(135deg,#0a1628,#0d1f38)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"20px",padding:"32px",width:"480px",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 40px 80px rgba(0,0,0,.6)",animation:"modalIn .3s ease"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
               <div>
-                <h2 style={{color:"white",fontSize:"18px",margin:"0 0 3px",letterSpacing:"1px"}}>War Shop</h2>
+                <h2 style={{color:"white",fontSize:"18px",margin:"0 0 3px",letterSpacing:"1px"}}>=✪= War Shop =✪=</h2>
                 <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Coins: <span style={{color:"#f5c842",fontWeight:"bold"}}>{myInventory.coins.toLocaleString()}</span></p>
               </div>
               <button onClick={()=>setShowShop(false)} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>X</button>
