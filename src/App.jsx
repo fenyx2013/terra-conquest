@@ -802,7 +802,7 @@ export default function EarthConquest(){
         const active=ps.filter(([,v])=>v.ts&&(now-v.ts)<90000); // 90s = must have heartbeated recently
         const territories=Object.values(r.ownership||{}).filter(v=>v&&v!=="__nuked__");
         return{code:r.room_code,totalPlayers:ps.length,activePlayers:active.map(([n])=>n),territories:territories.length};
-      }).filter(r=>r.totalPlayers>0);
+      }).filter(r=>r.totalPlayers>0||r.territories>0); // show rooms with data even if no players online
 
       const allPlayers=(invRes.data||[]).map(r=>({
         username:r.username,
@@ -810,7 +810,8 @@ export default function EarthConquest(){
         xp:r.data?._xp||0,
         lastSeen:r.data?._lastSeen||null,
         lastRoom:r.data?._lastRoom||null,
-        clan:r.data?._clan||""
+        clan:r.data?._clan||"",
+        banned:r.data?._banned||false
       }));
 
       // Cross-ref rooms to find who is where
@@ -826,6 +827,28 @@ export default function EarthConquest(){
     }catch(e){
       setDevData(d=>({...d,loading:false,lastRefresh:"Error: "+e.message}));
     }
+  };
+
+  const devBanPlayer=async(username,isBanned)=>{
+    const action=isBanned?"unban":"ban";
+    if(!window.confirm(action.charAt(0).toUpperCase()+action.slice(1)+" "+username+"?"))return;
+    try{
+      // Fetch their inventory, set _banned flag, save back
+      const {data}=await sb.from("inventory").select("data").eq("username",username).single();
+      if(!data?.data){alert("Player not found.");return;}
+      const updated={...data.data,_banned:!isBanned};
+      await sb.from("inventory").upsert({username,data:updated},{onConflict:"username"});
+      fetchDevData();
+    }catch(e){alert("Failed: "+e.message);}
+  };
+
+  const devDeleteRoom=async(roomCode)=>{
+    if(!window.confirm("Delete room #"+roomCode+"? This cannot be undone."))return;
+    try{
+      await fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({op:"delete",table:"world",filter:{col:"room_code",val:roomCode}})});
+      fetchDevData();
+    }catch(e){alert("Delete failed: "+e.message);}
   };
 
   const saveWorld=async(o,p)=>{
@@ -2019,9 +2042,13 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                 <div key={r.code} className="dev-row" style={{borderBottom:"1px solid rgba(0,255,136,.08)",padding:"10px 8px",display:"flex",flexDirection:"column",gap:"5px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <span style={{color:"#f5c842",fontWeight:"bold",letterSpacing:"2px",fontSize:"13px"}}>#{r.code}</span>
-                    <div style={{display:"flex",gap:"12px"}}>
+                    <div style={{display:"flex",gap:"10px",alignItems:"center"}}>
                       <span style={{color:"rgba(0,255,136,.6)",fontSize:"11px"}}>{r.activePlayers.length} online</span>
                       <span style={{color:"rgba(0,255,136,.4)",fontSize:"11px"}}>{r.territories} territories</span>
+                      <button onClick={()=>devDeleteRoom(r.code)}
+                        style={{padding:"2px 8px",background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"4px",color:"#f87171",cursor:"pointer",fontSize:"9px",fontFamily:"'Courier New',monospace",letterSpacing:"1px"}}>
+                        DELETE
+                      </button>
                     </div>
                   </div>
                   <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
@@ -2068,7 +2095,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px"}}>
                 <thead>
                   <tr style={{borderBottom:"1px solid rgba(0,255,136,.3)"}}>
-                    {["STATUS","USERNAME","CLAN","COINS","XP","ROOM"].map(h=>(
+                    {["STATUS","USERNAME","CLAN","COINS","XP","ROOM","ACTION"].map(h=>(
                       <th key={h} style={{textAlign:"left",padding:"6px 10px",color:"rgba(0,255,136,.6)",letterSpacing:"1px",fontWeight:"normal"}}>{h}</th>
                     ))}
                   </tr>
@@ -2081,11 +2108,17 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         <td style={{padding:"7px 10px"}}>
                           <div style={{width:"6px",height:"6px",borderRadius:"50%",background:inRoom?"#00ff88":"rgba(0,255,136,.2)",animation:inRoom?"blink 2s infinite":undefined}}/>
                         </td>
-                        <td style={{padding:"7px 10px",color:inRoom?"white":"rgba(255,255,255,.5)"}}>{p.username}</td>
+                        <td style={{padding:"7px 10px",color:p.banned?"#f87171":inRoom?"white":"rgba(255,255,255,.5)"}}>{p.banned?"🔴 ":""}{p.username}</td>
                         <td style={{padding:"7px 10px",color:"#f5c842"}}>{p.clan||"—"}</td>
                         <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.coins.toLocaleString()}</td>
                         <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.xp}</td>
                         <td style={{padding:"7px 10px",color:"#f5c842"}}>{inRoom?"#"+inRoom:"offline"}</td>
+                        <td style={{padding:"7px 10px"}}>
+                          <button onClick={e=>{e.stopPropagation();devBanPlayer(p.username,!!p.banned);}}
+                            style={{padding:"2px 8px",background:p.banned?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)",border:"1px solid "+(p.banned?"rgba(34,197,94,.3)":"rgba(239,68,68,.3)"),borderRadius:"4px",color:p.banned?"#4ade80":"#f87171",cursor:"pointer",fontSize:"9px",fontFamily:"'Courier New',monospace",letterSpacing:"1px"}}>
+                            {p.banned?"UNBAN":"BAN"}
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -2111,7 +2144,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"16px"}}>
                   {[
-                    {label:"STATUS",val:inRoom?"🟢 ONLINE":"⚫ OFFLINE",color:inRoom?"#00ff88":"rgba(255,255,255,.3)"},
+                    {label:"STATUS",val:p.banned?"🔴 BANNED":inRoom?"🟢 ONLINE":"⚫ OFFLINE",color:p.banned?"#f87171":inRoom?"#00ff88":"rgba(255,255,255,.3)"},
                     {label:"CURRENT ROOM",val:inRoom?"#"+inRoom:"—",color:"#f5c842"},
                     {label:"COINS",val:(p.coins||0).toLocaleString(),color:"#f5c842"},
                     {label:"XP",val:p.xp||0,color:"#a78bfa"},

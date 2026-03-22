@@ -5,7 +5,7 @@ const SB_KEY = process.env.SB_KEY;
 
 // Allowed tables and operations - whitelist to prevent abuse
 const ALLOWED_TABLES = ["world", "inventory"];
-const ALLOWED_OPS    = ["select", "upsert", "select_all"];
+const ALLOWED_OPS    = ["select", "upsert", "select_all", "delete"];
 
 export default async function handler(req) {
   if (req.method !== "POST") {
@@ -60,7 +60,7 @@ export default async function handler(req) {
       "wood","stone","iron","gold","uranium","nuke_bomb","buildings","lastFactory","factoryCount",
       "academySpies","lastAcademy","spy","satellite","artillery","drone","chem_bomb","emp",
       "stealth_bomber","orbital","dirty_bomb","oil","stealth_kit","shield",
-      "_name","_pwd","_xp","_achievements","_dailyCount",
+      "_name","_pwd","_xp","_achievements","_dailyCount","_banned",
       "_missionProgress","_missionDate","_claimedMissions","_claimedPassLevels",
       "_bmDate","_bmItems","_clan","_totalConquests","_lastDraculaSpy","_lastSeen",
     ];
@@ -95,6 +95,16 @@ export default async function handler(req) {
         headers: { ...headers, "Prefer": "resolution=merge-duplicates,return=minimal" },
         body: JSON.stringify(data),
       });
+      return new Response(JSON.stringify({ error: sbRes.ok ? null : "HTTP " + sbRes.status }), { status: 200 });
+    }
+
+    if (op === "delete") {
+      // Only allow deleting world rooms by room_code (dev use only)
+      if (table !== "world") return new Response(JSON.stringify({ error: "Delete only allowed on world table" }), { status: 403 });
+      const { col, val } = filter || {};
+      if (col !== "room_code") return new Response(JSON.stringify({ error: "Can only delete by room_code" }), { status: 403 });
+      const url = `${SB_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(val)}`;
+      sbRes = await fetch(url, { method: "DELETE", headers });
       return new Response(JSON.stringify({ error: sbRes.ok ? null : "HTTP " + sbRes.status }), { status: 200 });
     }
   } catch (e) {
