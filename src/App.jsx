@@ -690,6 +690,7 @@ export default function EarthConquest(){
   const [devLoginPass,setDevLoginPass]=useState("");
   const [devLoginError,setDevLoginError]=useState("");
   const [devData,setDevData]=useState({rooms:[],players:[],loading:false,lastRefresh:null});
+  const [devSelectedPlayer,setDevSelectedPlayer]=useState(null);
   const [menuTab,setMenuTab]=useState("main");
   const [globalLB,setGlobalLB]=useState([]);
   const [username,setUsername]=useState("");
@@ -798,7 +799,7 @@ export default function EarthConquest(){
       const now=Date.now();
       const rooms=(roomsRes.data||[]).filter(r=>r.room_code!=="__lobby__").map(r=>{
         const ps=Object.entries(r.players||{}).filter(([k])=>!k.startsWith("_"));
-        const active=ps.filter(([,v])=>v.ts&&(now-v.ts)<180000);
+        const active=ps.filter(([,v])=>v.ts&&(now-v.ts)<90000); // 90s = must have heartbeated recently
         const territories=Object.values(r.ownership||{}).filter(v=>v&&v!=="__nuked__");
         return{code:r.room_code,totalPlayers:ps.length,activePlayers:active.map(([n])=>n),territories:territories.length};
       }).filter(r=>r.totalPlayers>0);
@@ -807,8 +808,8 @@ export default function EarthConquest(){
         username:r.username,
         coins:r.data?.coins||0,
         xp:r.data?._xp||0,
-        territories:0,
         lastSeen:r.data?._lastSeen||null,
+        lastRoom:r.data?._lastRoom||null,
         clan:r.data?._clan||""
       }));
 
@@ -1460,6 +1461,32 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     return()=>clearInterval(t);
   },[username,screen]);
 
+  // While in-game: heartbeat ts into the room players object + save _lastSeen to inventory
+  useEffect(()=>{
+    if(!username||screen!=="map"||isSingleplayer)return;
+    const heartbeat=async()=>{
+      try{
+        const rc=roomCodeRef.current||roomCode;
+        if(!rc)return;
+        // Update ts in world room
+        const {data}=await sb.from("world").select("ownership,players").eq("room_code",rc).single();
+        if(data){
+          const newP={...data.players,[username]:{...(data.players[username]||{}),ts:Date.now()}};
+          await sb.from("world").upsert({room_code:rc,ownership:data.ownership,players:newP},{onConflict:"room_code"});
+        }
+        // Save _lastSeen + _lastRoom to inventory
+        setMyInventory(inv=>{
+          const n={...inv,_lastSeen:Date.now(),_lastRoom:rc};
+          setTimeout(()=>saveInv(n),0);
+          return n;
+        });
+      }catch(e){}
+    };
+    heartbeat();
+    const t=setInterval(heartbeat,30000);
+    return()=>clearInterval(t);
+  },[username,screen,roomCode,isSingleplayer]);
+
   const handleLogin=async()=>{
     const name=inputName.trim()||rndName();
     const pwd=inputPassword.trim();
@@ -2050,7 +2077,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                   {[...players].sort((a,b)=>b.xp-a.xp).map(p=>{
                     const inRoom=playerRoomMap?.[p.username];
                     return(
-                      <tr key={p.username} className="dev-row" style={{borderBottom:"1px solid rgba(0,255,136,.06)"}}>
+                      <tr key={p.username} className="dev-row" onClick={()=>setDevSelectedPlayer(p)} style={{borderBottom:"1px solid rgba(0,255,136,.06)",cursor:"pointer"}}>
                         <td style={{padding:"7px 10px"}}>
                           <div style={{width:"6px",height:"6px",borderRadius:"50%",background:inRoom?"#00ff88":"rgba(0,255,136,.2)",animation:inRoom?"blink 2s infinite":undefined}}/>
                         </td>
@@ -2067,6 +2094,54 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             </div>
           </div>
         </div>
+
+        {/* Player detail modal */}
+        {devSelectedPlayer&&(()=>{
+          const p=devSelectedPlayer;
+          const inRoom=devData.playerRoomMap?.[p.username];
+          return(
+            <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center"}}
+              onClick={()=>setDevSelectedPlayer(null)}>
+              <div style={{background:"#0a0a0a",border:"1px solid #00ff88",borderRadius:"12px",padding:"28px",width:"420px",fontFamily:"'Courier New',monospace"}}
+                onClick={e=>e.stopPropagation()}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"18px"}}>
+                  <div style={{color:"#00ff88",fontSize:"14px",fontWeight:"bold",letterSpacing:"2px"}}>{p.username}</div>
+                  <button onClick={()=>setDevSelectedPlayer(null)}
+                    style={{background:"transparent",border:"none",color:"rgba(0,255,136,.4)",cursor:"pointer",fontSize:"16px"}}>✕</button>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"16px"}}>
+                  {[
+                    {label:"STATUS",val:inRoom?"🟢 ONLINE":"⚫ OFFLINE",color:inRoom?"#00ff88":"rgba(255,255,255,.3)"},
+                    {label:"CURRENT ROOM",val:inRoom?"#"+inRoom:"—",color:"#f5c842"},
+                    {label:"COINS",val:(p.coins||0).toLocaleString(),color:"#f5c842"},
+                    {label:"XP",val:p.xp||0,color:"#a78bfa"},
+                    {label:"CLAN",val:p.clan||"none",color:"#00ff88"},
+                    {label:"LAST ROOM",val:p.lastRoom?"#"+p.lastRoom:"—",color:"rgba(255,255,255,.5)"},
+                    {label:"LAST SEEN",val:p.lastSeen?new Date(p.lastSeen).toLocaleString():"never",color:"rgba(255,255,255,.4)"},
+                  ].map(({label,val,color})=>(
+                    <div key={label} style={{background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.1)",borderRadius:"6px",padding:"8px 10px"}}>
+                      <div style={{color:"rgba(0,255,136,.4)",fontSize:"9px",letterSpacing:"1px",marginBottom:"3px"}}>{label}</div>
+                      <div style={{color:color,fontSize:"11px",fontWeight:"bold"}}>{val}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{borderTop:"1px solid rgba(0,255,136,.15)",paddingTop:"14px"}}>
+                  <div style={{color:"rgba(0,255,136,.4)",fontSize:"9px",letterSpacing:"2px",marginBottom:"8px"}}>CURRENTLY IN ROOM</div>
+                  {inRoom
+                    ?<div style={{background:"rgba(245,200,66,.08)",border:"1px solid rgba(245,200,66,.2)",borderRadius:"6px",padding:"8px 12px",color:"#f5c842",fontSize:"12px",fontWeight:"bold"}}>#{inRoom}</div>
+                    :<div style={{color:"rgba(255,255,255,.25)",fontSize:"11px"}}>Not in any active room</div>
+                  }
+                  {p.lastRoom&&p.lastRoom!==inRoom&&(
+                    <div style={{marginTop:"8px"}}>
+                      <div style={{color:"rgba(0,255,136,.4)",fontSize:"9px",letterSpacing:"2px",marginBottom:"6px"}}>LAST PLAYED ROOM</div>
+                      <div style={{background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.1)",borderRadius:"6px",padding:"8px 12px",color:"rgba(0,255,136,.7)",fontSize:"12px"}}>#{p.lastRoom}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
