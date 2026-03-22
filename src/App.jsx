@@ -691,6 +691,7 @@ export default function EarthConquest(){
   const [devLoginError,setDevLoginError]=useState("");
   const [devData,setDevData]=useState({rooms:[],players:[],loading:false,lastRefresh:null});
   const [devSelectedPlayer,setDevSelectedPlayer]=useState(null);
+  const [devConfirm,setDevConfirm]=useState(null); // {msg, onConfirm}
   const [menuTab,setMenuTab]=useState("main");
   const [globalLB,setGlobalLB]=useState([]);
   const [username,setUsername]=useState("");
@@ -830,26 +831,37 @@ export default function EarthConquest(){
     }
   };
 
-  const devBanPlayer=async(username,isBanned)=>{
-    const action=isBanned?"unban":"ban";
-    if(!window.confirm(action.charAt(0).toUpperCase()+action.slice(1)+" "+username+"?"))return;
-    try{
-      // Fetch their inventory, set _banned flag, save back
-      const {data}=await sb.from("inventory").select("data").eq("username",username).single();
-      if(!data?.data){alert("Player not found.");return;}
-      const updated={...data.data,_banned:!isBanned};
-      await sb.from("inventory").upsert({username,data:updated},{onConflict:"username"});
-      fetchDevData();
-    }catch(e){alert("Failed: "+e.message);}
+  const devBanPlayer=(username,isBanned)=>{
+    const action=isBanned?"UNBAN":"BAN";
+    setDevConfirm({
+      msg:action+" "+username+"?",
+      color:isBanned?"#4ade80":"#f87171",
+      onConfirm:async()=>{
+        setDevConfirm(null);
+        try{
+          const {data}=await sb.from("inventory").select("data").eq("username",username).single();
+          if(!data?.data){return;}
+          const updated={...data.data,_banned:!isBanned};
+          await sb.from("inventory").upsert({username,data:updated},{onConflict:"username"});
+          fetchDevData();
+        }catch(e){}
+      }
+    });
   };
 
-  const devDeleteRoom=async(roomCode)=>{
-    if(!window.confirm("Delete room #"+roomCode+"? This cannot be undone."))return;
-    try{
-      await fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({op:"delete",table:"world",filter:{col:"room_code",val:roomCode}})});
-      fetchDevData();
-    }catch(e){alert("Delete failed: "+e.message);}
+  const devDeleteRoom=(roomCode)=>{
+    setDevConfirm({
+      msg:"DELETE room #"+roomCode+"? Cannot be undone.",
+      color:"#f87171",
+      onConfirm:async()=>{
+        setDevConfirm(null);
+        try{
+          await fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({op:"delete",table:"world",filter:{col:"room_code",val:roomCode}})});
+          fetchDevData();
+        }catch(e){}
+      }
+    });
   };
 
   const saveWorld=async(o,p)=>{
@@ -2038,6 +2050,23 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           </div>
         </div>
 
+        {devConfirm&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <div style={{background:"#0a0a0a",border:"1px solid "+devConfirm.color,borderRadius:"10px",padding:"24px",width:"320px",fontFamily:"'Courier New',monospace",textAlign:"center"}}>
+              <div style={{color:devConfirm.color,fontSize:"13px",fontWeight:"bold",marginBottom:"20px",letterSpacing:"1px"}}>{devConfirm.msg}</div>
+              <div style={{display:"flex",gap:"10px",justifyContent:"center"}}>
+                <button onClick={devConfirm.onConfirm}
+                  style={{padding:"8px 24px",background:"rgba(0,0,0,0)",border:"1px solid "+devConfirm.color,borderRadius:"6px",color:devConfirm.color,cursor:"pointer",fontFamily:"'Courier New',monospace",fontSize:"12px",fontWeight:"bold",letterSpacing:"1px"}}>
+                  CONFIRM
+                </button>
+                <button onClick={()=>setDevConfirm(null)}
+                  style={{padding:"8px 24px",background:"transparent",border:"1px solid rgba(255,255,255,.15)",borderRadius:"6px",color:"rgba(255,255,255,.4)",cursor:"pointer",fontFamily:"'Courier New',monospace",fontSize:"12px"}}>
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div style={{padding:"24px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px",maxWidth:"1400px",margin:"0 auto"}}>
 
           {/* Active Rooms */}
