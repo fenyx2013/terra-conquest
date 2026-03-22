@@ -66,6 +66,7 @@ const BUILDINGS=[
   {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:4,iron:3},           color:"#8b5cf6"},
   {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:4,stone:3,gold:1},   color:"#78350f"},
   {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
+  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000 "},
   {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"}];
 
 // Black market pool - 3 random items shown per session
@@ -93,7 +94,9 @@ const WORLD_WONDERS=[
   {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:10000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
   {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:11000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
   {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:9000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
-  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3,    label:"+3 Gold/min"},     cost:{coins:12000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources God"},
+  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:12000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
+  {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:13500,iron:15,gold:3},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
+  {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:13750,iron:11,gold:2},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
 ];
 
@@ -1075,6 +1078,16 @@ export default function EarthConquest(){
             return {...inv,oil:(inv.oil||0)+gained,lastOilTick:now};
           }
         }
+        // bomber factory generates bomber
+        const Bomberfactory=(inv.buildings||[]).filter(b=>b==="bomber_factory").length;
+        if(Bomberfactory>0){
+          const now=Date.now();
+          const last=inv.lastBomberTick||0;
+          if(now-last>=120000){// every 2 min
+            const gained=Bomberfactory;
+            return {...inv,bomber:(inv.bomber||0)+gained,lastBomberTick:now};
+          }
+        }
         // territory taxation: 1 coin per 5 territories every 2 min
         const myTerritories=Object.values(ownershipRef.current||{}).filter(v=>v===username).length;
         if(myTerritories>0){
@@ -1355,8 +1368,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(!w)return;
           if(w.bonus.troops)troops+=w.bonus.troops;
           if(w.bonus.gold)gold+=w.bonus.gold;
+           if(w.bonus.stone)stone+=w.bonus.stone;
           if(w.bonus.wood)wood+=w.bonus.wood;
           if(w.bonus.oil)oil+=w.bonus.oil;
+           if(w.bonus.iron)iron+=w.bonus.iron;
           // Dracula's Castle: +3 spies every 8 hours
           if(w.id==="dracula"&&w.bonus.spy){
             const now=Date.now();
