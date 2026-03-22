@@ -2092,10 +2092,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             LOGIN / REGISTER
           </button>
         </div>
-      {/* Dev access - hidden small button */}
+      {/* Dev access button */}
       <button onClick={()=>{setShowDevLogin(true);setDevLoginError("");}}
-        style={{position:"absolute",bottom:"8px",right:"12px",background:"transparent",border:"none",color:"rgba(255,255,255,.08)",cursor:"pointer",fontSize:"9px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
-        dev
+        style={{position:"fixed",bottom:"12px",right:"16px",background:"rgba(0,255,136,.08)",border:"1px solid rgba(0,255,136,.25)",borderRadius:"6px",color:"rgba(0,255,136,.5)",cursor:"pointer",fontSize:"10px",fontFamily:"'Courier New',monospace",letterSpacing:"2px",padding:"4px 10px",zIndex:999}}>
+        DEV
       </button>
       {showDevLogin&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
