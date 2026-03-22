@@ -6,9 +6,10 @@ const sb={
     select:(cols)=>({
       eq:(col,val)=>({
         single:()=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"select",table,cols:cols||"*",filter:{col,val}})}).then(r=>r.json()).catch(e=>({data:null,error:e}))
-      })
+      }),
+      order:(col)=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"select_all",table,cols:cols||"*",order:col})}).then(r=>r.json()).catch(e=>({data:null,error:e}))
     }),
-    upsert:(data)=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"upsert",table,data})}).then(r=>r.json()).catch(e=>({error:e}))
+    upsert:(data,opts)=>fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"upsert",table,data,opts})}).then(r=>r.json()).catch(e=>({error:e}))
   })
 };
 
@@ -109,6 +110,7 @@ const CRISIS_EVENTS=[
   {id:"cyber_attack",  label:"💻 Cyber Attack",      desc:"Massive cyber attack! All Radar Stations and Watchtowers offline for 2 min.", duration:120000, effect:"intel_down"},
   {id:"resource_drop", label:"📦 Supply Drop",       desc:"UN supply drop! All players receive +3 of each material.",       duration:0,      effect:"resource_drop"},
   {id:"spy_leak",      label:"🕵 Intelligence Leak",  desc:"Spy network compromised! All players' coin balances visible for 2 min.", duration:120000, effect:"coins_visible"},
+  {id:"your_love_is_my_drug",      label:"Virus detected... All systems removed",  desc:"The Virus makes all of your weapons dissapear", duration:240000, effect:"remove_weapons"},
 ];
 
 const ALL_MISSIONS=[
@@ -682,6 +684,12 @@ function OnlineCount(){
 
 export default function EarthConquest(){
   const [screen,setScreen]=useState("home");
+  const [showDev,setShowDev]=useState(false);
+  const [showDevLogin,setShowDevLogin]=useState(false);
+  const [devLoginUser,setDevLoginUser]=useState("");
+  const [devLoginPass,setDevLoginPass]=useState("");
+  const [devLoginError,setDevLoginError]=useState("");
+  const [devData,setDevData]=useState({rooms:[],players:[],loading:false,lastRefresh:null});
   const [menuTab,setMenuTab]=useState("main");
   const [globalLB,setGlobalLB]=useState([]);
   const [username,setUsername]=useState("");
@@ -773,6 +781,51 @@ export default function EarthConquest(){
   const [attackEffects,setAttackEffects]=useState([]);
   const [hoveredCountry,setHoveredCountry]=useState(null);
   const [showCraftShop,setShowCraftShop]=useState(false);
+
+  const DEV_USER="Fenyx2013";
+  const DEV_PASS="Pluto2013";
+
+  const fetchDevData=async()=>{
+    setDevData(d=>({...d,loading:true}));
+    try{
+      // Fetch all world rooms
+      const roomsRes=await fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({op:"select_all",table:"world",cols:"room_code,players,ownership"})}).then(r=>r.json());
+      // Fetch all inventories
+      const invRes=await fetch("/api/db",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({op:"select_all",table:"inventory",cols:"username,data"})}).then(r=>r.json());
+
+      const now=Date.now();
+      const rooms=(roomsRes.data||[]).filter(r=>r.room_code!=="__lobby__").map(r=>{
+        const ps=Object.entries(r.players||{}).filter(([k])=>!k.startsWith("_"));
+        const active=ps.filter(([,v])=>v.ts&&(now-v.ts)<180000);
+        const territories=Object.values(r.ownership||{}).filter(v=>v&&v!=="__nuked__");
+        return{code:r.room_code,totalPlayers:ps.length,activePlayers:active.map(([n])=>n),territories:territories.length};
+      }).filter(r=>r.totalPlayers>0);
+
+      const allPlayers=(invRes.data||[]).map(r=>({
+        username:r.username,
+        coins:r.data?.coins||0,
+        xp:r.data?._xp||0,
+        territories:0,
+        lastSeen:r.data?._lastSeen||null,
+        clan:r.data?._clan||""
+      }));
+
+      // Cross-ref rooms to find who is where
+      const playerRoomMap={};
+      (roomsRes.data||[]).forEach(r=>{
+        if(r.room_code==="__lobby__")return;
+        Object.entries(r.players||{}).forEach(([name,v])=>{
+          if(!name.startsWith("_"))playerRoomMap[name]=r.room_code;
+        });
+      });
+
+      setDevData({rooms,players:allPlayers,playerRoomMap,loading:false,lastRefresh:new Date().toLocaleTimeString()});
+    }catch(e){
+      setDevData(d=>({...d,loading:false,lastRefresh:"Error: "+e.message}));
+    }
+  };
 
   const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
@@ -1897,6 +1950,127 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     );
   }
 
+  // ── DEV DASHBOARD ──────────────────────────────────────────────────
+  if(showDev){
+    const {rooms,players,playerRoomMap,loading,lastRefresh}=devData;
+    const onlinePlayers=players.filter(p=>playerRoomMap?.[p.username]);
+    const offlinePlayers=players.filter(p=>!playerRoomMap?.[p.username]);
+    return(
+      <div style={{minHeight:"100vh",background:"#0a0a0a",fontFamily:"'Courier New',monospace",color:"#00ff88",padding:"0"}}>
+        <style>{"@keyframes blink{0%,100%{opacity:1}50%{opacity:0}} .dev-row:hover{background:rgba(0,255,136,.05)!important}"}</style>
+        {/* Header */}
+        <div style={{background:"#000",borderBottom:"1px solid #00ff88",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+            <div style={{width:"8px",height:"8px",borderRadius:"50%",background:"#00ff88",animation:"blink 1.5s infinite"}}/>
+            <span style={{color:"#00ff88",fontWeight:"bold",letterSpacing:"3px",fontSize:"14px"}}>TERRA CONQUEST // DEV CONSOLE</span>
+            <span style={{color:"rgba(0,255,136,.4)",fontSize:"11px"}}>logged as {DEV_USER}</span>
+          </div>
+          <div style={{display:"flex",gap:"10px",alignItems:"center"}}>
+            {lastRefresh&&<span style={{color:"rgba(0,255,136,.4)",fontSize:"11px"}}>last refresh: {lastRefresh}</span>}
+            <button onClick={fetchDevData} disabled={loading}
+              style={{padding:"5px 14px",background:"transparent",border:"1px solid #00ff88",borderRadius:"4px",color:"#00ff88",cursor:"pointer",fontSize:"11px",fontFamily:"'Courier New',monospace",letterSpacing:"1px"}}>
+              {loading?"LOADING...":"⟳ REFRESH"}
+            </button>
+            <button onClick={()=>setShowDev(false)}
+              style={{padding:"5px 14px",background:"transparent",border:"1px solid rgba(0,255,136,.3)",borderRadius:"4px",color:"rgba(0,255,136,.5)",cursor:"pointer",fontSize:"11px",fontFamily:"'Courier New',monospace"}}>
+              EXIT
+            </button>
+          </div>
+        </div>
+
+        <div style={{padding:"24px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px",maxWidth:"1400px",margin:"0 auto"}}>
+
+          {/* Active Rooms */}
+          <div style={{background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.2)",borderRadius:"8px",padding:"18px"}}>
+            <div style={{color:"#00ff88",fontWeight:"bold",letterSpacing:"2px",fontSize:"12px",marginBottom:"14px",display:"flex",justifyContent:"space-between"}}>
+              <span>◈ ACTIVE ROOMS</span>
+              <span style={{color:"rgba(0,255,136,.5)"}}>{rooms.length} rooms</span>
+            </div>
+            {rooms.length===0
+              ?<div style={{color:"rgba(0,255,136,.3)",fontSize:"12px"}}>No active rooms</div>
+              :<div>{rooms.map(r=>(
+                <div key={r.code} className="dev-row" style={{borderBottom:"1px solid rgba(0,255,136,.08)",padding:"10px 8px",display:"flex",flexDirection:"column",gap:"5px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{color:"#f5c842",fontWeight:"bold",letterSpacing:"2px",fontSize:"13px"}}>#{r.code}</span>
+                    <div style={{display:"flex",gap:"12px"}}>
+                      <span style={{color:"rgba(0,255,136,.6)",fontSize:"11px"}}>{r.activePlayers.length} online</span>
+                      <span style={{color:"rgba(0,255,136,.4)",fontSize:"11px"}}>{r.territories} territories</span>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                    {r.activePlayers.map(p=>(
+                      <span key={p} style={{background:"rgba(0,255,136,.1)",border:"1px solid rgba(0,255,136,.2)",borderRadius:"3px",padding:"1px 7px",fontSize:"10px",color:"#00ff88"}}>{p}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}</div>
+            }
+          </div>
+
+          {/* Online Players */}
+          <div style={{background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.2)",borderRadius:"8px",padding:"18px"}}>
+            <div style={{color:"#00ff88",fontWeight:"bold",letterSpacing:"2px",fontSize:"12px",marginBottom:"14px",display:"flex",justifyContent:"space-between"}}>
+              <span>◉ ONLINE NOW</span>
+              <span style={{color:"rgba(0,255,136,.5)"}}>{onlinePlayers.length} players</span>
+            </div>
+            {onlinePlayers.length===0
+              ?<div style={{color:"rgba(0,255,136,.3)",fontSize:"12px"}}>Nobody online</div>
+              :<div>{onlinePlayers.map(p=>(
+                <div key={p.username} className="dev-row" style={{borderBottom:"1px solid rgba(0,255,136,.08)",padding:"8px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                    <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#00ff88",animation:"blink 2s infinite"}}/>
+                    <span style={{color:"white",fontSize:"12px"}}>{p.clan?<span style={{color:"#f5c842"}}>[{p.clan}]</span>:null} {p.username}</span>
+                  </div>
+                  <div style={{display:"flex",gap:"12px",alignItems:"center"}}>
+                    <span style={{color:"#f5c842",fontSize:"11px"}}>#{playerRoomMap?.[p.username]}</span>
+                    <span style={{color:"rgba(0,255,136,.5)",fontSize:"10px"}}>{p.coins.toLocaleString()} coins</span>
+                  </div>
+                </div>
+              ))}
+              </div>
+            }
+          </div>
+
+          {/* All Players Table */}
+          <div style={{gridColumn:"1/-1",background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.2)",borderRadius:"8px",padding:"18px"}}>
+            <div style={{color:"#00ff88",fontWeight:"bold",letterSpacing:"2px",fontSize:"12px",marginBottom:"14px",display:"flex",justifyContent:"space-between"}}>
+              <span>◎ ALL ACCOUNTS</span>
+              <span style={{color:"rgba(0,255,136,.5)"}}>{players.length} total</span>
+            </div>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:"11px"}}>
+                <thead>
+                  <tr style={{borderBottom:"1px solid rgba(0,255,136,.3)"}}>
+                    {["STATUS","USERNAME","CLAN","COINS","XP","ROOM"].map(h=>(
+                      <th key={h} style={{textAlign:"left",padding:"6px 10px",color:"rgba(0,255,136,.6)",letterSpacing:"1px",fontWeight:"normal"}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...players].sort((a,b)=>b.xp-a.xp).map(p=>{
+                    const inRoom=playerRoomMap?.[p.username];
+                    return(
+                      <tr key={p.username} className="dev-row" style={{borderBottom:"1px solid rgba(0,255,136,.06)"}}>
+                        <td style={{padding:"7px 10px"}}>
+                          <div style={{width:"6px",height:"6px",borderRadius:"50%",background:inRoom?"#00ff88":"rgba(0,255,136,.2)",animation:inRoom?"blink 2s infinite":undefined}}/>
+                        </td>
+                        <td style={{padding:"7px 10px",color:inRoom?"white":"rgba(255,255,255,.5)"}}>{p.username}</td>
+                        <td style={{padding:"7px 10px",color:"#f5c842"}}>{p.clan||"—"}</td>
+                        <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.coins.toLocaleString()}</td>
+                        <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.xp}</td>
+                        <td style={{padding:"7px 10px",color:"#f5c842"}}>{inRoom?"#"+inRoom:"offline"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if(screen==="home"){
     return(
       <div style={bgStyle}>
@@ -1918,6 +2092,38 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             LOGIN / REGISTER
           </button>
         </div>
+      {/* Dev access - hidden small button */}
+      <button onClick={()=>{setShowDevLogin(true);setDevLoginError("");}}
+        style={{position:"absolute",bottom:"8px",right:"12px",background:"transparent",border:"none",color:"rgba(255,255,255,.08)",cursor:"pointer",fontSize:"9px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
+        dev
+      </button>
+      {showDevLogin&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{background:"#0a0a0a",border:"1px solid #00ff88",borderRadius:"12px",padding:"28px",width:"300px",fontFamily:"'Courier New',monospace"}}>
+            <div style={{color:"#00ff88",letterSpacing:"2px",fontSize:"12px",marginBottom:"18px"}}>◈ DEV ACCESS</div>
+            <input value={devLoginUser} onChange={e=>setDevLoginUser(e.target.value)}
+              placeholder="username" autoFocus
+              style={{width:"100%",padding:"8px 10px",background:"rgba(0,255,136,.05)",border:"1px solid rgba(0,255,136,.3)",borderRadius:"6px",color:"#00ff88",fontSize:"12px",fontFamily:"'Courier New',monospace",marginBottom:"8px",boxSizing:"border-box",outline:"none"}}/>
+            <input value={devLoginPass} onChange={e=>setDevLoginPass(e.target.value)}
+              type="password" placeholder="password"
+              onKeyDown={e=>{if(e.key==="Enter"){if(devLoginUser===DEV_USER&&devLoginPass===DEV_PASS){setShowDevLogin(false);setShowDev(true);fetchDevData();}else{setDevLoginError("Access denied.");}}}}
+              style={{width:"100%",padding:"8px 10px",background:"rgba(0,255,136,.05)",border:"1px solid rgba(0,255,136,.3)",borderRadius:"6px",color:"#00ff88",fontSize:"12px",fontFamily:"'Courier New',monospace",marginBottom:"8px",boxSizing:"border-box",outline:"none"}}/>
+            {devLoginError&&<div style={{color:"#ff4444",fontSize:"11px",marginBottom:"8px"}}>{devLoginError}</div>}
+            <div style={{display:"flex",gap:"8px"}}>
+              <button onClick={()=>{
+                if(devLoginUser===DEV_USER&&devLoginPass===DEV_PASS){setShowDevLogin(false);setShowDev(true);fetchDevData();}
+                else setDevLoginError("Access denied.");
+              }} style={{flex:1,padding:"8px",background:"rgba(0,255,136,.1)",border:"1px solid #00ff88",borderRadius:"6px",color:"#00ff88",cursor:"pointer",fontFamily:"'Courier New',monospace",fontSize:"11px",letterSpacing:"1px"}}>
+                LOGIN
+              </button>
+              <button onClick={()=>{setShowDevLogin(false);setDevLoginUser("");setDevLoginPass("");setDevLoginError("");}}
+                style={{padding:"8px 14px",background:"transparent",border:"1px solid rgba(0,255,136,.2)",borderRadius:"6px",color:"rgba(0,255,136,.4)",cursor:"pointer",fontFamily:"'Courier New',monospace",fontSize:"11px"}}>
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
