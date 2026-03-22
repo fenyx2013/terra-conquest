@@ -811,7 +811,8 @@ export default function EarthConquest(){
         lastSeen:r.data?._lastSeen||null,
         lastRoom:r.data?._lastRoom||null,
         clan:r.data?._clan||"",
-        banned:r.data?._banned||false
+        banned:r.data?._banned||false,
+        roomHistory:r.data?._roomHistory||[]
       }));
 
       // Cross-ref rooms to find who is where
@@ -1521,6 +1522,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       if(data?.data){
         const saved=data.data;
         if(saved._pwd&&saved._pwd!==pwd){setLoginError("Wrong password");return;}
+        if(saved._banned){setLoginError("❌ This account has been banned.");return;}
         inv={...inv,...saved,_name:name,_pwd:pwd};
       }
     }catch(e){}
@@ -1592,6 +1594,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setOwnership(newO);setPlayers(newP);
     roomCodeRef.current=rc;
     setRoomCode(rc);
+    // Track room history in inventory
+    setMyInventory(inv=>{
+      const prev=inv._roomHistory||[];
+      const updated=[rc,...prev.filter(r=>r!==rc)].slice(0,20); // keep last 20 unique rooms
+      const n={...inv,_roomHistory:updated,_lastRoom:rc};
+      setTimeout(()=>saveInv(n),0);
+      return n;
+    });
     if(myInventory.lastDaily!==todayStr())setShowDaily(true);
     // load wonders from room
     setWorldWondersSync(basePlayers?._wonders||{});
@@ -2164,10 +2174,16 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                     ?<div style={{background:"rgba(245,200,66,.08)",border:"1px solid rgba(245,200,66,.2)",borderRadius:"6px",padding:"8px 12px",color:"#f5c842",fontSize:"12px",fontWeight:"bold"}}>#{inRoom}</div>
                     :<div style={{color:"rgba(255,255,255,.25)",fontSize:"11px"}}>Not in any active room</div>
                   }
-                  {p.lastRoom&&p.lastRoom!==inRoom&&(
-                    <div style={{marginTop:"8px"}}>
-                      <div style={{color:"rgba(0,255,136,.4)",fontSize:"9px",letterSpacing:"2px",marginBottom:"6px"}}>LAST PLAYED ROOM</div>
-                      <div style={{background:"rgba(0,255,136,.04)",border:"1px solid rgba(0,255,136,.1)",borderRadius:"6px",padding:"8px 12px",color:"rgba(0,255,136,.7)",fontSize:"12px"}}>#{p.lastRoom}</div>
+                  {p.roomHistory&&p.roomHistory.length>0&&(
+                    <div style={{marginTop:"12px"}}>
+                      <div style={{color:"rgba(0,255,136,.4)",fontSize:"9px",letterSpacing:"2px",marginBottom:"8px"}}>ALL ROOMS JOINED ({p.roomHistory.length})</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:"5px"}}>
+                        {p.roomHistory.map(r=>(
+                          <span key={r} style={{background:r===inRoom?"rgba(245,200,66,.15)":"rgba(0,255,136,.06)",border:"1px solid "+(r===inRoom?"rgba(245,200,66,.4)":"rgba(0,255,136,.15)"),borderRadius:"4px",padding:"3px 8px",color:r===inRoom?"#f5c842":"rgba(0,255,136,.7)",fontSize:"10px",fontFamily:"'Courier New',monospace"}}>
+                            #{r}{r===inRoom?" ●":""}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

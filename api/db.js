@@ -60,7 +60,7 @@ export default async function handler(req) {
       "wood","stone","iron","gold","uranium","nuke_bomb","buildings","lastFactory","factoryCount",
       "academySpies","lastAcademy","spy","satellite","artillery","drone","chem_bomb","emp",
       "stealth_bomber","orbital","dirty_bomb","oil","stealth_kit","shield",
-      "_name","_pwd","_xp","_achievements","_dailyCount","_banned",
+      "_name","_pwd","_xp","_achievements","_dailyCount","_banned","_roomHistory",
       "_missionProgress","_missionDate","_claimedMissions","_claimedPassLevels",
       "_bmDate","_bmItems","_clan","_totalConquests","_lastDraculaSpy","_lastSeen",
     ];
