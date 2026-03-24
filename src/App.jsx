@@ -13,6 +13,16 @@ const sb={
   })
 };
 
+
+
+const DRONE_LINES = {
+    attack: [" Attack systems running...   Waiting for fire!", "Well are you sure you want to destroy and conquer that country? Well who am I to talk..."],
+    warShop: [" Hmmm no troops, huh? Buy them from here...   If you have money tho...", "Comander, why don't you use nukes???  Are you to poor to aford them?"],
+    wonAttack: [" So like this is yours now..   Keep going", "So like I am a drone, but I do feel mercy...    Not like somebody here"]
+}
+
+
+
 const CLRS=[
   {bg:"#dc2626",light:"#fca5a5",name:"Red"},
   {bg:"#2563eb",light:"#93c5fd",name:"Blue"},
@@ -99,6 +109,7 @@ const WORLD_WONDERS=[
   {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:13500,iron:15,gold:3},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
   {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:13750,iron:11,gold:2},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
+   {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:20020,iron:7 ,gold:1}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -684,6 +695,9 @@ function OnlineCount(){
 
 export default function EarthConquest(){
   const [screen,setScreen]=useState("home");
+  const [droneMsg, setDroneMsg] = useState("");
+  const [droneVisible, setDroneVisible] = useState(false);
+  const droneTimer = useRef(null);
   const [showDev,setShowDev]=useState(false);
   const [showDevLogin,setShowDevLogin]=useState(false);
   const [devLoginUser,setDevLoginUser]=useState("");
@@ -863,6 +877,16 @@ export default function EarthConquest(){
       }
     });
   };
+
+  const droneSay = (key) => {
+  const list = DRONE_LINES[key];
+  if (!list) return;
+  const phrase = list[Math.floor(Math.random() * list.length)];
+  setDroneMsg(phrase);
+  setDroneVisible(true);
+  clearTimeout(droneTimer.current);
+  droneTimer.current = setTimeout(() => setDroneVisible(false), 3000);
+};
 
   const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
