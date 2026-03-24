@@ -17,8 +17,12 @@ const sb={
 
 const DRONE_LINES = {
     attack: [" Attack systems running...   Waiting for fire!", "Well are you sure you want to destroy and conquer that country? Well who am I to talk..."],
-    warShop: [" Hmmm no troops, huh? Buy them from here...   If you have money tho...", "Comander, why don't you use nukes???  Are you to poor to aford them?"],
-    wonAttack: [" So like this is yours now..   Keep going", "So like I am a drone, but I do feel mercy...    Not like somebody here"]
+    warShop: [" Hmmm no troops, huh? Buy them from here...   If you have money tho...", "Commander, why don't you use nukes???  Are you to poor to aford them?"],
+    wonAttack: [" So like this is yours now..   Keep going", "So like I am a drone, but I do feel mercy...    Not like somebody here"],
+    materialShop: ["Getting for buildings, huh?  ", "Virus detected, Free Materials!!!      Date of detection: never", "If you can't win a fight, at least lose it with pride,  by showing your rock colection to the enemys..."],
+    buildShop: ["Commander, just buy coin factorys to get RICH!", "Buy the Black Market, nobody can stop you...", "Losing battery...  thats what i would say if i didn't have an internal Nuclear Reactor, btw buy one to, it buffs weapons"],
+    blackmarketShop: ["I am Dark Droney nowwww!!!!!!!!!", "Buy some uraniumm you'll need some for later...", "VIRUS DETECTED...    Virus Elimination Complete. How are you doing now Comander?", "Sould we buy the Dev Tools, Comander?"],
+    terrapassShop: ["OHHHH XPPPPPPP!!!!", "Commander! How could i help you with the Xp?", "WAIT YOU ONCE WERE A SOLDIER?!?!?!", "I wish I was a scout to...", "Commander, sould we start by getting the Achievement ''Filthy Rich''?", "I will get the Achievement World Dominatior some day, I don't think you will tho..."]
 }
 
 
@@ -77,7 +81,7 @@ const BUILDINGS=[
   {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:4,iron:3},           color:"#8b5cf6"},
   {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:4,stone:3,gold:1},   color:"#78350f"},
   {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
-  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000 "},
+  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000"},
   {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"}];
 
 // Black market pool - 3 random items shown per session
@@ -885,7 +889,7 @@ export default function EarthConquest(){
   setDroneMsg(phrase);
   setDroneVisible(true);
   clearTimeout(droneTimer.current);
-  droneTimer.current = setTimeout(() => setDroneVisible(false), 3000);
+  droneTimer.current = setTimeout(() => setDroneVisible(false), 5000);
 };
 
   const saveWorld=async(o,p)=>{
@@ -3120,7 +3124,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               ◈ SAT ({myInventory.satellite})
             </button>
           )}
-          <button onClick={()=>setAttackMode(m=>!m)}
+          <button onClick={()=>{setAttackMode(m=>!m); droneSay("attack")}}
             style={{padding:"5px 14px",height:"30px",background:attackMode?"linear-gradient(135deg,#991b1b,#dc2626)":"rgba(239,68,68,.08)",border:"1px solid "+(attackMode?"#ef4444":"rgba(239,68,68,.2)"),borderRadius:"7px",color:attackMode?"white":"rgba(239,68,68,.7)",cursor:"pointer",fontSize:"10px",fontWeight:"bold",fontFamily:"Georgia,serif",letterSpacing:"1px",animation:attackMode?"pr 1.5s infinite":undefined,transition:"all .2s",whiteSpace:"nowrap"}}>
             {attackMode?"✕ CANCEL":"⚔ ATTACK"}
           </button>
@@ -3339,11 +3343,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
           {/* action buttons */}
           {[
-            {label:"War Shop",      icon:"⚔",color:"#f87171",bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  action:()=>setShowShop(true)},
-            {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>setShowMatShop(true)},
-            {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>setShowBuildShop(true)},
-            {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>setShowBlackMarket(true), disabled:!(myInventory.buildings||[]).includes("black_market")},
-            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>setShowTerraPass(true)},
+            {label:"War Shop",      icon:"⚔",color:"#f87171",bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  action:()=>{setShowShop(true); droneSay("warShop");}},
+            {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>{setShowMatShop(true); droneSay("materialShop");}},
+            {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>{setShowBuildShop(true); droneSay("buildShop");}},
+            {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>{setShowBlackMarket(true); droneSay("blackmarketShop")}, disabled:!(myInventory.buildings||[]).includes("black_market")},
+            {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>{setShowTerraPass(true); droneSay("terrapassShop")}},
             {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>setShowWonders(true)}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
               style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
@@ -3400,6 +3404,24 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
         </div>
       </div>
+       {/* 👇 ADD THIS AT THE END */}
+    {droneVisible && (
+      <div style={{
+        position: "fixed",
+        bottom: "300px",
+        left: "20px",
+        background: "rgba(0,0,0,0.8)",
+        padding: "12px 16px",
+        borderRadius: "10px",
+        color: "cyan",
+        fontSize: "12px",
+        maxWidth: "260px",
+        zIndex: 5000
+      }}>
+        🤖Droney:  {droneMsg}
       </div>
-  );
+    )}
+
+  </div>
+);
 }
