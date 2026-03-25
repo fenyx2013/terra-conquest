@@ -19,10 +19,12 @@ const DRONE_LINES = {
     attack: [" Attack systems running...   Waiting for fire!", "Well are you sure you want to destroy and conquer that country? Well who am I to talk..."],
     warShop: [" Hmmm no troops, huh? Buy them from here...   If you have money tho...", "Commander, why don't you use nukes???  Are you to poor to aford them?"],
     wonAttack: [" So like this is yours now..   Keep going", "So like I am a drone, but I do feel mercy...    Not like somebody here"],
+    lostAttack: ["How, just how...    DID YOU LOSE?!", "Unplugging empathy modules... These humans are crimping my style (and my cables).", "ITS TIME RO FEEL THE RAGE OF DRONEY!!!!!", "Shutdown, repeat Shutdown....."],
     materialShop: ["Getting for buildings, huh?  ", "Virus detected, Free Materials!!!      Date of detection: never", "If you can't win a fight, at least lose it with pride,  by showing your rock colection to the enemys..."],
     buildShop: ["Commander, just buy coin factorys to get RICH!", "Buy the Black Market, nobody can stop you...", "Losing battery...  thats what i would say if i didn't have an internal Nuclear Reactor, btw buy one to, it buffs weapons"],
     blackmarketShop: ["I am Dark Droney nowwww!!!!!!!!!", "Buy some uraniumm you'll need some for later...", "VIRUS DETECTED...    Virus Elimination Complete. How are you doing now Comander?", "Sould we buy the Dev Tools, Comander?"],
-    terrapassShop: ["OHHHH XPPPPPPP!!!!", "Commander! How could i help you with the Xp?", "WAIT YOU ONCE WERE A SOLDIER?!?!?!", "I wish I was a scout to...", "Commander, sould we start by getting the Achievement ''Filthy Rich''?", "I will get the Achievement World Dominatior some day, I don't think you will tho..."]
+    terrapassShop: ["OHHHH XPPPPPPP!!!!", "Commander! How could i help you with the Xp?", "WAIT YOU ONCE WERE A SOLDIER?!?!?!", "I wish I was a scout to...", "Commander, sould we start by getting the Achievement ''Filthy Rich''?", "I will get the Achievement World Dominatior some day, I don't think you will tho..."],
+    worldwondersShop: [" LETS GET THE EIFFEL TOWER!!!!!", "The Pentagon sounds great Commander, buy it!", "I’m not saying I’m a wonder, but the world is welcome for my existence.", "BUY THE TOKYO TOWER, PLIZZZZZZZ COMMANDER", "Why is everything here so good, the dev sould nerf everthing...   Including you Commander, you are to powerful..."]
 }
 
 
@@ -51,10 +53,10 @@ const SHOP_ITEMS=[
   {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
   {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
   {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
-  {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1"},
+  {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1", oilCost:1},
   {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
   {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
-  {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc"},
+  {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:1},
   {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 3750,  dmg:DMG.droner_ghoster, color:"#A020F0"}];
 
 const MATERIALS=[
@@ -113,7 +115,7 @@ const WORLD_WONDERS=[
   {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:13500,iron:15,gold:3},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
   {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:13750,iron:11,gold:2},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
-   {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:20020,iron:7 ,gold:1}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
+  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:20020,iron:7 ,gold:1}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -962,6 +964,7 @@ export default function EarthConquest(){
     {id:"alliance",emoji:"🛡",label:"Alliance?",    msg:"🛡 Want to form an alliance?"},
     {id:"betrayed",emoji:"😈",label:"Betrayed!",    msg:"HOW DARE YOU BETRAY ME 😈"},
     {id:"soon",   emoji:"👀", label:"I'm coming",   msg:"👀 I'm coming for you..."},
+    {id:"tdronyt", emoji:"🤖", label:"Droney", msg:"🤖Droney: Activating..."},
   ];
 
 
@@ -1932,6 +1935,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const won=Math.random()<chance;
     triggerAttackEffect(country);
     if(won){
+      droneSay("wonAttack");
       playSound("win");
       if(ownership[country.id]==="__nuked__"){flash("Can't conquer irradiated territory!","error");setAttackPlan(null);return;}
       const newO={...ownership,[country.id]:username};
@@ -1956,7 +1960,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       }catch(e){}})();
       checkAchievements(newInv,newO);
     }else{
-      playSound("lose");
+      droneSay("lostAttack");
+    playSound("lose");
       const hasHospital=(myInventory.buildings||[]).includes("hospital");
       if(hasHospital){
         const recoverableWeapons=["tank","bomb","plane","missile","artillery","drone","bomber"];
@@ -3012,15 +3017,18 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               <button onClick={()=>setAttackPlan(null)} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>X</button>
             </div>
             {[
-              {id:"tank",      label:"Tanks",      dmg:DMG.tank,      color:"#f59e0b"},
-              {id:"bomb",      label:"Bombs",      dmg:DMG.bomb,      color:"#ef4444"},
-              {id:"plane",     label:"Planes",     dmg:DMG.plane,     color:"#3b82f6"},
-              {id:"missile",   label:"Missiles",   dmg:DMG.missile,   color:"#f97316"},
-              {id:"artillery", label:"Artillery",  dmg:DMG.artillery, color:"#a78bfa"},
-              {id:"drone",     label:"Drones",     dmg:DMG.drone,     color:"#06b6d4"},
-              {id:"bomber",    label:"Bombers",    dmg:DMG.bomber,    color:"#dc2626"},
-              {id:"droner_ghoster",    label:"L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
-              {id:"nuke_bomb", label:"Nuke",       dmg:999,           color:"#22c55e"}].map(({id,label,dmg,color})=>{
+              {id:"tank",      label:"\u{1FA96} Tanks",      dmg:DMG.tank,      color:"#f59e0b"},
+              {id:"bomb",      label:"\u{1F4A3} Bombs",      dmg:DMG.bomb,      color:"#ef4444"},
+              {id:"plane",     label:"✈️ Planes ",     dmg:DMG.plane,     color:"#3b82f6"},
+              {id:"missile",   label:"🚀 Missiles",   dmg:DMG.missile,   color:"#f97316"},
+              {id:"artillery", label:"🛦🔥 Artillery",  dmg:DMG.artillery, color:"#a78bfa"},
+              {id:"drone",     label:"🛰 Drones",     dmg:DMG.drone,     color:"#06b6d4"},
+              {id:"bomber",    label:"🛦💣 Bombers",    dmg:DMG.bomber,    color:"#dc2626"},
+              {id:"chem_bomb",    label:"💣☣️ Chem Bomb", dmg:DMG.chem_bomb,   color:"#84cc16"},
+              {id:"emp",          label:"⚡📡 EMP",  dmg:0,               color:"#f0abfc"},
+              {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",  dmg:DMG.stealth_bomber, color:"#c084fc"},
+              {id:"droner_ghoster",    label:"🛰🔍❌ L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
+              {id:"nuke_bomb", label:"☢️ Nuke ☢️",       dmg:999,           color:"#22c55e"}].map(({id,label,dmg,color})=>{
               const max=myInventory[id]||0;
               const val=deploy[id]||0;
               return(
@@ -3245,7 +3253,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                     }}
                     onMouseLeave={()=>{setHovered(null);setTip(t=>({...t,show:false}));}}
                     onClick={()=>{
-                      if(isNuked){flash(c.name+" is irradiated!","error");return;}
+                      if(isNuked){flash(c.name+" is irradiated! ☢️","error");return;}
                       if(isShocked)return;
                       if(satelliteMode)launchSatellite(c);
                       else startAttack(c);
@@ -3264,7 +3272,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         fontSize={c.area>=50?11:c.area>=20?9:7} fill="#00ff44" fontFamily="monospace"
                         fontWeight="bold" opacity="0.95"
                         paintOrder="stroke" stroke="rgba(0,0,0,.8)" strokeWidth="2.5" strokeLinejoin="round">
-                        ☢ RAD
+                        ☢️ RAD ☢️
                       </text>
                     </g>
                   )}
@@ -3348,7 +3356,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>{setShowBuildShop(true); droneSay("buildShop");}},
             {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>{setShowBlackMarket(true); droneSay("blackmarketShop")}, disabled:!(myInventory.buildings||[]).includes("black_market")},
             {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>{setShowTerraPass(true); droneSay("terrapassShop")}},
-            {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>setShowWonders(true)}].map(btn=>(
+            {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>{droneSay("worldwondersShop"); setShowWonders(true)}}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
               style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
               <span style={{fontSize:"12px",opacity:.85}}>{btn.icon}</span>
