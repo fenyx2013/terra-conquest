@@ -746,6 +746,8 @@ function OnlineCount(){
 
 export default function EarthConquest(){
   const [screen,setScreen]=useState("home");
+  const [droneDisplayMsg, setDroneDisplayMsg] = useState("");
+  const droneTyping = useRef(null);
   const [droneMsg, setDroneMsg] = useState("");
   const [droneVisible, setDroneVisible] = useState(false);
   const droneTimer = useRef(null);
@@ -947,14 +949,32 @@ export default function EarthConquest(){
     });
   };
 
-  const droneSay = (key) => {
+ const droneSay = (key) => {
   const list = DRONE_LINES[key];
   if (!list) return;
+
   const phrase = list[Math.floor(Math.random() * list.length)];
-  setDroneMsg(phrase);
+
   setDroneVisible(true);
+  setDroneDisplayMsg("");
+
   clearTimeout(droneTimer.current);
-  droneTimer.current = setTimeout(() => setDroneVisible(false), 5000);
+  clearInterval(droneTyping.current);
+
+  let i = 0;
+
+  droneTyping.current = setInterval(() => {
+    i++;
+    setDroneDisplayMsg(phrase.slice(0, i));
+
+    if (i >= phrase.length) {
+      clearInterval(droneTyping.current);
+
+      droneTimer.current = setTimeout(() => {
+        setDroneVisible(false);
+      }, 2000);
+    }
+  }, 30);
 };
 
   const gamble=(amount)=>{
@@ -3545,7 +3565,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         maxWidth: "260px",
         zIndex: 5000
       }}>
-        🤖Droney:  {droneMsg}
+        🤖Droney:  {droneDisplayMsg}|
       </div>
     )}
 
