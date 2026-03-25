@@ -15,6 +15,8 @@ const sb={
 
 
 
+
+
 const DRONE_LINES = {
     attack: [
         "Attack systems running... Waiting for fire!", 
@@ -64,8 +66,11 @@ const DRONE_LINES = {
         "I’m not saying I’m a wonder, but the world is welcome for my existence.", 
         "BUY THE TOKYO TOWER, PLEASE COMMANDER!", 
         "Why is everything here so good? The dev should nerf everything... Including you, Commander; you are too powerful..."
-    ]
+    ],
+    lostGamble: ["Thats what you get for gambling Commander!", "Wake up Commander, these games are rigged", "Commander, Commander I am losing you, stop it please..  For your own good..."],
+   wonGamble: ["Commander I think you can stop now", "Well Commander, that was a good one...", "Commander I don't think thats what you sould do"]
 }
+
 
 
 const CLRS=[
@@ -123,6 +128,7 @@ const BUILDINGS=[
   {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:4,stone:3,gold:1},   color:"#78350f"},
   {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
   {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000"},
+  {id:"casino_place", label:"Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:1, iron:1}, color:"gold"},  
   {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"}];
 
 // Black market pool - 3 random items shown per session
@@ -778,6 +784,7 @@ export default function EarthConquest(){
   const [showDaily,setShowDaily]=useState(false);
   const [showTerraPass,setShowTerraPass]=useState(false);
   const [showBlackMarket,setShowBlackMarket]=useState(false);
+  const [showGamblingDen,setShowGamblingDen]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
   const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0});
@@ -908,6 +915,23 @@ export default function EarthConquest(){
     });
   };
 
+  const devGiveCoins=(username,currentCoins)=>{
+    setDevConfirm({
+      msg:"Give 1000 coins to "+username+"?",
+      color:"#f5c842",
+      onConfirm:async()=>{
+        setDevConfirm(null);
+        try{
+          const {data}=await sb.from("inventory").select("data").eq("username",username).single();
+          if(!data?.data)return;
+          const updated={...data.data,coins:(data.data.coins||0)+1000};
+          await sb.from("inventory").upsert({username,data:updated},{onConflict:"username"});
+          fetchDevData();
+        }catch(e){}
+      }
+    });
+  };
+
   const devDeleteRoom=(roomCode)=>{
     setDevConfirm({
       msg:"DELETE room #"+roomCode+"? Cannot be undone.",
@@ -932,6 +956,24 @@ export default function EarthConquest(){
   clearTimeout(droneTimer.current);
   droneTimer.current = setTimeout(() => setDroneVisible(false), 5000);
 };
+
+  const gamble=(amount)=>{
+    if((myInventory.coins||0)<amount){flash("Not enough coins!","error");return;}
+    const win=Math.random()<0.4;
+    if(win){
+      const ni={...myInventory,coins:myInventory.coins+amount};
+      setMyInventory(ni);
+      saveInv(ni);
+      flash("🎰 You won "+amount+" coins!","info");
+      droneSay("wonGamble");
+    } else {
+      const ni={...myInventory,coins:myInventory.coins-amount};
+      setMyInventory(ni);
+      saveInv(ni);
+      flash("🎰 You lost "+amount+" coins...","error");
+      droneSay("lostGamble");
+    }
+  };
 
   const saveWorld=async(o,p)=>{
     if(isSingleplayer)return;
@@ -1700,10 +1742,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const DIFF={
-    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:20,  attackChance:0.5},
-    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:50,  attackChance:0.75},
-    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:100, attackChance:1.0},
-    blitz: {tickMs:500,  startCoins:2500, startTank:12, startBomb:6, startMissile:3, startBomber:2, coinsPerTick:150, attackChance:1.0},
+    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:10,  attackChance:0.5},
+    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:25,  attackChance:0.75},
+    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:50, attackChance:1.0},
+    blitz: {tickMs:500,  startCoins:2500, startTank:12, startBomb:6, startMissile:3, startBomber:2, coinsPerTick:75, attackChance:1.0},
   };
 
   const startSingleplayer=(diff)=>{
@@ -2224,10 +2266,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.coins.toLocaleString()}</td>
                         <td style={{padding:"7px 10px",color:"rgba(0,255,136,.8)"}}>{p.xp}</td>
                         <td style={{padding:"7px 10px",color:"#f5c842"}}>{inRoom?"#"+inRoom:"offline"}</td>
-                        <td style={{padding:"7px 10px"}}>
+                        <td style={{padding:"7px 10px",display:"flex",gap:"5px",alignItems:"center"}}>
                           <button onClick={e=>{e.stopPropagation();devBanPlayer(p.username,!!p.banned);}}
                             style={{padding:"2px 8px",background:p.banned?"rgba(34,197,94,.1)":"rgba(239,68,68,.1)",border:"1px solid "+(p.banned?"rgba(34,197,94,.3)":"rgba(239,68,68,.3)"),borderRadius:"4px",color:p.banned?"#4ade80":"#f87171",cursor:"pointer",fontSize:"9px",fontFamily:"'Courier New',monospace",letterSpacing:"1px"}}>
                             {p.banned?"UNBAN":"BAN"}
+                          </button>
+                          <button onClick={e=>{e.stopPropagation();devGiveCoins(p.username,p.coins);}}
+                            style={{padding:"2px 8px",background:"rgba(245,200,66,.1)",border:"1px solid rgba(245,200,66,.3)",borderRadius:"4px",color:"#f5c842",cursor:"pointer",fontSize:"9px",fontFamily:"'Courier New',monospace",letterSpacing:"1px"}}>
+                            +1000
                           </button>
                         </td>
                       </tr>
@@ -3388,12 +3434,16 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             </button>
           )}
 
+
+
+
           {/* action buttons */}
           {[
             {label:"War Shop",      icon:"⚔",color:"#f87171",bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  action:()=>{setShowShop(true); droneSay("warShop");}},
             {label:"Material Shop", icon:"⛏",color:"#a3e635",bg:"rgba(132,204,22,.1)", border:"rgba(132,204,22,.25)", action:()=>{setShowMatShop(true); droneSay("materialShop");}},
             {label:"Build Shop",    icon:"🏗",color:"#4ade80",bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  action:()=>{setShowBuildShop(true); droneSay("buildShop");}},
             {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>{setShowBlackMarket(true); droneSay("blackmarketShop")}, disabled:!(myInventory.buildings||[]).includes("black_market")},
+            {label:"Gambling Den",icon:"🎰",color:"gold",bg:"rgba(139,92,246,.06)",border:"rgba(139,92,246,.15)",action:()=>setShowGamblingDen(true),disabled:!(myInventory.buildings||[]).includes("casino_place")},
             {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>{setShowTerraPass(true); droneSay("terrapassShop")}},
             {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>{droneSay("worldwondersShop"); setShowWonders(true)}}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
@@ -3402,6 +3452,36 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {btn.label}{btn.disabled&&<span style={{marginLeft:"auto",fontSize:"8px",color:"rgba(255,255,255,.2)",letterSpacing:"1px"}}>LOCKED</span>}
             </button>
           ))}
+
+          {showGamblingDen&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:4000}}
+    onClick={e=>{if(e.target===e.currentTarget)setShowGamblingDen(false);}}>
+    <div style={{background:"linear-gradient(160deg,#1a1000,#2a1800)",border:"1px solid rgba(245,158,11,.3)",borderRadius:"16px",padding:"28px",minWidth:"300px",color:"white",fontFamily:"Georgia,serif",boxShadow:"0 0 40px rgba(245,158,11,.15)"}}>
+      <div style={{textAlign:"center",marginBottom:"20px"}}>
+        <div style={{fontSize:"32px",marginBottom:"6px"}}>🎰</div>
+        <div style={{fontSize:"18px",fontWeight:"bold",color:"#f5c842",letterSpacing:"2px"}}>GAMBLING DEN</div>
+        <div style={{fontSize:"12px",color:"rgba(255,255,255,.4)",marginTop:"4px"}}>40% chance — double or nothing</div>
+      </div>
+      <div style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:"10px",padding:"12px",textAlign:"center",marginBottom:"18px"}}>
+        <span style={{color:"rgba(255,255,255,.5)",fontSize:"12px"}}>Your coins: </span>
+        <span style={{color:"#f5c842",fontWeight:"bold",fontSize:"16px"}}>{(myInventory.coins||0).toLocaleString()}</span>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"18px"}}>
+        {[500,1000,2500,5000].map(amt=>(
+          <button key={amt} onClick={()=>gamble(amt)}
+            disabled={(myInventory.coins||0)<amt}
+            style={{padding:"12px",borderRadius:"8px",border:"1px solid rgba(245,158,11,.3)",background:(myInventory.coins||0)>=amt?"rgba(245,158,11,.15)":"rgba(255,255,255,.03)",color:(myInventory.coins||0)>=amt?"#f5c842":"rgba(255,255,255,.2)",fontSize:"13px",fontWeight:"bold",cursor:(myInventory.coins||0)>=amt?"pointer":"not-allowed",letterSpacing:"1px"}}>
+            Bet {amt.toLocaleString()} coins → win {amt.toLocaleString()} or lose {amt.toLocaleString()}
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>setShowGamblingDen(false)}
+        style={{width:"100%",padding:"10px",borderRadius:"8px",border:"1px solid rgba(255,255,255,.1)",background:"rgba(255,255,255,.05)",color:"rgba(255,255,255,.5)",fontSize:"12px",cursor:"pointer"}}>
+        Leave
+      </button>
+    </div>
+  </div>
+)}
 
           {/* divider */}
           <div style={{borderTop:"1px solid rgba(255,255,255,.06)",margin:"1px 0"}}/>
