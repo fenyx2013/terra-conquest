@@ -16,17 +16,56 @@ const sb={
 
 
 const DRONE_LINES = {
-    attack: [" Attack systems running...   Waiting for fire!", "Well are you sure you want to destroy and conquer that country? Well who am I to talk..."],
-    warShop: [" Hmmm no troops, huh? Buy them from here...   If you have money tho...", "Commander, why don't you use nukes???  Are you to poor to aford them?"],
-    wonAttack: [" So like this is yours now..   Keep going", "So like I am a drone, but I do feel mercy...    Not like somebody here"],
-    lostAttack: ["How, just how...    DID YOU LOSE?!", "Unplugging empathy modules... These humans are crimping my style (and my cables).", "ITS TIME RO FEEL THE RAGE OF DRONEY!!!!!", "Shutdown, repeat Shutdown....."],
-    materialShop: ["Getting for buildings, huh?  ", "Virus detected, Free Materials!!!      Date of detection: never", "If you can't win a fight, at least lose it with pride,  by showing your rock colection to the enemys..."],
-    buildShop: ["Commander, just buy coin factorys to get RICH!", "Buy the Black Market, nobody can stop you...", "Losing battery...  thats what i would say if i didn't have an internal Nuclear Reactor, btw buy one to, it buffs weapons"],
-    blackmarketShop: ["I am Dark Droney nowwww!!!!!!!!!", "Buy some uraniumm you'll need some for later...", "VIRUS DETECTED...    Virus Elimination Complete. How are you doing now Comander?", "Sould we buy the Dev Tools, Comander?"],
-    terrapassShop: ["OHHHH XPPPPPPP!!!!", "Commander! How could i help you with the Xp?", "WAIT YOU ONCE WERE A SOLDIER?!?!?!", "I wish I was a scout to...", "Commander, sould we start by getting the Achievement ''Filthy Rich''?", "I will get the Achievement World Dominatior some day, I don't think you will tho..."],
-    worldwondersShop: [" LETS GET THE EIFFEL TOWER!!!!!", "The Pentagon sounds great Commander, buy it!", "I’m not saying I’m a wonder, but the world is welcome for my existence.", "BUY THE TOKYO TOWER, PLIZZZZZZZ COMMANDER", "Why is everything here so good, the dev sould nerf everthing...   Including you Commander, you are to powerful..."]
+    attack: [
+        "Attack systems running... Waiting for fire!", 
+        "Well, are you sure you want to destroy and conquer that country? Well, who am I to talk..."
+    ],
+    warShop: [
+        "Hmmm, no troops, huh? Buy them from here... If you have money, though...", 
+        "Commander, why don't you use nukes??? Are you too poor to afford them?"
+    ],
+    wonAttack: [
+        "So, like, this is yours now... Keep going.", 
+        "So, like, I am a drone, but I do feel mercy... Unlike somebody here."
+    ],
+    lostAttack: [
+        "How, just how... DID YOU LOSE?!", 
+        "Unplugging empathy modules... These humans are crimping my style (and my cables).", 
+        "IT'S TIME TO FEEL THE RAGE OF DRONEY!!!!!", 
+        "Shutdown, repeat, Shutdown....."
+    ],
+    materialShop: [
+        "Getting stuff for buildings, huh?", 
+        "Virus detected: Free Materials!!! Date of detection: Never.", 
+        "If you can't win a fight, at least lose it with pride by showing your rock collection to the enemies..."
+    ],
+    buildShop: [
+        "Commander, just buy coin factories to get RICH!", 
+        "Buy the Black Market; nobody can stop you...", 
+        "Losing battery... That's what I would say if I didn't have an internal Nuclear Reactor. Btw, buy one too; it buffs weapons."
+    ],
+    blackmarketShop: [
+        "I am Dark Droney nowwww!!!!!!!!!", 
+        "Buy some uranium; you'll need some for later...", 
+        "VIRUS DETECTED... Virus Elimination Complete. How are you doing now, Commander?", 
+        "Should we buy the Dev Tools, Commander?"
+    ],
+    terrapassShop: [
+        "OHHHH XPPPPPPP!!!!", 
+        "Commander! How could I help you with the XP?", 
+        "WAIT, YOU ONCE WERE A SOLDIER?!?!?!", 
+        "I wish I was a scout too...", 
+        "Commander, should we start by getting the achievement 'Filthy Rich'?", 
+        "I will get the achievement 'World Dominator' someday; I don't think you will, though..."
+    ],
+    worldwondersShop: [
+        "LETS GET THE EIFFEL TOWER!!!!!", 
+        "The Pentagon sounds great, Commander, buy it!", 
+        "I’m not saying I’m a wonder, but the world is welcome for my existence.", 
+        "BUY THE TOKYO TOWER, PLEASE COMMANDER!", 
+        "Why is everything here so good? The dev should nerf everything... Including you, Commander; you are too powerful..."
+    ]
 }
-
 
 
 const CLRS=[
