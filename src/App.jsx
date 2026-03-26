@@ -84,7 +84,7 @@ const CLRS=[
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
 const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:14,droner_ghoster: 17,orbital:999,dirty_bomb:8};
-const DAILY_REWARD=3000;
+const DAILY_REWARD=300000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
@@ -129,7 +129,8 @@ const BUILDINGS=[
   {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
   {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000"},
   {id:"casino_place", label:"Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:1, iron:1}, color:"gold"},  
-  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"}];
+  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"},
+  {id:"trade_post",    label:"Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:6,stone:4,gold:2},   color:"#f59e0b"}];
 
 // Black market pool - 3 random items shown per session
 const BLACK_MARKET_POOL=[
@@ -799,6 +800,13 @@ export default function EarthConquest(){
   const setWorldWondersSync=(w)=>{worldWondersRef.current=w;setWorldWonders(w);};
   const [showWonders,setShowWonders]=useState(false);
   const [showClanModal,setShowClanModal]=useState(false);
+  const [showTrade,setShowTrade]=useState(false);
+  const [tradePlayers,setTradePlayers]=useState([]); // players in room with trade post
+  const [tradeTarget,setTradeTarget]=useState(null); // selected player to trade with
+  const [tradeOffer,setTradeOffer]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [tradeRequest,setTradeRequest]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [pendingTrade,setPendingTrade]=useState(null); // incoming trade offer for me
+  const [tradeStep,setTradeStep]=useState("pick"); // pick | configure | sent
   const [clanInput,setClanInput]=useState(""); // {event, expiresAt}
   const [crisisTimeLeft,setCrisisTimeLeft]=useState(0);
   const blitzTimerRef=useRef(null);
@@ -993,6 +1001,92 @@ export default function EarthConquest(){
       flash("🎰 You lost "+amount+" coins...","error");
       droneSay("lostGamble");
     }
+  };
+
+  // ── TRADE SYSTEM ──────────────────────────────────────────────────
+  const TRADEABLE = ["coins","tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","wood","stone","iron","gold","oil","uranium"];
+
+  const openTrade=async()=>{
+    if(isSingleplayer){flash("Trade only works in multiplayer!","error");return;}
+    // find all players in room who have trade_post
+    const eligible=[];
+    for(const [name] of Object.entries(players)){
+      if(name===username||name.startsWith("_"))continue;
+      try{
+        const {data}=await sb.from("inventory").select("data").eq("username",name).single();
+        if(data?.data?._buildings?.includes("trade_post")||(data?.data?.buildings||[]).includes("trade_post")){
+          eligible.push({name,inv:data.data});
+        }
+      }catch(e){}
+    }
+    setTradePlayers(eligible);
+    setTradeTarget(null);
+    setTradeStep("pick");
+    const blank={coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0};
+    setTradeOffer({...blank});
+    setTradeRequest({...blank});
+    setShowTrade(true);
+  };
+
+  const sendTradeOffer=async()=>{
+    if(!tradeTarget){flash("Select a player first!","error");return;}
+    // validate you have what you're offering
+    for(const [k,v] of Object.entries(tradeOffer)){
+      if(v>0&&(myInventory[k]||0)<v){flash("You don't have enough "+k+"!","error");return;}
+    }
+    // save trade offer to their inventory as _pendingTrade
+    try{
+      const {data}=await sb.from("inventory").select("data").eq("username",tradeTarget.name).single();
+      if(!data?.data){flash("Player not found!","error");return;}
+      const updated={...data.data,_pendingTrade:{
+        from:username,
+        offer:tradeOffer,    // what I give them
+        request:tradeRequest, // what I want from them
+        ts:Date.now()
+      }};
+      await sb.from("inventory").upsert({username:tradeTarget.name,data:updated},{onConflict:"username"});
+      setTradeStep("sent");
+      flash("Trade offer sent to "+tradeTarget.name+"!","success");
+    }catch(e){flash("Failed to send trade offer.","error");}
+  };
+
+  const acceptTrade=async()=>{
+    if(!pendingTrade)return;
+    const {from,offer,request}=pendingTrade;
+    // validate both sides have what they need
+    for(const[k,v] of Object.entries(request)){
+      if(v>0&&(myInventory[k]||0)<v){flash("You don't have enough "+k+" for this trade!","error");return;}
+    }
+    try{
+      // fetch sender's inventory
+      const {data:senderData}=await sb.from("inventory").select("data").eq("username",from).single();
+      if(!senderData?.data){flash("Sender not found!","error");return;}
+      // validate sender still has what they offered
+      for(const[k,v] of Object.entries(offer)){
+        if(v>0&&(senderData.data[k]||0)<v){flash(from+" no longer has enough "+k+"!","error");return;}
+      }
+      // update my inventory: receive offer, give request
+      const myNew={...myInventory,_pendingTrade:null};
+      for(const[k,v] of Object.entries(offer)) if(v>0) myNew[k]=(myNew[k]||0)+v;
+      for(const[k,v] of Object.entries(request)) if(v>0) myNew[k]=Math.max(0,(myNew[k]||0)-v);
+      // update sender inventory: receive request, give offer
+      const senderNew={...senderData.data};
+      for(const[k,v] of Object.entries(request)) if(v>0) senderNew[k]=(senderNew[k]||0)+v;
+      for(const[k,v] of Object.entries(offer)) if(v>0) senderNew[k]=Math.max(0,(senderNew[k]||0)-v);
+      senderNew._pendingTrade=null;
+      // save both
+      setMyInventory(myNew);await saveInv(myNew);
+      await sb.from("inventory").upsert({username:from,data:senderNew},{onConflict:"username"});
+      setPendingTrade(null);
+      flash("Trade completed with "+from+"! 🤝","success");
+    }catch(e){flash("Trade failed: "+e.message,"error");}
+  };
+
+  const declineTrade=async()=>{
+    const myNew={...myInventory,_pendingTrade:null};
+    setMyInventory(myNew);await saveInv(myNew);
+    setPendingTrade(null);
+    flash("Trade declined.","info");
   };
 
   const saveWorld=async(o,p)=>{
@@ -1225,6 +1319,18 @@ export default function EarthConquest(){
     if(!roomCode||screen!=="map")return;
     const poll=setInterval(async()=>{
       try{
+        // check my inventory for pending trades
+        if(username&&!isSingleplayer){
+          const {data:myData}=await sb.from("inventory").select("data").eq("username",username).single();
+          if(myData?.data?._pendingTrade&&myData.data._pendingTrade.ts&&(Date.now()-myData.data._pendingTrade.ts)<300000){
+            setPendingTrade(myData.data._pendingTrade);
+          } else if(pendingTrade&&(!myData?.data?._pendingTrade)){
+            // trade was cleared externally
+          }
+          if(myData?.data){
+            setMyInventory(prev=>({...prev,...myData.data,_name:prev._name,_pwd:prev._pwd}));
+          }
+        }
         const {data}=await sb.from("world").select("ownership,players").eq("room_code",roomCode).single();
         if(data){
           setOwnership(prev=>{
@@ -1265,6 +1371,10 @@ export default function EarthConquest(){
           });
           const msgs=inc._chat||[];
           if(inc._wonders)setWorldWondersSync(inc._wonders);
+          // check for incoming trade offer
+          if(myInv?._pendingTrade&&myInv._pendingTrade.ts&&(Date.now()-myInv._pendingTrade.ts)<300000){
+            setPendingTrade(myInv._pendingTrade);
+          }
           setChatMsgs(prev=>{
             if(JSON.stringify(prev)===JSON.stringify(msgs))return prev;
             // count new msgs for unread badge
@@ -2667,6 +2777,122 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         </div>
       )}
 
+      {/* Incoming trade offer */}
+      {pendingTrade&&(
+        <div style={{position:"fixed",bottom:"80px",right:"244px",zIndex:3000,width:"300px",background:"linear-gradient(135deg,#0a1a0a,#001a00)",border:"1px solid rgba(245,158,11,.5)",borderRadius:"16px",padding:"18px",boxShadow:"0 20px 60px rgba(0,0,0,.7)",animation:"modalIn .3s ease"}}>
+          <div style={{color:"#f59e0b",fontWeight:"bold",fontSize:"13px",marginBottom:"10px",letterSpacing:"1px"}}>🤝 Trade Offer from {pendingTrade.from}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"12px"}}>
+            <div style={{background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:"8px",padding:"8px"}}>
+              <div style={{color:"rgba(0,255,136,.5)",fontSize:"9px",letterSpacing:"1px",marginBottom:"5px"}}>THEY OFFER YOU</div>
+              {Object.entries(pendingTrade.offer).filter(([,v])=>v>0).map(([k,v])=>(
+                <div key={k} style={{color:"#4ade80",fontSize:"11px"}}>+{v} {k}</div>
+              ))}
+              {Object.values(pendingTrade.offer).every(v=>v===0)&&<div style={{color:"rgba(255,255,255,.3)",fontSize:"10px"}}>nothing</div>}
+            </div>
+            <div style={{background:"rgba(239,68,68,.06)",border:"1px solid rgba(239,68,68,.15)",borderRadius:"8px",padding:"8px"}}>
+              <div style={{color:"rgba(255,100,100,.5)",fontSize:"9px",letterSpacing:"1px",marginBottom:"5px"}}>THEY WANT FROM YOU</div>
+              {Object.entries(pendingTrade.request).filter(([,v])=>v>0).map(([k,v])=>(
+                <div key={k} style={{color:"#f87171",fontSize:"11px"}}>-{v} {k}</div>
+              ))}
+              {Object.values(pendingTrade.request).every(v=>v===0)&&<div style={{color:"rgba(255,255,255,.3)",fontSize:"10px"}}>nothing</div>}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:"8px"}}>
+            <button onClick={acceptTrade} style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#14532d,#16a34a)",border:"none",borderRadius:"8px",color:"white",cursor:"pointer",fontWeight:"bold",fontSize:"12px",fontFamily:"Georgia,serif"}}>ACCEPT</button>
+            <button onClick={declineTrade} style={{flex:1,padding:"8px",background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",borderRadius:"8px",color:"#f87171",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>DECLINE</button>
+          </div>
+        </div>
+      )}
+
+      {/* Trade modal */}
+      {showTrade&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)setShowTrade(false);}}>
+          <div style={{background:"linear-gradient(160deg,#0a1000,#001a00)",border:"1px solid rgba(245,158,11,.3)",borderRadius:"22px",padding:"28px",width:"560px",maxHeight:"88vh",overflowY:"auto",boxShadow:"0 40px 80px rgba(0,0,0,.8)",animation:"modalIn .25s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+              <div>
+                <h2 style={{color:"#f59e0b",fontSize:"18px",margin:"0 0 3px",letterSpacing:"2px"}}>🤝 Trade Post</h2>
+                <p style={{color:"rgba(255,255,255,.35)",fontSize:"11px",margin:0}}>Both players need a Trade Post to trade</p>
+              </div>
+              <button onClick={()=>setShowTrade(false)} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"8px",padding:"5px 10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>X</button>
+            </div>
+            {tradeStep==="sent"
+              ?<div style={{textAlign:"center",padding:"40px 20px"}}>
+                <div style={{fontSize:"48px",marginBottom:"12px"}}>📨</div>
+                <div style={{color:"#4ade80",fontSize:"16px",fontWeight:"bold",marginBottom:"8px"}}>Offer Sent!</div>
+                <div style={{color:"rgba(255,255,255,.4)",fontSize:"12px",marginBottom:"24px"}}>Waiting for {tradeTarget?.name} to respond...</div>
+                <button onClick={()=>{setTradeStep("pick");setTradeTarget(null);}} style={{padding:"10px 24px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:"10px",color:"rgba(255,255,255,.5)",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"12px"}}>
+                  New Trade
+                </button>
+              </div>
+              :tradeStep==="pick"
+                ?<div>
+                  <div style={{color:"rgba(255,255,255,.4)",fontSize:"11px",marginBottom:"12px",letterSpacing:"1px"}}>SELECT A PLAYER</div>
+                  {tradePlayers.length===0
+                    ?<div style={{textAlign:"center",padding:"30px",color:"rgba(255,255,255,.3)",fontSize:"13px"}}>
+                        No other players with a Trade Post in this room.
+                      </div>
+                    :<div>{tradePlayers.map(p=>(
+                        <div key={p.name} onClick={()=>{setTradeTarget(p);setTradeStep("configure");}}
+                          style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",background:"rgba(245,158,11,.06)",border:"1px solid rgba(245,158,11,.15)",borderRadius:"12px",marginBottom:"8px",cursor:"pointer"}}
+                          onMouseEnter={e=>e.currentTarget.style.background="rgba(245,158,11,.14)"}
+                          onMouseLeave={e=>e.currentTarget.style.background="rgba(245,158,11,.06)"}>
+                          <div>
+                            <div style={{color:"white",fontSize:"13px",fontWeight:"bold"}}>{p.name}</div>
+                            <div style={{color:"rgba(255,255,255,.4)",fontSize:"10px",marginTop:"2px"}}>{(p.inv.coins||0).toLocaleString()} coins</div>
+                          </div>
+                          <div style={{color:"#f59e0b",fontSize:"12px"}}>Trade →</div>
+                        </div>
+                      ))}</div>
+                  }
+                </div>
+                :<div>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px"}}>
+                    <button onClick={()=>setTradeStep("pick")} style={{background:"none",border:"none",color:"rgba(255,255,255,.4)",cursor:"pointer",fontSize:"12px",fontFamily:"Georgia,serif"}}>← Back</button>
+                    <div style={{color:"#f59e0b",fontSize:"13px",fontWeight:"bold"}}>Trading with {tradeTarget?.name}</div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"16px"}}>
+                    <div>
+                      <div style={{color:"#4ade80",fontSize:"10px",letterSpacing:"1px",marginBottom:"8px",fontWeight:"bold"}}>YOU OFFER</div>
+                      {["coins","tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","wood","stone","iron","gold","oil","uranium"].map(k=>{
+                        const have=myInventory[k]||0;
+                        if(have===0)return null;
+                        return(
+                          <div key={k} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px"}}>
+                            <span style={{color:"rgba(255,255,255,.5)",fontSize:"10px",flex:1,textTransform:"capitalize"}}>{k}</span>
+                            <span style={{color:"rgba(255,255,255,.3)",fontSize:"9px"}}>/{have}</span>
+                            <input type="number" min="0" max={have} value={tradeOffer[k]||0}
+                              onChange={e=>{const v=Math.min(have,Math.max(0,parseInt(e.target.value)||0));setTradeOffer(prev=>({...prev,[k]:v}));}}
+                              style={{width:"52px",padding:"3px 6px",background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",borderRadius:"6px",color:"#4ade80",fontSize:"11px",fontFamily:"Georgia,serif",textAlign:"center",outline:"none"}}/>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      <div style={{color:"#f87171",fontSize:"10px",letterSpacing:"1px",marginBottom:"8px",fontWeight:"bold"}}>YOU REQUEST</div>
+                      {["coins","tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","wood","stone","iron","gold","oil","uranium"].map(k=>{
+                        const theyHave=tradeTarget?.inv?.[k]||0;
+                        if(theyHave===0)return null;
+                        return(
+                          <div key={k} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px"}}>
+                            <span style={{color:"rgba(255,255,255,.5)",fontSize:"10px",flex:1,textTransform:"capitalize"}}>{k}</span>
+                            <span style={{color:"rgba(255,255,255,.3)",fontSize:"9px"}}>/{theyHave}</span>
+                            <input type="number" min="0" max={theyHave} value={tradeRequest[k]||0}
+                              onChange={e=>{const v=Math.min(theyHave,Math.max(0,parseInt(e.target.value)||0));setTradeRequest(prev=>({...prev,[k]:v}));}}
+                              style={{width:"52px",padding:"3px 6px",background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.2)",borderRadius:"6px",color:"#f87171",fontSize:"11px",fontFamily:"Georgia,serif",textAlign:"center",outline:"none"}}/>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button onClick={sendTradeOffer}
+                    style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#92400e,#f59e0b)",border:"none",borderRadius:"12px",color:"white",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif",fontSize:"13px",letterSpacing:"2px"}}>
+                    SEND TRADE OFFER
+                  </button>
+                </div>
+            }
+          </div>
+        </div>
+      )}
       {showWonders&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)setShowWonders(false);}}>
           <div style={{background:"linear-gradient(160deg,#0a0a00,#1a1400)",border:"1px solid rgba(245,200,66,.3)",borderRadius:"22px",padding:"28px",width:"520px",maxHeight:"85vh",overflowY:"auto",boxShadow:"0 40px 80px rgba(0,0,0,.8)",animation:"modalIn .25s ease"}}>
@@ -3465,7 +3691,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {label:"Black Market",  icon:"◈", color:"#a78bfa",bg:"rgba(139,92,246,.1)", border:"rgba(139,92,246,.25)", action:()=>{setShowBlackMarket(true); droneSay("blackmarketShop")}, disabled:!(myInventory.buildings||[]).includes("black_market")},
             {label:"Gambling Den",icon:"🎰",color:"gold",bg:"rgba(139,92,246,.06)",border:"rgba(139,92,246,.15)",action:()=>setShowGamblingDen(true),disabled:!(myInventory.buildings||[]).includes("casino_place")},
             {label:"Terra Pass",    icon:"★", color:"#c4b5fd",bg:"rgba(139,92,246,.08)",border:"rgba(139,92,246,.2)",  action:()=>{setShowTerraPass(true); droneSay("terrapassShop")}},
-            {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>{droneSay("worldwondersShop"); setShowWonders(true)}}].map(btn=>(
+            {label:"World Wonders",  icon:"🏛", color:"#f5c842",bg:"rgba(245,200,66,.08)",border:"rgba(245,200,66,.2)",  action:()=>{droneSay("worldwondersShop"); setShowWonders(true)}},
+            {label:"Trade",  icon:"🤝", color:"#f59e0b",bg:"rgba(245,158,11,.08)",border:"rgba(245,158,11,.2)",  action:()=>openTrade(), disabled:!(myInventory.buildings||[]).includes("trade_post")}].map(btn=>(
             <button key={btn.label} onClick={btn.disabled?undefined:btn.action} className="sidebar-btn"
               style={{width:"100%",padding:"9px 11px",background:btn.bg,border:"1px solid "+btn.border,borderRadius:"9px",color:btn.disabled?"rgba(255,255,255,.18)":btn.color,fontSize:"11px",fontWeight:"bold",cursor:btn.disabled?"not-allowed":"pointer",fontFamily:"Georgia,serif",textAlign:"left",letterSpacing:".3px",opacity:btn.disabled?0.45:1,display:"flex",alignItems:"center",gap:"7px"}}>
               <span style={{fontSize:"12px",opacity:.85}}>{btn.icon}</span>

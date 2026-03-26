@@ -62,7 +62,7 @@ export default async function handler(req) {
       "stealth_bomber","orbital","dirty_bomb","oil","stealth_kit","shield",
       "_name","_pwd","_xp","_achievements","_dailyCount","_banned","_roomHistory",
       "_missionProgress","_missionDate","_claimedMissions","_claimedPassLevels",
-      "_bmDate","_bmItems","_clan","_totalConquests","_lastDraculaSpy","_lastSeen",
+      "_bmDate","_bmItems","_clan","_totalConquests","_lastDraculaSpy","_lastSeen","_pendingTrade",
     ];
     const cleaned = {};
     for (const k of ALLOWED_INV_KEYS) {
