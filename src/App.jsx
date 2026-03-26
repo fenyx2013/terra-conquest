@@ -87,21 +87,21 @@ const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_
 const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
-const BOT_NAMES=["BotAlpha","BotBeta","BotGamma","BotDelta"];
+const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
 
 const SHOP_ITEMS=[
-  {id:"tank",      label:"\u{1FA96} Tank",      desc:"Basic ground unit. Cheap & reliable.",        price:120,  dmg:DMG.tank,      color:"#f59e0b"},
-  {id:"bomb",      label:"\u{1F4A3} Bomb",      desc:"Explosive. High damage.",                     price:200,  dmg:DMG.bomb,      color:"#ef4444"},
-  {id:"plane",     label:"✈️ Plane",     desc:"Air unit. Extends attack radius to 3.",       price:350,  dmg:DMG.plane,     color:"#3b82f6"},
-  {id:"missile",   label:"🚀 Missile",   desc:"Ballistic strike. Very high damage.",         price:550,  dmg:DMG.missile,   color:"#f97316"},
-  {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:450,  dmg:DMG.artillery, color:"#a78bfa"},
-  {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:800,  dmg:DMG.drone,     color:"#06b6d4"},
-  {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1200, dmg:DMG.bomber,    color:"#dc2626"},
-  {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:900,   dmg:0,               color:"#6366f1", oilCost:1},
-  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1200,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
-  {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1000,  dmg:0,               color:"#f0abfc", oilCost:2},
-  {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2500,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:1},
-  {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 3750,  dmg:DMG.droner_ghoster, color:"#A020F0"}];
+  {id:"tank",      label:"\u{1FA96} Tank",      desc:"Basic ground unit. Cheap & reliable.",        price:180,  dmg:DMG.tank,      color:"#f59e0b"},
+  {id:"bomb",      label:"\u{1F4A3} Bomb",      desc:"Explosive. High damage.",                     price:300,  dmg:DMG.bomb,      color:"#ef4444"},
+  {id:"plane",     label:"✈️ Plane",     desc:"Air unit. Extends attack radius to 3.",       price:470,  dmg:DMG.plane,     color:"#3b82f6"},
+  {id:"missile",   label:"🚀 Missile",   desc:"Ballistic strike. Very high damage.",         price:675,  dmg:DMG.missile,   color:"#f97316"},
+  {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:500,  dmg:DMG.artillery, color:"#a78bfa"},
+  {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:1000,  dmg:DMG.drone,     color:"#06b6d4", oilCost:1},
+  {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1800, dmg:DMG.bomber,    color:"#dc2626", oilCost:1},
+  {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:1200,   dmg:0,               color:"#6366f1", oilCost:1},
+  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1100,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
+  {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1050,  dmg:0,               color:"#f0abfc", oilCost:2},
+  {id:"stealth_bomber",label:"👻🛦💣 Ghost Bomber",desc:"14 dmg. Bypasses Air Defence completely.",           price:2950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:2},
+  {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. The best weapon of all...",              price: 4250,  dmg:DMG.droner_ghoster, color:"#A020F0", oilCost:2}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
@@ -112,25 +112,25 @@ const MATERIALS=[
   {id:"uranium", label:"Uranium", color:"#4ade80"}];
 
 const BUILDINGS=[
-  {id:"barracks",    label:"Barracks",    desc:"Discounts Tanks by 20% per barracks.",    max:3, cost:{wood:3,stone:2},      color:"#f59e0b"},
-  {id:"airbase",     label:"Air Base",    desc:"Discounts Planes by 15% per airbase.",    max:2, cost:{stone:3,iron:2},      color:"#3b82f6"},
-  {id:"coin_factory",label:"Coin Factory",desc:"Earns "+COIN_FACTORY_YIELD+" coins/sec.", max:5, cost:{iron:3,stone:2},      color:"#10b981"},
-  {id:"vault",       label:"Gold Vault",  desc:"+500 daily reward. +2 coins/sec/factory.",max:3, cost:{gold:2,iron:3},       color:"#f59e0b"},
-  {id:"spy_academy", label:"Spy Academy", desc:"Trains 1 spy every 20 min.",              max:1, cost:{wood:4,gold:1},       color:"#10b981"},
-  {id:"watchtower",  label:"Watchtower",  desc:"Unlocks the Satellite recipe in Weapons Lab. Also lets you see attacker weapon counts.", max:1, cost:{wood:5,stone:3},      color:"#6366f1"},
-  {id:"embassy",     label:"Embassy",     desc:"+5% win chance when attacking.",          max:1, cost:{gold:3,stone:4},      color:"#f97316"},
-  {id:"port",        label:"Port",        desc:"+1 attack range (coastal countries only).",max:1, cost:{wood:4,iron:2},      color:"#06b6d4"},
-  {id:"mine",        label:"Mine",        desc:"+1 Iron & Stone per bonus tick.",          max:2, cost:{wood:2,stone:4},     color:"#78716c"},
-  {id:"uranium_ext", label:"Uranium Extractor",desc:"Converts 1 Gold into 1 Uranium/min.",max:1, cost:{iron:4,stone:3},    color:"#4ade80"},
-  {id:"nuclear_reactor",label:"Nuclear Reactor",desc:"Boosts ALL weapon damage by 50%.", max:1, cost:{iron:5,uranium:3,stone:7}, color:"#a78bfa"},
-  {id:"fortress",    label:"Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:8,iron:5},  color:"#f43f5e"},
-  {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:4,iron:3},           color:"#8b5cf6"},
-  {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:4,stone:3,gold:1},   color:"#78350f"},
-  {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:3,gold:2},           color:"#06b6d4"},
-  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:9,gold:5},           color:"#8B0000"},
-  {id:"casino_place", label:"Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:1, iron:1}, color:"gold"},  
-  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:5,stone:3,gold:1},   color:"#f43f5e"},
-  {id:"trade_post",    label:"Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:6,stone:4,gold:2},   color:"#f59e0b"}];
+  {id:"barracks",    label:"Barracks",    desc:"Discounts Tanks by 20% per barracks.",    max:3, cost:{wood:5,stone:4},      color:"#f59e0b"},
+  {id:"airbase",     label:"Air Base",    desc:"Discounts Planes by 15% per airbase.",    max:2, cost:{stone:5,iron:3},      color:"#3b82f6"},
+  {id:"coin_factory",label:"Coin Factory",desc:"Earns "+COIN_FACTORY_YIELD+" coins/sec.", max:5, cost:{iron:5,stone:3},      color:"#10b981"},
+  {id:"vault",       label:"Gold Vault",  desc:"+500 daily reward. +2 coins/sec/factory.",max:3, cost:{gold:3,iron:4},       color:"#f59e0b"},
+  {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:3,stone:2,gold:1},   color:"#78350f"},
+  {id:"spy_academy", label:"Spy Academy", desc:"Trains 1 spy every 20 min.",              max:1, cost:{wood:9,gold:3},       color:"#10b981"},
+  {id:"watchtower",  label:"Watchtower",  desc:"Unlocks the Satellite recipe in Weapons Lab. Also lets you see attacker weapon counts.", max:1, cost:{iron:7 ,stone:5},      color:"#6366f1"},
+  {id:"embassy",     label:"Embassy",     desc:"+5% win chance when attacking.",          max:1, cost:{gold:4,stone:7},      color:"#f97316"},
+  {id:"port",        label:"Port",        desc:"+1 attack range (coastal countries only).",max:1, cost:{wood:14,iron:3},      color:"#06b6d4"},
+  {id:"mine",        label:"Mine",        desc:"+1 Iron & Stone per bonus tick.",          max:2, cost:{wood:22,stone:13},     color:"#78716c"},
+  {id:"uranium_ext", label:"Uranium Extractor",desc:"Converts 1 Gold into 1 Uranium/min.",max:1, cost:{iron:7,stone:5},    color:"#4ade80"},
+  {id:"nuclear_reactor",label:"Nuclear Reactor",desc:"Boosts ALL weapon damage by 50%.", max:1, cost:{iron:7,uranium:5,stone:11}, color:"#a78bfa"},
+  {id:"fortress",    label:"Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:11,iron:9},  color:"#f43f5e"},
+  {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:6,iron:5},           color:"#8b5cf6"},
+  {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:7,gold:3},           color:"#06b6d4"},
+  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:11,gold:7},           color:"#8B0000"},
+  {id:"casino_place", label:"Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"gold"},  
+  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:15,stone:9,gold:3},   color:"#f43f5e"},
+  {id:"trade_post",    label:"Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"}];
 
 // Black market pool - 3 random items shown per session
 const BLACK_MARKET_POOL=[
@@ -151,17 +151,17 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:15000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
-  {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:12000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
-  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{troops:3,  label:"+3 tanks/min"},    cost:{coins:14000,stone:12,iron:4},      color:"#f59e0b", desc:"The mightiest fortification ever built. Troops pour in constantly."},
-  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:10000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
-  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:11000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
-  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:9000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
-  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:12000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
-  {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:13500,iron:15,gold:3},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
-  {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:13750,iron:11,gold:2},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
-  {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:8000,stone:6,gold:2}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
-  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:20020,iron:7 ,gold:1}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
+  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:17000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
+  {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:13000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
+  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{troops:3,  label:"+3 tanks/min"},    cost:{coins:16000,stone:12,iron:4},      color:"#f59e0b", desc:"The mightiest fortification ever built. Troops pour in constantly."},
+  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:12000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
+  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:13000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
+  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:11000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
+  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:14000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
+  {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:15500,iron:15,gold:5},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
+  {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:15750,iron:11,gold:5},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
+  {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:10000,stone:6,gold:5}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
+  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:22020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -400,6 +400,7 @@ const COUNTRIES = [
     d:"M912,278 L958,275 L962,292 L954,310 L936,318 L915,312 L908,295 Z"
   },
   { id:"romania", name:"Romania", area:16, lx:958, ly:248,
+    bonus: {troops: 1, label:"+1 Tanks/min"},
     borders:["ukraine","moldova","bulgaria","serbia","hungary"],
     d:"M934,232 L985,230 L990,248 L982,265 L962,268 L936,262 L930,248 Z"
   },
@@ -1163,17 +1164,17 @@ export default function EarthConquest(){
   ];
 
 
-  const NUKE_RECIPE={uranium:10,iron:7,gold:2,coins:2000};
+  const NUKE_RECIPE={uranium:15,iron:17,gold:7,coins:20000};
   const craftNuke=async()=>{
-    if((myInventory.uranium||0)<NUKE_RECIPE.uranium){flash("Need 10 Uranium!","error");return;}
-    if((myInventory.iron||0)<NUKE_RECIPE.iron){flash("Need 7 Iron!","error");return;}
-    if((myInventory.gold||0)<NUKE_RECIPE.gold){flash("Need 2 Gold!","error");return;}
-    if((myInventory.coins||0)<NUKE_RECIPE.coins){flash("Need 2000 coins!","error");return;}
+    if((myInventory.uranium||0)<NUKE_RECIPE.uranium){flash("Need 15 Uranium!","error");return;}
+    if((myInventory.iron||0)<NUKE_RECIPE.iron){flash("Need 17 Iron!","error");return;}
+    if((myInventory.gold||0)<NUKE_RECIPE.gold){flash("Need 7 Gold!","error");return;}
+    if((myInventory.coins||0)<NUKE_RECIPE.coins){flash("Need 20000 coins!","error");return;}
     const newInv={...myInventory,
-      uranium:(myInventory.uranium||0)-10,
-      iron:(myInventory.iron||0)-7,
-      gold:(myInventory.gold||0)-2,
-      coins:(myInventory.coins||0)-2000,
+      uranium:(myInventory.uranium||0)-15,
+      iron:(myInventory.iron||0)-17,
+      gold:(myInventory.gold||0)-7,
+      coins:(myInventory.coins||0)-20000,
       nuke_bomb:(myInventory.nuke_bomb||0)+1,
     };
     setMyInventory(newInv);
