@@ -3282,7 +3282,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"5px",marginBottom:"12px"}}>
-              {[["uranium","Uranium",10,"#4ade80"],["iron","Iron",7,"#6b7280"],["gold","Gold",2,"#f59e0b"],["coins","Coins",2000,"#f5c842"]].map(([id,label,req,color])=>{
+              {[["uranium","Uranium",15,"#4ade80"],["iron","Iron",17,"#6b7280"],["gold","Gold",7,"#f59e0b"],["coins","Coins",20000,"#f5c842"]].map(([id,label,req,color])=>{
                 const have=myInventory[id]||0;
                 const ok=have>=req;
                 return(
@@ -3294,8 +3294,8 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               })}
             </div>
             <button onClick={craftNuke}
-              disabled={(myInventory.uranium||0)<10||(myInventory.iron||0)<7||(myInventory.gold||0)<2||(myInventory.coins||0)<2000}
-              style={{width:"100%",padding:"10px",background:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"linear-gradient(135deg,#052010,#166534)":"rgba(255,255,255,.04)",border:"1px solid "+((myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"rgba(34,197,94,.5)":"rgba(255,255,255,.08)"),borderRadius:"8px",color:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"#22c55e":"rgba(255,255,255,.2)",cursor:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"pointer":"not-allowed",fontWeight:"bold",fontSize:"12px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
+              disabled={(myInventory.uranium||0)<15||(myInventory.iron||0)<17||(myInventory.gold||0)<7||(myInventory.coins||0)<20000}
+              style={{width:"100%",padding:"10px",background:(myInventory.uranium||0)>=15&&(myInventory.iron||0)>=17&&(myInventory.gold||0)>=7&&(myInventory.coins||0)>=20000?"linear-gradient(135deg,#052010,#166534)":"rgba(255,255,255,.04)",border:"1px solid "+((myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"rgba(34,197,94,.5)":"rgba(255,255,255,.08)"),borderRadius:"8px",color:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"#22c55e":"rgba(255,255,255,.2)",cursor:(myInventory.uranium||0)>=10&&(myInventory.iron||0)>=7&&(myInventory.gold||0)>=2&&(myInventory.coins||0)>=2000?"pointer":"not-allowed",fontWeight:"bold",fontSize:"12px",fontFamily:"Georgia,serif",letterSpacing:"1px"}}>
               CRAFT NUCLEAR BOMB
             </button>
           </div>
