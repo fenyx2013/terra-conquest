@@ -112,25 +112,25 @@ const MATERIALS=[
   {id:"uranium", label:"Uranium", color:"#4ade80"}];
 
 const BUILDINGS=[
-  {id:"barracks",    label:"Barracks",    desc:"Discounts Tanks by 20% per barracks.",    max:3, cost:{wood:5,stone:4},      color:"#f59e0b"},
-  {id:"airbase",     label:"Air Base",    desc:"Discounts Planes by 15% per airbase.",    max:2, cost:{stone:5,iron:3},      color:"#3b82f6"},
-  {id:"coin_factory",label:"Coin Factory",desc:"Earns "+COIN_FACTORY_YIELD+" coins/sec.", max:5, cost:{iron:5,stone:3},      color:"#10b981"},
-  {id:"vault",       label:"Gold Vault",  desc:"+500 daily reward. +2 coins/sec/factory.",max:3, cost:{gold:3,iron:4},       color:"#f59e0b"},
-  {id:"oil_rig",       label:"Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:3,stone:2,gold:1},   color:"#78350f"},
-  {id:"spy_academy", label:"Spy Academy", desc:"Trains 1 spy every 20 min.",              max:1, cost:{wood:9,gold:3},       color:"#10b981"},
-  {id:"watchtower",  label:"Watchtower",  desc:"Unlocks the Satellite recipe in Weapons Lab. Also lets you see attacker weapon counts.", max:1, cost:{iron:7 ,stone:5},      color:"#6366f1"},
-  {id:"embassy",     label:"Embassy",     desc:"+5% win chance when attacking.",          max:1, cost:{gold:4,stone:7},      color:"#f97316"},
-  {id:"port",        label:"Port",        desc:"+1 attack range (coastal countries only).",max:1, cost:{wood:14,iron:3},      color:"#06b6d4"},
-  {id:"mine",        label:"Mine",        desc:"+1 Iron & Stone per bonus tick.",          max:2, cost:{wood:22,stone:13},     color:"#78716c"},
-  {id:"uranium_ext", label:"Uranium Extractor",desc:"Converts 1 Gold into 1 Uranium/min.",max:1, cost:{iron:7,stone:5},    color:"#4ade80"},
-  {id:"nuclear_reactor",label:"Nuclear Reactor",desc:"Boosts ALL weapon damage by 50%.", max:1, cost:{iron:7,uranium:5,stone:11}, color:"#a78bfa"},
-  {id:"fortress",    label:"Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:11,iron:9},  color:"#f43f5e"},
-  {id:"black_market",  label:"Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:6,iron:5},           color:"#8b5cf6"},
-  {id:"radar",         label:"Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:7,gold:3},           color:"#06b6d4"},
-  {id:"bomber_factory",         label:"Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:11,gold:7},           color:"#8B0000"},
-  {id:"casino_place", label:"Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"gold"},  
-  {id:"hospital",      label:"Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:15,stone:9,gold:3},   color:"#f43f5e"},
-  {id:"trade_post",    label:"Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"}];
+  {id:"barracks",    label:"🏯 Barracks",    desc:"Discounts Tanks by 20% per barracks.",    max:3, cost:{wood:5,stone:4},      color:"#f59e0b"},
+  {id:"airbase",     label:"🏢✈️ Air Base",    desc:"Discounts Planes by 15% per airbase.",    max:2, cost:{stone:5,iron:3},      color:"#3b82f6"},
+  {id:"coin_factory",label:"🏭\u{1FA99} Coin Factory",desc:"Earns "+COIN_FACTORY_YIELD+" coins/sec.", max:5, cost:{iron:5,stone:3},      color:"#10b981"},
+  {id:"vault",       label:"🏦 Gold Vault",  desc:"+500 daily reward. +2 coins/sec/factory.",max:3, cost:{gold:3,iron:4},       color:"#f59e0b"},
+  {id:"oil_rig",       label:"⛽🛢️ Oil Rig",       desc:"Generates +1 Oil every 2 minutes.",                     max:2, cost:{iron:3,stone:2,gold:1},   color:"#78350f"},
+  {id:"spy_academy", label:"🕵️🏫 Spy Academy", desc:"Trains 1 spy every 20 min.",              max:1, cost:{wood:9,gold:3},       color:"#10b981"},
+  {id:"watchtower",  label:"🗼 Watchtower",  desc:"Unlocks the Satellite recipe in Weapons Lab. Also lets you see attacker weapon counts.", max:1, cost:{iron:7 ,stone:5},      color:"#6366f1"},
+  {id:"embassy",     label:"🏤 Embassy",     desc:"+5% win chance when attacking.",          max:1, cost:{gold:4,stone:7},      color:"#f97316"},
+  {id:"port",        label:"⚓ Port",        desc:"+1 attack range (coastal countries only).",max:1, cost:{wood:14,iron:3},      color:"#06b6d4"},
+  {id:"mine",        label:"⛏️ Mine",        desc:"+1 Iron & Stone per bonus tick.",          max:2, cost:{wood:22,stone:13},     color:"#78716c"},
+  {id:"uranium_ext", label:"☢️ Uranium Extractor",desc:"Converts 1 Gold into 1 Uranium/min.",max:1, cost:{iron:7,stone:5},    color:"#4ade80"},
+  {id:"nuclear_reactor",label:"🏭☢️ Nuclear Reactor",desc:"Boosts ALL weapon damage by 50%.", max:1, cost:{iron:7,uranium:5,stone:11}, color:"#a78bfa"},
+  {id:"fortress",    label:"🛕 Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:11,iron:9},  color:"#f43f5e"},
+  {id:"black_market",  label:"🛒🏴‍☠️ Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:6,iron:5},           color:"#8b5cf6"},
+  {id:"radar",         label:"📡🏢 Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:7,gold:3},           color:"#06b6d4"},
+  {id:"bomber_factory",         label:"🏭🛦💣 Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:11,gold:7},           color:"#8B0000"},
+  {id:"casino_place", label:"🎰🎲♠ Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"gold"},  
+  {id:"hospital",      label:"🏥 Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:15,stone:9,gold:3},   color:"#f43f5e"},
+  {id:"trade_post",    label:"🏣 Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"}];
 
 // Black market pool - 3 random items shown per session
 const BLACK_MARKET_POOL=[
