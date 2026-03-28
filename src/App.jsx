@@ -988,7 +988,7 @@ export default function EarthConquest(){
 
   const gamble=(amount)=>{
     if((myInventory.coins||0)<amount){flash("Not enough coins!","error");return;}
-    const win=Math.random()<0.4;
+    const win=Math.random()<0.5;
     if(win){
       const ni={...myInventory,coins:myInventory.coins+amount};
       setMyInventory(ni);
@@ -1145,22 +1145,28 @@ export default function EarthConquest(){
   },[musicVol,musicMuted]);
 
   const CHAT_PROMPTS=[
-    {id:"gg",     emoji:"🏆", label:"GG",          msg:"GG! Good game everyone"},
-    {id:"wp",     emoji:"👏", label:"Well played",  msg:"Well played!"},
-    {id:"ggs",    emoji:"😤", label:"EZ",           msg:"Too easy 😤"},
-    {id:"rip",    emoji:"💀", label:"RIP me",       msg:"RIP me 💀"},
-    {id:"noob",   emoji:"🫵", label:"Noob!",        msg:"What a noob 🫵"},
-    {id:"truce",  emoji:"🤝", label:"Truce?",       msg:"Can we truce? 🤝"},
-    {id:"letsgo", emoji:"🔥", label:"LET'S GO",     msg:"LET'S GOOO 🔥"},
-    {id:"nice",   emoji:"🎯", label:"Nice one",     msg:"Nice attack! 🎯"},
-    {id:"help",   emoji:"😰", label:"Leave me!",    msg:"Everyone stop attacking me please 😰"},
-    {id:"war",    emoji:"⚔",  label:"I declare war",msg:"⚔ I declare war on you!"},
-    {id:"nuke",   emoji:"☢",  label:"Incoming nuke",msg:"☢ NUKE INCOMING!"},
-    {id:"rich",   emoji:"💰", label:"I'm rich",     msg:"I am filthy rich 💰"},
-    {id:"alliance",emoji:"🛡",label:"Alliance?",    msg:"🛡 Want to form an alliance?"},
-    {id:"betrayed",emoji:"😈",label:"Betrayed!",    msg:"HOW DARE YOU BETRAY ME 😈"},
-    {id:"soon",   emoji:"👀", label:"I'm coming",   msg:"👀 I'm coming for you..."},
-    {id:"tdronyt", emoji:"🤖", label:"Droney", msg:"🤖Droney: Activating..."},
+    {id:"gg",     emoji:"🏆", label:"🏆 GG ",          msg:"GG! Good game everyone"},
+    {id:"wp",     emoji:"👏", label:"Well played 👏",  msg:"Well played!"},
+    {id:"ggs",    emoji:"😤", label:"EZ 😤",           msg:"Too easy 😤"},
+    {id:"rip",    emoji:"💀", label:"RIP 💀",       msg:"RIP 💀"},
+    {id:"noob",   emoji:"🫵", label:"Noob! 🫵",        msg:"What a noob 🫵"},
+    {id:"truce",  emoji:"🤝", label:"Truce? 🤝",       msg:"Can we truce? 🤝"},
+    {id:"letsgo", emoji:"🔥", label:"LET'S GO 🔥",     msg:"LET'S GOOO 🔥"},
+    {id:"nice",   emoji:"🎯", label:"Nice one 🎯",     msg:"Nice attack! 🎯"},
+    {id:"help",   emoji:"😰", label:"Leave me! 😰",    msg:"Everyone stop attacking me please 😰"},
+    {id:"war",    emoji:"⚔",  label:"I declare war ⚔",msg:"⚔ I declare war on you!"},
+    {id:"nuke",   emoji:"☢",  label:"☢ Incoming nuke ☢",msg:"☢ NUKE INCOMING!"},
+    {id:"rich",   emoji:"💰", label:"I'm rich 💰💰",     msg:"I am filthy rich 💰"},
+    {id:"alliance",emoji:"🛡",label:"Alliance? 🛡",    msg:"🛡 Want to form an alliance?"},
+    {id:"betrayed",emoji:"😈",label:"Betrayed! 😈",    msg:"HOW DARE YOU BETRAY ME 😈"},
+    {id:"soon",   emoji:"👀", label:"I'm coming 👀",   msg:"👀 I'm coming for you..."},
+    {id:"tdronyt", emoji:"🤖", label:"🤖Droney", msg:"🤖Droney: Activating..."},
+    {id:"hello", emoji:"👋", label:"👋 Hello", msg:"👋 HI!"},
+    {id:"yeees", emoji:"✔", label:"Yes ✔", msg:"Yes ✔"},
+    {id:"nope", emoji:"⛌", label:"No ⛌", msg:"No ⛌"},
+    {id:"trade_chat", emoji:"🤝", label:"Trade?? 🤝", msg:"Who wants to trade?? 🤝"},
+    {id:"gamblingme", emoji:"🎰", label:"Love gambling 🎰🎰🎰", msg:"I LOVE GAMBLDING!!!!! 🎰🎰🎰"},
+    {id:"b_2_bomberrr", emoji:"🖤🛦💣", label:"🖤🛦💣 B-2 Bomber", msg:"A shadow in the sky, and you die. 🖤🛦💣"},
   ];
 
 
@@ -3708,7 +3714,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       <div style={{textAlign:"center",marginBottom:"20px"}}>
         <div style={{fontSize:"32px",marginBottom:"6px"}}>🎰</div>
         <div style={{fontSize:"18px",fontWeight:"bold",color:"#f5c842",letterSpacing:"2px"}}>GAMBLING DEN</div>
-        <div style={{fontSize:"12px",color:"rgba(255,255,255,.4)",marginTop:"4px"}}>40% chance — double or nothing</div>
+        <div style={{fontSize:"12px",color:"rgba(255,255,255,.4)",marginTop:"4px"}}>50% chance — double or nothing</div>
       </div>
       <div style={{background:"rgba(245,158,11,.08)",border:"1px solid rgba(245,158,11,.2)",borderRadius:"10px",padding:"12px",textAlign:"center",marginBottom:"18px"}}>
         <span style={{color:"rgba(255,255,255,.5)",fontSize:"12px"}}>Your coins: </span>
