@@ -68,7 +68,11 @@ const DRONE_LINES = {
         "Why is everything here so good? The dev should nerf everything... Including you, Commander; you are too powerful..."
     ],
     lostGamble: ["Thats what you get for gambling Commander!", "Wake up Commander, these games are rigged", "Commander, Commander I am losing you, stop it please..  For your own good..."],
-   wonGamble: ["Commander I think you can stop now", "Well Commander, that was a good one...", "Commander I don't think thats what you sould do"]
+   wonGamble: ["Commander I think you can stop now", "Well Commander, that was a good one...", "Commander I don't think thats what you sould do"],
+   Droneys: ["YOU ONLY HAVE ONE??????? WHAT A NOOB! Also get more DRONEYSS for a special REWARD!!!"],
+   Droneyss: ["WOW 100 THATS GREAT!!! KEEP GOING!!!"],
+   Droneysss: ["500... I HOPE YOU ARE NOT USING AUTO CLICKER!!! BECAUSE THATS A REALLY BIG NUMBER!!!"],
+   Droneyssss: ["HOLY CABLES!! 1000 DRONEYSS!!! YOU'VE GOT THE JACKPOT!!!! YOU JUST WON 10 DRONES!"]
 }
 
 
@@ -84,7 +88,7 @@ const CLRS=[
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
 const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:55,droner_ghoster: 17,orbital:999,dirty_bomb:8};
-const DAILY_REWARD=3000;
+const DAILY_REWARD=300000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
@@ -130,7 +134,8 @@ const BUILDINGS=[
   {id:"bomber_factory",         label:"🏭🛦💣 Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:11,gold:7},           color:"#8B0000"},
   {id:"casino_place", label:"🎰🎲♠ Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"gold"},  
   {id:"hospital",      label:"🏥 Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:15,stone:9,gold:3},   color:"#f43f5e"},
-  {id:"trade_post",    label:"🏣 Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"}];
+  {id:"trade_post",    label:"🏣 Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"},
+  {id:"droneys_factory", label:"🤖🏭 Droneys Factory", desc:"Unlocks the DRONEYSS button. Click 1000 times to earn 10 Drones!", max:1, cost:{iron:7,stone:3,oil:1}, color:"#00bcd4"}];
 
 // Black market pool - 3 random items shown per session
 const BLACK_MARKET_POOL=[
@@ -762,6 +767,8 @@ export default function EarthConquest(){
   const [devData,setDevData]=useState({rooms:[],players:[],loading:false,lastRefresh:null});
   const [devSelectedPlayer,setDevSelectedPlayer]=useState(null);
   const [devConfirm,setDevConfirm]=useState(null); // {msg, onConfirm}
+  const [droneyCount, setDroneyCount] = useState(0);
+  const [droneyLockUntil, setDroneyLockUntil] = useState(0);
   const [menuTab,setMenuTab]=useState("main");
   const [globalLB,setGlobalLB]=useState([]);
   const [username,setUsername]=useState("");
@@ -2506,6 +2513,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         style={{position:"fixed",bottom:"12px",right:"16px",background:"rgba(0,255,136,.08)",border:"1px solid rgba(0,255,136,.25)",borderRadius:"6px",color:"rgba(0,255,136,.5)",cursor:"pointer",fontSize:"10px",fontFamily:"'Courier New',monospace",letterSpacing:"2px",padding:"4px 10px",zIndex:999}}>
         DEV
       </button>
+
       {showDevLogin&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{background:"#0a0a0a",border:"1px solid #00ff88",borderRadius:"12px",padding:"28px",width:"300px",fontFamily:"'Courier New',monospace"}}>
@@ -2536,6 +2544,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       </div>
     );
   }
+
+
+              
+    
+
 
   if(screen==="menu"){
     const TUTORIAL_STEPS=[
@@ -3800,9 +3813,60 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         maxWidth: "260px",
         zIndex: 5000
       }}>
-        🤖Droney:  {droneDisplayMsg}|
+        🤖Droney: {droneDisplayMsg}|
       </div>
     )}
+
+    {/* DRONEYSS button — only unlocked by Droneys Factory building */}
+    {(myInventory.buildings||[]).includes("droneys_factory") && (()=>{
+      const now = Date.now();
+      const locked = droneyLockUntil > now;
+      const hoursLeft = locked ? Math.ceil((droneyLockUntil - now) / 3600000) : 0;
+      return (
+        <div style={{position:"fixed",bottom:"685px",right:"270px",zIndex:5001,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"3px"}}>
+          {locked && (
+            <div style={{fontSize:"9px",color:"rgba(0,200,255,0.5)",fontFamily:"'Courier New',monospace",letterSpacing:"1px",textAlign:"right"}}>
+              🔒 LOCKED — {hoursLeft}h left
+            </div>
+          )}
+          <button
+            disabled={locked}
+            onClick={()=>{
+              const newCount = droneyCount + 1;
+              if (newCount >= 1000) {
+                const newInv = {...myInventory, drone: (myInventory.drone || 0) + 10};
+                setMyInventory(newInv);
+                saveInv(newInv);
+                setDroneyCount(0);
+                setDroneyLockUntil(Date.now() + 24 * 60 * 60 * 1000);
+                droneSay("Droneyssss");
+              } else {
+                setDroneyCount(newCount);
+                if (newCount === 1) { droneSay("Droneys"); }
+                else if (newCount === 100) { droneSay("Droneyss"); }
+                else if (newCount === 500) { droneSay("Droneysss"); }
+              }
+            }}
+            style={{
+              padding:"5px 13px",
+              background: locked ? "rgba(255,255,255,0.03)" : "rgba(0,10,30,0.88)",
+              border: locked ? "1px solid rgba(0,140,255,0.15)" : "1px solid rgba(0,180,255,0.6)",
+              borderRadius:"10px",
+              color: locked ? "rgba(0,200,255,0.25)" : "cyan",
+              cursor: locked ? "not-allowed" : "pointer",
+              fontSize:"12px",
+              fontFamily:"'Courier New',monospace",
+              letterSpacing:"1px",
+              zIndex:5001,
+              boxShadow: locked ? "none" : "0 0 10px rgba(0,180,255,0.2)",
+              transition:"all .2s",
+              opacity: locked ? 0.5 : 1
+            }}>
+            🤖 DRONEYSS {droneyCount}/1000
+          </button>
+        </div>
+      );
+    })()}
 
   </div>
 );
