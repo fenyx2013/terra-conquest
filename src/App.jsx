@@ -87,8 +87,8 @@ const CLRS=[
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:55,droner_ghoster: 17,orbital:999,dirty_bomb:8};
-const DAILY_REWARD=3000;
+const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:55,droner_ghoster: 17,hell_rainer:35,orbital_hi:150,dirty_bomb:8};
+const DAILY_REWARD=3000000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
@@ -102,10 +102,12 @@ const SHOP_ITEMS=[
   {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:1000,  dmg:DMG.drone,     color:"#06b6d4", oilCost:1},
   {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1800, dmg:DMG.bomber,    color:"#dc2626", oilCost:1},
   {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:1200,   dmg:0,               color:"#6366f1", oilCost:2},
-  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:1100,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
+  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:2600,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
   {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1050,  dmg:0,               color:"#f0abfc", oilCost:2},
   {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. Updated with Droney systems!",              price: 4250,  dmg:DMG.droner_ghoster, color:"#A020F0", oilCost:2},
-  {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",desc:"55 dmg. Bypasses Air Defence completely.",           price:12950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:7}];
+  {id: "hell_rainer", label:"💣🌧 H.E.L.L R.A.I.N.😈🔥 ‍‍‍‍‍‍‍‍‍‍ㅤㅤㅤㅤㅤㅤㅤㅤBOMBER", desc:"35 dmg. THE DEFINITION OF HELL",              price: 5250,  dmg:DMG.hell_rainer, color:"#880808", oilCost:5},
+  {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",desc:"55 dmg. Bypasses Air Defence completely.",           price:12950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:7},
+  {id:"orbital_hi",label:"🛰️⚡💥Orbital Railgun",desc:"150 dmg. MAX POWER CONQUER 100% CHANCE OF WINNING!!!!.",           price:59950,  dmg:DMG.orbital_hi, color:"#0096FF", oilCost:17}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
@@ -131,8 +133,9 @@ const BUILDINGS=[
   {id:"fortress",    label:"🛕 Fortress",    desc:"Fortifies all your territories. Reduces enemy win chance by 10%.", max:1, cost:{stone:11,iron:9},  color:"#f43f5e"},
   {id:"black_market",  label:"🛒🏴‍☠️ Black Market",  desc:"Unlocks the Black Market for rare deals.",              max:1, cost:{gold:6,iron:5},           color:"#8b5cf6"},
   {id:"radar",         label:"📡🏢 Radar Station", desc:"Reveals weapon counts of incoming attackers.",           max:1, cost:{iron:7,gold:3},           color:"#06b6d4"},
-  {id:"bomber_factory",         label:"🏭🛦💣 Bomber Factory", desc:"Creates one bomber/2 min",           max:1, cost:{iron:11,gold:7},           color:"#8B0000"},
-  {id:"casino_place", label:"🎰🎲♠ Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"gold"},  
+  {id:"bomber_factory",         label:"🏭🛦💣 Bomber Factory", desc:"Creates one bomber/2 min",           max:2, cost:{iron:11,gold:7},           color:"#8B0000"},
+  {id:"hell_rainer_factory",         label:"🏭🛦💣🌧 H.E.L.L R.A.I.N Bomber Factory", desc:"Creates one H.E.L.L R.A.I.N bomber/2 min",           max:1, cost:{iron:77,gold:56},           color:"#FF0000"},
+  {id:"casino_place", label:"🎰🎲♠ Casino", desc:"Unlocks the Gambling Den", max:1, cost:{gold:7, iron:15}, color:"#fcd34d"},  
   {id:"hospital",      label:"🏥 Hospital",      desc:"Recover 30% of deployed troops after a lost battle.",    max:1, cost:{wood:15,stone:9,gold:3},   color:"#f43f5e"},
   {id:"trade_post",    label:"🏣 Trade Post",    desc:"Unlocks the Trade system. Send trade offers to other players with a Trade Post.",  max:1, cost:{wood:26,stone:11,gold:5},   color:"#f59e0b"},
   {id:"droneys_factory", label:"🤖🏭 Droneys Factory", desc:"Unlocks the DRONEYSS button. Click 1000 times to earn 10 Drones!", max:1, cost:{iron:7,stone:3,oil:1}, color:"#00bcd4"}];
@@ -240,7 +243,7 @@ function rndName(){
   return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
 }
 
-function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0,droner_ghoster=0,dirty_bomb=0){
+function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0,droner_ghoster=0,hell_rainer=0,obital=0,dirty_bomb=0){
   return Math.round((
     tank*DMG.tank+
     bomb*DMG.bomb+
@@ -252,6 +255,7 @@ function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb
     chem_bomb*DMG.chem_bomb+
     stealth_bomber*DMG.stealth_bomber+
     droner_ghoster*DMG.droner_ghoster+
+    hell_rainer*DMG.hell_rainer+
     dirty_bomb*DMG.dirty_bomb
   )*10)/10;
 }
@@ -784,7 +788,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
+  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -799,7 +803,7 @@ export default function EarthConquest(){
   const [showGamblingDen,setShowGamblingDen]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
   const [blitzTimeLeft,setBlitzTimeLeft]=useState(0);
@@ -1173,7 +1177,7 @@ export default function EarthConquest(){
     {id:"yeees", emoji:"✔", label:"Yes ✔", msg:"Yes ✔"},
     {id:"nope", emoji:"⛌", label:"No ⛌", msg:"No ⛌"},
     {id:"trade_chat", emoji:"🤝", label:"Trade?? 🤝", msg:"Who wants to trade?? 🤝"},
-    {id:"gamblingme", emoji:"🎰", label:"Love gambling 🎰🎰🎰", msg:"I LOVE GAMBLDING!!!!! 🎰🎰🎰"},
+    {id:"gamblingme", emoji:"🎰", label:"Love gambling 🎰🎰🎰", msg:"I LOVE GAMBLING!!!!! 🎰🎰🎰"},
     {id:"b_2_bomberrr", emoji:"🖤🛦💣", label:"🖤🛦💣 B-2 Bomber", msg:"A shadow in the sky, and you die. 🖤🛦💣"},
   ];
 
@@ -1433,6 +1437,16 @@ export default function EarthConquest(){
           if(now-last>=120000){// every 2 min
             const gained=Bomberfactory;
             return {...inv,bomber:(inv.bomber||0)+gained,lastBomberTick:now};
+          }
+        }
+         // HR bomber factory generates 1 HR bomber
+        const HRBomberfactory=(inv.buildings||[]).filter(b=>b==="hell_rainer_factory").length;
+        if(HRBomberfactory>0){
+          const now=Date.now();
+          const last=inv.lastHRBomberTick||0;
+          if(now-last>=120000){// every 2 min
+            const gained=HRBomberfactory;
+            return {...inv,hell_rainer:(inv.hell_rainer||0)+gained,lastHRBomberTick:now};
           }
         }
         // territory taxation: 1 coin per 5 territories every 2 min
@@ -1805,7 +1819,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       setClaimedMissions(inv._claimedMissions||[]);
     }else{setMissionProgress({});setClaimedMissions([]);}
     // Normalize — fill in any missing keys from new updates
-    const defaults={chem_bomb:0,emp:0,stealth_bomber:0,orbital:0,dirty_bomb:0,oil:0,satellite:0,artillery:0,drone:0,air_def:0,spy:0,nuke_bomb:0,stealth_kit:0,shield:0,academySpies:0};
+    const defaults={chem_bomb:0,emp:0,stealth_bomber:0,orbital_hi:0,dirty_bomb:0,oil:0,satellite:0,artillery:0,drone:0,air_def:0,spy:0,nuke_bomb:0,stealth_kit:0,shield:0,academySpies:0};
     let changed=false;
     Object.entries(defaults).forEach(([k,v])=>{if(inv[k]===undefined){inv[k]=v;changed=true;}});
     if(changed){setMyInventory({...inv});saveInv(inv);}
@@ -2042,14 +2056,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const reach=getReachable(mine,myInventory.plane>0?3:2);
     if(!reach.has(country.id)||ownership[country.id]===username)return;
     setAttackPlan({country});
-    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,orbital:0,dirty_bomb:0});
+    setDeploy({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
   };
 
   const confirmAttack=async()=>{
     if(!attackPlan)return;
     const country=attackPlan.country;
     // Validate: can't deploy more than owned
-    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","droner_ghoster","nuke_bomb","orbital","dirty_bomb"];
+    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","droner_ghoster","hell_rainer","nuke_bomb","orbital_hi","dirty_bomb"];
     for(const[id,qty]of Object.entries(deploy)){
       if(!weaponKeys.includes(id))continue;
       if(qty>0&&qty>(myInventory[id]||0)){
@@ -2073,25 +2087,19 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       setAttackPlan(null);setAttackMode(false);
       return;
     }
-    // Orbital Strike — like nuke, no range restriction, needs Space Station (future) or just Watchtower
-    if((deploy.orbital||0)>0){
-      if(!(myInventory.buildings||[]).includes("watchtower")){flash("Orbital Strike requires a Watchtower!","error");return;}
-      const newInv={...myInventory,orbital:(myInventory.orbital||0)-1};
-      setMyInventory(newInv);await saveInv(newInv);
-      const newO={...ownership};
-      delete newO[country.id];
-      ownershipRef.current={...newO};
-      setOwnership({...newO});
-      newO[country.id]="__nuked__";
-      ownershipRef.current=newO;
-      await saveWorld(newO,players);
-      triggerAttackEffect(country);
-      playSound("nuke");
-      flash("☄ ORBITAL STRIKE on "+country.name+"! Direct hit from orbit — irradiated!","success");
-      unlockAchievement("nuke_used");
-      setAttackPlan(null);setAttackMode(false);
-      return;
-    }
+   if((deploy.orbital_hi||0)>0){
+  if(!(myInventory.buildings||[]).includes("watchtower")){flash("Orbital Railgun requires a Watchtower!","error");return;}
+  const newInv={...myInventory,orbital_hi:(myInventory.orbital_hi||0)-1};
+  setMyInventory(newInv);await saveInv(newInv);
+  const newO={...ownership,[country.id]:username};
+  ownershipRef.current=newO;
+  setOwnership(newO);
+  await saveWorld(newO,players);
+  triggerAttackEffect(country);
+  flash("🛰️⚡ ORBITAL RAILGUN fired on "+country.name+"! Territory captured!","success");
+  setAttackPlan(null);setAttackMode(false);
+  return;
+}
     // Dirty Bomb — poisons target + ALL adjacent countries for 10 min
     if((deploy.dirty_bomb||0)>0){
       const newInv={...myInventory,dirty_bomb:(myInventory.dirty_bomb||0)-1};
@@ -2136,7 +2144,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(hasStealthBomber&&!(myInventory.buildings||[]).includes("airbase")){
       flash("B-2 Stealth Bomber requires an Airbase to deploy!","error");return;
     }
-      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0);
+      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);
     const damage=hasReactor?Math.round(rawDamage*1.5*10)/10:rawDamage;
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
@@ -2245,11 +2253,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setMissionProgress({});
     setClaimedMissions([]);
   }
-  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)>0;
+  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)+(deploy.hell_rainer||0)+(deploy.orbital_hi||0)>0;
   const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
   const hasFortress=(myInventory.buildings||[]).includes("fortress");
   const stealthKit=(myInventory.stealth_kit||0)>0;
-  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
+  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
   const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
   const atkHasStealthBomber=attackPlan&&(deploy.stealth_bomber||0)>0;
   const atkEffectiveAirDef=atkHasStealthBomber?0:(myInventory.air_def||0);
@@ -3379,7 +3387,9 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {id:"chem_bomb",    label:"💣☣️ Chem Bomb", dmg:DMG.chem_bomb,   color:"#84cc16"},
               {id:"emp",          label:"⚡📡 EMP",  dmg:0,               color:"#f0abfc"},
               {id:"droner_ghoster",    label:"🛰🔍❌ L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
+              {id:"hell_rainer",    label:"💣🌧😈🔥 H.E.L.L R.A.I.N. BOMBER",    dmg:DMG.hell_rainer,    color:"#880808"},
               {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",  dmg:DMG.stealth_bomber, color:"#c084fc"},
+              {id:"orbital_hi",label:"🛰️⚡💥Orbital Railgun",  dmg:DMG.orbital_hi, color:"##0096FF"},
               {id:"nuke_bomb", label:"☢️ Nuke ☢️",       dmg:999,           color:"#22c55e"}].map(({id,label,dmg,color})=>{
               const max=myInventory[id]||0;
               const val=deploy[id]||0;
