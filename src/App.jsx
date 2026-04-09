@@ -88,7 +88,7 @@ const CLRS=[
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
 const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:55,droner_ghoster: 17,hell_rainer:35,orbital_hi:150,dirty_bomb:8};
-const DAILY_REWARD=3000000;
+const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
