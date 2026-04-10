@@ -87,7 +87,7 @@ const CLRS=[
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.5,bomb:2,plane:3,missile:6,bomber:10,artillery:4,drone:8,chem_bomb:12,emp:0,stealth_bomber:55,droner_ghoster: 17,hell_rainer:35,orbital_hi:150,dirty_bomb:8};
+const DMG={tank:0.25,bomb:1,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
 const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
@@ -98,16 +98,16 @@ const SHOP_ITEMS=[
   {id:"bomb",      label:"\u{1F4A3} Bomb",      desc:"Explosive. High damage.",                     price:300,  dmg:DMG.bomb,      color:"#ef4444"},
   {id:"plane",     label:"✈️ Plane",     desc:"Air unit. Extends attack radius to 3.",       price:470,  dmg:DMG.plane,     color:"#3b82f6"},
   {id:"missile",   label:"🚀 Missile",   desc:"Ballistic strike. Very high damage.",         price:675,  dmg:DMG.missile,   color:"#f97316"},
-  {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 4 dmg, area suppression.",     price:500,  dmg:DMG.artillery, color:"#a78bfa"},
-  {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 8 dmg, hard to intercept.",price:1000,  dmg:DMG.drone,     color:"#06b6d4", oilCost:1},
+  {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 2 dmg, area suppression.",     price:500,  dmg:DMG.artillery, color:"#a78bfa"},
+  {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 4 dmg, hard to intercept.",price:1000,  dmg:DMG.drone,     color:"#06b6d4", oilCost:1},
   {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1800, dmg:DMG.bomber,    color:"#dc2626", oilCost:1},
   {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:1200,   dmg:0,               color:"#6366f1", oilCost:2},
-  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"12 dmg + poisons country: next attacker -20% win.",  price:2600,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
+  {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"6 dmg + poisons country: next attacker -20% win.",  price:2600,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
   {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1050,  dmg:0,               color:"#f0abfc", oilCost:2},
-  {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"17 dmg. Updated with Droney systems!",              price: 4250,  dmg:DMG.droner_ghoster, color:"#A020F0", oilCost:2},
-  {id: "hell_rainer", label:"💣🌧 H.E.L.L R.A.I.N.😈🔥 ‍‍‍‍‍‍‍‍‍‍ㅤㅤㅤㅤㅤㅤㅤㅤBOMBER", desc:"35 dmg. THE DEFINITION OF HELL",              price: 5250,  dmg:DMG.hell_rainer, color:"#880808", oilCost:5},
-  {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",desc:"55 dmg. Bypasses Air Defence completely.",           price:12950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:7},
-  {id:"orbital_hi",label:"🛰️⚡💥Orbital Railgun",desc:"150 dmg. MAX POWER CONQUER 100% CHANCE OF WINNING!!!!.",           price:59950,  dmg:DMG.orbital_hi, color:"#0096FF", oilCost:17}];
+  {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"8.5 dmg. Updated with Droney systems!",              price: 4250,  dmg:DMG.droner_ghoster, color:"#A020F0", oilCost:2},
+  {id: "hell_rainer", label:"💣🌧 H.E.L.L R.A.I.N.😈🔥 ‍‍‍‍‍‍‍‍‍‍ㅤㅤㅤㅤㅤㅤㅤㅤBOMBER", desc:"17.5 dmg. THE DEFINITION OF HELL",              price: 5250,  dmg:DMG.hell_rainer, color:"#880808", oilCost:5},
+  {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",desc:"26.5 dmg. Bypasses Air Defence completely.",           price:12950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:7},
+  {id:"orbital_hi",label:"🛰️⚡💥Orbital Railgun",desc:"75 dmg. MAX POWER CONQUER 100% CHANCE OF WINNING!!!!.",           price:79950,  dmg:DMG.orbital_hi, color:"#0096FF", oilCost:17}];
 
 const MATERIALS=[
   {id:"wood",    label:"Wood",    color:"#84cc16"},
