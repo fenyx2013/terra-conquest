@@ -87,7 +87,7 @@ const CLRS=[
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.25,bomb:1,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
+const DMG={tank:0.25,bomb:1,mortar:7,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
 const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
@@ -100,10 +100,11 @@ const SHOP_ITEMS=[
   {id:"missile",   label:"🚀 Missile",   desc:"Ballistic strike. Very high damage.",         price:675,  dmg:DMG.missile,   color:"#f97316"},
   {id:"artillery", label:"🛦🔥 Artillery", desc:"Heavy cannon. 2 dmg, area suppression.",     price:500,  dmg:DMG.artillery, color:"#a78bfa"},
   {id:"drone",     label:"🛰Drone",     desc:"Precision strike. 4 dmg, hard to intercept.",price:1000,  dmg:DMG.drone,     color:"#06b6d4", oilCost:1},
-  {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. Highest damage.",                price:1800, dmg:DMG.bomber,    color:"#dc2626", oilCost:1},
+  {id:"bomber",    label:"🛦💣 Bomber",    desc:"Carpet bomb. 5 dmg",                price:1800, dmg:DMG.bomber,    color:"#dc2626", oilCost:1},
   {id:"air_def",      label:"🛡️✈️ Air Def",      desc:"Reduces enemy win chance by 5% each.",               price:1200,   dmg:0,               color:"#6366f1", oilCost:2},
   {id:"chem_bomb",    label:"💣☣️ Chem Bomb",    desc:"6 dmg + poisons country: next attacker -20% win.",  price:2600,  dmg:DMG.chem_bomb,   color:"#84cc16", oilCost:3},
   {id:"emp",          label:"⚡📡 EMP",          desc:"0 dmg but disables all enemy buildings for 4 min.",  price:1050,  dmg:0,               color:"#f0abfc", oilCost:2},
+  {id:"mortar",          label:"🌀🌫️💣 Fading Reboot Mortar",          desc:"7 dmg, a remineder of what war causes",  price:3200,  dmg:DMG.mortar,               color:"#565051", oilCost:2},
   {id: "droner_ghoster", label:"🛰🔍❌ L.O.S.T Drone", desc:"8.5 dmg. Updated with Droney systems!",              price: 4250,  dmg:DMG.droner_ghoster, color:"#A020F0", oilCost:2},
   {id: "hell_rainer", label:"💣🌧 H.E.L.L R.A.I.N.😈🔥 ‍‍‍‍‍‍‍‍‍‍ㅤㅤㅤㅤㅤㅤㅤㅤBOMBER", desc:"17.5 dmg. THE DEFINITION OF HELL",              price: 5250,  dmg:DMG.hell_rainer, color:"#880808", oilCost:5},
   {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",desc:"26.5 dmg. Bypasses Air Defence completely.",           price:12950,  dmg:DMG.stealth_bomber, color:"#c084fc", oilCost:7},
@@ -243,7 +244,7 @@ function rndName(){
   return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
 }
 
-function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,stealth_bomber=0,droner_ghoster=0,hell_rainer=0,obital=0,dirty_bomb=0){
+function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,mortar=0,stealth_bomber=0,droner_ghoster=0,hell_rainer=0,obital=0,dirty_bomb=0){
   return Math.round((
     tank*DMG.tank+
     bomb*DMG.bomb+
@@ -253,6 +254,7 @@ function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb
     artillery*DMG.artillery+
     drone*DMG.drone+
     chem_bomb*DMG.chem_bomb+
+    mortar*DMG.mortar+
     stealth_bomber*DMG.stealth_bomber+
     droner_ghoster*DMG.droner_ghoster+
     hell_rainer*DMG.hell_rainer+
@@ -481,7 +483,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
+  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -496,7 +498,7 @@ export default function EarthConquest(){
   const [showGamblingDen,setShowGamblingDen]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
   const [blitzTimeLeft,setBlitzTimeLeft]=useState(0);
@@ -509,8 +511,8 @@ export default function EarthConquest(){
   const [showTrade,setShowTrade]=useState(false);
   const [tradePlayers,setTradePlayers]=useState([]); // players in room with trade post
   const [tradeTarget,setTradeTarget]=useState(null); // selected player to trade with
-  const [tradeOffer,setTradeOffer]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
-  const [tradeRequest,setTradeRequest]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [tradeOffer,setTradeOffer]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [tradeRequest,setTradeRequest]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
   const [pendingTrade,setPendingTrade]=useState(null); // incoming trade offer for me
   const [tradeStep,setTradeStep]=useState("pick"); // pick | configure | sent
   const [clanInput,setClanInput]=useState(""); // {event, expiresAt}
@@ -728,7 +730,7 @@ export default function EarthConquest(){
     setTradePlayers(eligible);
     setTradeTarget(null);
     setTradeStep("pick");
-    const blank={coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0};
+    const blank={coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0};
     setTradeOffer({...blank});
     setTradeRequest({...blank});
     setShowTrade(true);
@@ -1756,7 +1758,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(!attackPlan)return;
     const country=attackPlan.country;
     // Validate: can't deploy more than owned
-    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","stealth_bomber","droner_ghoster","hell_rainer","nuke_bomb","orbital_hi","dirty_bomb"];
+    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","mortar","stealth_bomber","droner_ghoster","hell_rainer","nuke_bomb","orbital_hi","dirty_bomb"];
     for(const[id,qty]of Object.entries(deploy)){
       if(!weaponKeys.includes(id))continue;
       if(qty>0&&qty>(myInventory[id]||0)){
@@ -1837,7 +1839,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(hasStealthBomber&&!(myInventory.buildings||[]).includes("airbase")){
       flash("B-2 Stealth Bomber requires an Airbase to deploy!","error");return;
     }
-      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);
+      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.mortar||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);
     const damage=hasReactor?Math.round(rawDamage*1.5*10)/10:rawDamage;
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
@@ -1946,11 +1948,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setMissionProgress({});
     setClaimedMissions([]);
   }
-  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)+(deploy.hell_rainer||0)+(deploy.orbital_hi||0)>0;
+  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.mortar||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)+(deploy.hell_rainer||0)+(deploy.orbital_hi||0)>0;
   const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
   const hasFortress=(myInventory.buildings||[]).includes("fortress");
   const stealthKit=(myInventory.stealth_kit||0)>0;
-  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
+  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.mortar||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
   const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
   const atkHasStealthBomber=attackPlan&&(deploy.stealth_bomber||0)>0;
   const atkEffectiveAirDef=atkHasStealthBomber?0:(myInventory.air_def||0);
@@ -3079,6 +3081,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {id:"bomber",    label:"🛦💣 Bombers",    dmg:DMG.bomber,    color:"#dc2626"},
               {id:"chem_bomb",    label:"💣☣️ Chem Bomb", dmg:DMG.chem_bomb,   color:"#84cc16"},
               {id:"emp",          label:"⚡📡 EMP",  dmg:0,               color:"#f0abfc"},
+              {id:"mortar",          label:"🌀🌫️💣 Fading Reboot Mortar",  dmg:DMG.mortar,               color:"#565051"},
               {id:"droner_ghoster",    label:"🛰🔍❌ L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
               {id:"hell_rainer",    label:"💣🌧😈🔥 H.E.L.L R.A.I.N. BOMBER",    dmg:DMG.hell_rainer,    color:"#880808"},
               {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",  dmg:DMG.stealth_bomber, color:"#c084fc"},
