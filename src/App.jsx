@@ -484,7 +484,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:500,tank:5,bomb:3,plane:1,missile:1,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
+  const [myInventory,setMyInventory]=useState({coins:5000,tank:10,bomb:6,plane:2,missile:2,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -1597,10 +1597,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
   };
 
   const DIFF={
-    easy:  {tickMs:3500, startCoins:400,  startTank:3,  startBomb:1, startMissile:0, startBomber:0, coinsPerTick:10,  attackChance:0.5},
-    normal:{tickMs:2000, startCoins:800,  startTank:5,  startBomb:3, startMissile:1, startBomber:0, coinsPerTick:25,  attackChance:0.75},
-    hard:  {tickMs:1000, startCoins:1500, startTank:10, startBomb:6, startMissile:3, startBomber:1, coinsPerTick:50, attackChance:1.0},
-    blitz: {tickMs:500,  startCoins:2500, startTank:12, startBomb:6, startMissile:3, startBomber:2, coinsPerTick:75, attackChance:1.0},
+    easy:  {tickMs:3500, startCoins:200,  startTank:1,  startBomb:0, startMissile:0, startBomber:0, coinsPerTick:5,  attackChance:0.2},
+    normal:{tickMs:2000, startCoins:400,  startTank:3,  startBomb:1, startMissile:1, startBomber:0, coinsPerTick:12,  attackChance:0.5},
+    hard:  {tickMs:1000, startCoins:750, startTank:8, startBomb:4, startMissile:2, startBomber:1, coinsPerTick:20, attackChance:0.75},
+    blitz: {tickMs:500,  startCoins:2500, startTank:10, startBomb:6, startMissile:3, startBomber:2, coinsPerTick:75, attackChance:1.0},
   };
 
   const startSingleplayer=(diff)=>{
