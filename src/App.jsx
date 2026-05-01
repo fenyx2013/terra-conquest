@@ -160,7 +160,7 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"event",    name:"EVENT: Aprils blessings",     country:"china",          bonus:{wood:7, coins:15,  label:"7 wood/min & 15 coins/sec"},   cost:{coins:7500},        color:"#BF00FF", desc:"Event changes each month!", special:true},
+  {id:"event1",    name:"EVENT: Mays Gold Vault",     country:"angola",          bonus:{gold:3, coins:55,  label:"3 gold/min & 55 coins/sec"},   cost:{coins:15000},        color:"gold", desc:"Event changes each month!", special:true},
   {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:17000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
   {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:13000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
   {id:"colosseum",     name:"The Colosseum",      country:"italy",       bonus:{troops:4, coins:20, label:"+4 tanks/min & 20 coins/sec"},    cost:{coins:13000,stone:10,iron:6},      color:"#8B0000", desc:"The Roman Empire never dies."},
