@@ -454,6 +454,8 @@ function OnlineCount(){
 }
 
 export default function EarthConquest(){
+  const [showNukeVideo, setShowNukeVideo] = useState(false);
+  const [pendingNukeAction, setPendingNukeAction] = useState(null);
   const [screen,setScreen]=useState("home");
   const [droneDisplayMsg, setDroneDisplayMsg] = useState("");
   const droneTyping = useRef(null);
@@ -1819,22 +1821,24 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       return;
     }
     if((deploy.nuke_bomb||0)>0){
-      const newInv={...myInventory,nuke_bomb:(myInventory.nuke_bomb||0)-1};
-      setMyInventory(newInv);
-      await saveInv(newInv);
-      const newO={...ownership};
-      delete newO[country.id];
-      setOwnership(newO);
-      ownershipRef.current=newO;
-      newO[country.id]="__nuked__";
-      await saveWorld(newO,players);
-      triggerAttackEffect(country);
-      playSound("nuke");
-      flash("NUCLEAR STRIKE on "+country.name+"! Territory irradiated - permanently uninhabitable.","success");unlockAchievement("nuke_used");
-      setAttackPlan(null);
-      setAttackMode(false);
-      return;
-    }
+  const newInv={...myInventory,nuke_bomb:(myInventory.nuke_bomb||0)-1};
+  setMyInventory(newInv);
+  await saveInv(newInv);
+  const newO={...ownership};
+  delete newO[country.id];
+  setOwnership(newO);
+  ownershipRef.current=newO;
+  newO[country.id]="__nuked__";
+  await saveWorld(newO,players);
+  triggerAttackEffect(country);
+  playSound("nuke");
+  // Store what we need to do after video, then show video
+  setPendingNukeAction({country, newInv});
+  setShowNukeVideo(true);
+  setAttackPlan(null);
+  setAttackMode(false);
+  return;
+}
     const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
     // stealth bomber bypasses air defence
     const hasStealthBomber=(deploy.stealth_bomber||0)>0;
@@ -3716,6 +3720,62 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
         </div>
       );
     })()}
+
+    {/* Nuke animation overlay - rendered INSIDE the App component */}
+    {showNukeVideo && (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 99999,
+        background: "black"
+      }}>
+        <video
+          key="nukeVideo"
+          id="nukeVideo"
+          autoPlay
+          muted
+          playsInline
+          src="/Animation.mp4"
+          style={{ width: "100vw", height: "100vh", objectFit: "fill" }}
+          onEnded={() => {
+            setShowNukeVideo(false);
+            if(pendingNukeAction){
+              flash("\u2622 NUCLEAR STRIKE on "+pendingNukeAction.country.name+"! Permanently uninhabitable.","success");
+              unlockAchievement("nuke_used");
+              setPendingNukeAction(null);
+            }
+          }}
+          onError={(e) => {
+            console.error("Nuke video failed to load:", e);
+            setShowNukeVideo(false);
+            if(pendingNukeAction){
+              flash("\u2622 NUCLEAR STRIKE on "+pendingNukeAction.country.name+"! Permanently uninhabitable.","success");
+              unlockAchievement("nuke_used");
+              setPendingNukeAction(null);
+            }
+          }}
+        />
+        <button
+          onClick={()=>{
+            setShowNukeVideo(false);
+            if(pendingNukeAction){
+              flash("\u2622 NUCLEAR STRIKE on "+pendingNukeAction.country.name+"! Permanently uninhabitable.","success");
+              unlockAchievement("nuke_used");
+              setPendingNukeAction(null);
+            }
+          }}
+          style={{
+            position:"absolute", bottom:"30px", right:"30px",
+            padding:"10px 24px",
+            background:"rgba(0,255,136,.1)",
+            border:"1px solid rgba(0,255,136,.25)",
+            borderRadius:"8px", color:"rgba(0,255,136,.6)",
+            cursor:"pointer", fontSize:"13px",
+            fontFamily:"'Courier New',monospace", letterSpacing:"2px"
+          }}
+        >
+          Skip {"\u25B6\u25B6"}
+        </button>
+      </div>
+    )}
 
   </div>
 );
