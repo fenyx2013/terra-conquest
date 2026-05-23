@@ -87,8 +87,8 @@ const CLRS=[
   {bg:"#db2777",light:"#f9a8d4",name:"Pink"},
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
-const DMG={tank:0.25,bomb:1,mortar:7,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
-const DAILY_REWARD=3000;
+const DMG={tank:0.25,bomb:1,mortar:7,devils_tank:0.02,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
+const DAILY_REWARD=3000000000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
@@ -160,20 +160,22 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"event1",    name:"EVENT: Mays Gold Vault",     country:"angola",          bonus:{gold:3, coins:55,  label:"3 gold/min & 55 coins/sec"},   cost:{coins:15000},        color:"gold", desc:"Event changes each month!", special:true},
-  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:17000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
+  {id:"event1",    name:"EVENT: Mays Gold Vault",     country:"angola",          bonus:{gold:3, coins:55,  label:"3 gold/min & 55 coins/sec"},   cost:{coins:35000},        color:"gold", desc:"Event changes each month!", special:true},
+  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:37000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
+  {id:"ben",    name:"The Big Ben",     country:"uk",          bonus:{coins:100,  label:"+100 coins/sec"},   cost:{coins:50000,iron:8,gold:5},        color:"#D4AF37", desc:"The Tower that ticks gold"},
   {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:13000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
-  {id:"colosseum",     name:"The Colosseum",      country:"italy",       bonus:{troops:4, coins:20, label:"+4 tanks/min & 20 coins/sec"},    cost:{coins:13000,stone:10,iron:6},      color:"#8B0000", desc:"The Roman Empire never dies."},
-  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{troops:3,  label:"+3 tanks/min"},    cost:{coins:16000,stone:12,iron:4},      color:"#f59e0b", desc:"The mightiest fortification ever built. Troops pour in constantly."},
-  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:12000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
-  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:13000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
-  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:11000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
-  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:14000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
-  {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:15500,iron:15,gold:5},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
-  {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:15750,iron:11,gold:5},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
-  {id:"mt_olymp",   name:"Mount Olympus",country:"greece",       bonus:{stone:20, wood:10,    label:"+20 stone/min & +10 wood/min "},     cost:{coins:17000,stone:33,gold:5},        color:"#636363", desc:"The home of Gods.", special:true},
-  {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:20000,stone:6,gold:5}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
-  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:22020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
+  {id:"colosseum",     name:"The Colosseum",      country:"italy",       bonus:{troops:4, coins:20, label:"+4 tanks/min & +20 coins/sec"},    cost:{coins:33000,stone:10,iron:6},      color:"#8B0000", desc:"The Roman Empire never dies."},
+  {id:"greatwall",   name:"Great Wall",       country:"china",        bonus:{troops:3,  label:"+3 tanks/min"},    cost:{coins:36000,stone:12,iron:4},      color:"#f59e0b", desc:"The mightiest fortification ever built. Troops pour in constantly."},
+  {id:"pyramids",    name:"The Pyramids",     country:"egypt",        bonus:{gold:3,    label:"+3 gold/min"},     cost:{coins:32000,stone:8,gold:3},       color:"#f5c842", desc:"Controls North Africa. Gold income is unmatched."},
+  {id:"eiffel",      name:"Eiffel Tower",     country:"france",       bonus:{coins:40,  label:"+40 coins/sec"},   cost:{coins:33000,iron:6,gold:4},        color:"#a78bfa", desc:"The most visited landmark on Earth. Coins flow like tourists."},
+  {id:"amazon_hq",   name:"Amazon Rainforest",country:"brazil",       bonus:{wood:5,    label:"+5 wood/min"},     cost:{coins:31000,wood:8,stone:4},        color:"#22c55e", desc:"Controls South America. Endless resources from the jungle."},
+  {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:34000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
+  {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:35500,iron:15,gold:5},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
+  {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:35750,iron:11,gold:5},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
+  {id:"mt_olymp",   name:"Mount Olympus",country:"greece",       bonus:{stone:20, wood:10,    label:"+20 stone/min & +10 wood/min "},     cost:{coins:37000,stone:33,gold:5},        color:"#636363", desc:"The home of Gods.", special:true},
+  {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:50000,stone:6,gold:5}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
+  {id:"gates_of_hell",     name:"Gates of Hell",  country:"turkmenistan",      bonus:{coins:-66666666666666666666666666666666666, devils1:666,    label:"REMOVES ALL YOUR COINS! & +666 tanks/min"},cost:{coins:666666,stone:666,gold:666}, color:"#FF6A00", desc:"Devils bargain, Lose your wealth forever but get the devils troops", special:true},
+  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:52020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -246,21 +248,22 @@ function rndName(){
   return adj[Math.floor(Math.random()*8)]+noun[Math.floor(Math.random()*8)]+Math.floor(Math.random()*99+1);
 }
 
-function calcDamage(tank,bomb,plane,missile,bomber,artillery=0,drone=0,chem_bomb=0,emp=0,mortar=0,stealth_bomber=0,droner_ghoster=0,hell_rainer=0,obital=0,dirty_bomb=0){
+function calcDamage(deploy){
   return Math.round((
-    tank*DMG.tank+
-    bomb*DMG.bomb+
-    plane*DMG.plane+
-    missile*DMG.missile+
-    bomber*DMG.bomber+
-    artillery*DMG.artillery+
-    drone*DMG.drone+
-    chem_bomb*DMG.chem_bomb+
-    mortar*DMG.mortar+
-    stealth_bomber*DMG.stealth_bomber+
-    droner_ghoster*DMG.droner_ghoster+
-    hell_rainer*DMG.hell_rainer+
-    dirty_bomb*DMG.dirty_bomb
+    (deploy.tank||0)*DMG.tank+
+    (deploy.bomb||0)*DMG.bomb+
+    (deploy.plane||0)*DMG.plane+
+    (deploy.missile||0)*DMG.missile+
+    (deploy.bomber||0)*DMG.bomber+
+    (deploy.artillery||0)*DMG.artillery+
+    (deploy.drone||0)*DMG.drone+
+    (deploy.chem_bomb||0)*DMG.chem_bomb+
+    (deploy.mortar||0)*DMG.mortar+
+    (deploy.devils_tank||0)*DMG.devils_tank+
+    (deploy.stealth_bomber||0)*DMG.stealth_bomber+
+    (deploy.droner_ghoster||0)*DMG.droner_ghoster+
+    (deploy.hell_rainer||0)*DMG.hell_rainer+
+    (deploy.dirty_bomb||0)*DMG.dirty_bomb
   )*10)/10;
 }
 
@@ -487,7 +490,7 @@ export default function EarthConquest(){
   const [roomInput,setRoomInput]=useState("");
   const [roomError,setRoomError]=useState("");
   const [recentRooms,setRecentRooms]=useState([]);
-  const [myInventory,setMyInventory]=useState({coins:5000,tank:10,bomb:6,plane:2,missile:2,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
+  const [myInventory,setMyInventory]=useState({coins:5000,tank:10,bomb:6,plane:2,missile:2,bomber:0,artillery:0,drone:0,air_def:0,spy:0,satellite:0,chem_bomb:0,emp:0,mortar:0,devils_tank:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0,lastDaily:"",wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0,nuke_bomb:0,stealth_kit:0,shield:0,buildings:[],lastFactory:0,factoryCount:0,academySpies:0,lastAcademy:0,poisonedCountries:{},empCountries:{}});
   const [hovered,setHovered]=useState(null);
   const [tip,setTip]=useState({show:false,x:0,y:0,c:null,owner:null,inReach:false});
   const [notif,setNotif]=useState(null);
@@ -502,7 +505,7 @@ export default function EarthConquest(){
   const [showGamblingDen,setShowGamblingDen]=useState(false);
   const [blackMarketItems,setBlackMarketItems]=useState([]);
   const [attackPlan,setAttackPlan]=useState(null);
-  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
+  const [deploy,setDeploy]=useState({tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,devils_tank:0,stealth_bomber:0,droner_ghoster:0,hell_rainer:0,orbital_hi:0,dirty_bomb:0});
   const [tutStep,setTutStep]=useState(0);
   const [isSingleplayer,setIsSingleplayer]=useState(false);
   const [blitzTimeLeft,setBlitzTimeLeft]=useState(0);
@@ -515,8 +518,8 @@ export default function EarthConquest(){
   const [showTrade,setShowTrade]=useState(false);
   const [tradePlayers,setTradePlayers]=useState([]); // players in room with trade post
   const [tradeTarget,setTradeTarget]=useState(null); // selected player to trade with
-  const [tradeOffer,setTradeOffer]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
-  const [tradeRequest,setTradeRequest]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [tradeOffer,setTradeOffer]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,devils_tank:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
+  const [tradeRequest,setTradeRequest]=useState({coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,devils_tank:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0});
   const [pendingTrade,setPendingTrade]=useState(null); // incoming trade offer for me
   const [tradeStep,setTradeStep]=useState("pick"); // pick | configure | sent
   const [clanInput,setClanInput]=useState(""); // {event, expiresAt}
@@ -646,7 +649,7 @@ export default function EarthConquest(){
         try{
           const {data}=await sb.from("inventory").select("data").eq("username",username).single();
           if(!data?.data)return;
-          const updated={...data.data,coins:(data.data.coins||0)+1000};
+          const updated={...data.data,coins:safeCoins((data.data.coins||0)+1000)};
           await sb.from("inventory").upsert({username,data:updated},{onConflict:"username"});
           fetchDevData();
         }catch(e){}
@@ -701,13 +704,13 @@ export default function EarthConquest(){
     if((myInventory.coins||0)<amount){flash("Not enough coins!","error");return;}
     const win=Math.random()<0.5;
     if(win){
-      const ni={...myInventory,coins:myInventory.coins+amount};
+      const ni={...myInventory,coins:safeCoins(myInventory.coins+amount)};
       setMyInventory(ni);
       saveInv(ni);
       flash("🎰 You won "+amount+" coins!","info");
       droneSay("wonGamble");
     } else {
-      const ni={...myInventory,coins:myInventory.coins-amount};
+      const ni={...myInventory,coins:safeCoins(myInventory.coins-amount)};
       setMyInventory(ni);
       saveInv(ni);
       flash("🎰 You lost "+amount+" coins...","error");
@@ -734,7 +737,7 @@ export default function EarthConquest(){
     setTradePlayers(eligible);
     setTradeTarget(null);
     setTradeStep("pick");
-    const blank={coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0};
+    const blank={coins:0,tank:0,bomb:0,plane:0,missile:0,bomber:0,artillery:0,drone:0,chem_bomb:0,emp:0,mortar:0,devils_tank:0,stealth_bomber:0,wood:0,stone:0,iron:0,gold:0,oil:0,uranium:0};
     setTradeOffer({...blank});
     setTradeRequest({...blank});
     setShowTrade(true);
@@ -779,8 +782,8 @@ export default function EarthConquest(){
       }
       // update my inventory: receive offer, give request
       const myNew={...myInventory,_pendingTrade:null};
-      for(const[k,v] of Object.entries(offer)) if(v>0) myNew[k]=(myNew[k]||0)+v;
-      for(const[k,v] of Object.entries(request)) if(v>0) myNew[k]=Math.max(0,(myNew[k]||0)-v);
+      for(const[k,v] of Object.entries(offer)) if(v>0){if(k==="coins"){myNew[k]=safeCoins((myNew[k]||0)+v);}else{myNew[k]=(myNew[k]||0)+v;}}
+      for(const[k,v] of Object.entries(request)) if(v>0){if(k==="coins"){myNew[k]=safeCoins((myNew[k]||0)-v);}else{myNew[k]=Math.max(0,(myNew[k]||0)-v);}}
       // update sender inventory: receive request, give offer
       const senderNew={...senderData.data};
       for(const[k,v] of Object.entries(request)) if(v>0) senderNew[k]=(senderNew[k]||0)+v;
@@ -818,6 +821,7 @@ export default function EarthConquest(){
   };
 
   const flash=(msg,type="info")=>{setNotif({msg,type});setTimeout(()=>setNotif(null),3500);};
+  const safeCoins=(n)=>Math.max(0,Math.floor(n??0));
 
   useEffect(()=>{
     if(screen==="menu"){
@@ -891,7 +895,7 @@ export default function EarthConquest(){
       uranium:(myInventory.uranium||0)-15,
       iron:(myInventory.iron||0)-17,
       gold:(myInventory.gold||0)-7,
-      coins:(myInventory.coins||0)-20000,
+      coins:safeCoins((myInventory.coins||0)-20000),
       nuke_bomb:(myInventory.nuke_bomb||0)+1,
     };
     setMyInventory(newInv);
@@ -1155,14 +1159,14 @@ export default function EarthConquest(){
           const lastTax=inv.lastTax||0;
           if(taxNow-lastTax>=120000&&myTerritories>=5){
             const tax=Math.floor(myTerritories/5);
-            return {...inv,coins:inv.coins+tax,lastTax:taxNow};
+            return {...inv,coins:safeCoins(inv.coins+tax),lastTax:taxNow};
           }
         }
         if(fc===0)return inv;
         const vc=(inv.buildings||[]).filter(b=>b==="vault").length;
         const perF=COIN_FACTORY_YIELD+(vc*2);
         const earned=perF*fc;
-        const newInv={...inv,coins:inv.coins+earned,lastFactory:Date.now()};
+        const newInv={...inv,coins:safeCoins(inv.coins+earned),lastFactory:Date.now()};
         if(!isSingleplayer)(async()=>{try{await sb.from("inventory").upsert({username:inv._name||"",data:newInv},{onConflict:"username"});}catch(e){}})();
         return newInv;
       });
@@ -1286,7 +1290,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       if((inv[res]||0)<amt){flash("Not enough "+res+"!","error");return;}
     }
     const newInv={...inv};
-    for(const[res,amt] of Object.entries(item.cost)) newInv[res]=(newInv[res]||0)-amt;
+    for(const[res,amt] of Object.entries(item.cost)){if(res==="coins"){newInv[res]=safeCoins((newInv[res]||0)-amt);}else{newInv[res]=Math.max(0,(newInv[res]||0)-amt);}}
     for(const[res,amt] of Object.entries(item.reward)){
       if(res==="xp"){addXP(amt);}
       else newInv[res]=(newInv[res]||0)+amt;
@@ -1396,14 +1400,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(w?.bonus?.coins)coins+=w.bonus.coins;
         });
         if(coins===0)return inv;
-        return{...inv,coins:(inv.coins||0)+coins};
+        return{...inv,coins:safeCoins((inv.coins||0)+coins)};
       });
     },1000);
     // Materials + troops tick every 60s
     const matTick=setInterval(async()=>{
       setMyInventory(inv=>{
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
-        let wood=0,stone=0,iron=0,gold=0,troops=0,uranium=0,goldCost=0,oil=0;
+        let wood=0,stone=0,iron=0,gold=0,troops=0,devils1=0,uranium=0,goldCost=0,oil=0;
         owned.forEach(id=>{
           const c=COUNTRIES.find(x=>x.id===id);
           if(!c?.bonus)return;
@@ -1413,6 +1417,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(c.bonus.gold)gold+=c.bonus.gold;
           if(c.bonus.oil)oil+=c.bonus.oil;
           if(c.bonus.troops)troops+=c.bonus.troops;
+          if(c.bonus.devils1)devils1+=c.bonus.devils1;
           const mines=(inv.buildings||[]).filter(b=>b==="mine").length;
           if(mines>0){iron+=mines;stone+=mines;}
         });
@@ -1427,6 +1432,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           const w=WORLD_WONDERS.find(x=>x.id===wid);
           if(!w)return;
           if(w.bonus.troops)troops+=w.bonus.troops;
+          if(w.bonus.devils1)devils1+=w.bonus.devils1;
           if(w.bonus.gold)gold+=w.bonus.gold;
            if(w.bonus.stone)stone+=w.bonus.stone;
           if(w.bonus.wood)wood+=w.bonus.wood;
@@ -1442,13 +1448,14 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             }
           }
         });
-        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&uranium===0&&oil===0)return inv;
+        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&devils1===0&&uranium===0&&oil===0)return inv;
         const next={...inv,
           wood:(inv.wood||0)+wood,
           stone:(inv.stone||0)+stone,
           iron:(inv.iron||0)+iron,
           gold:(inv.gold||0)+gold-goldCost,
           tank:(inv.tank||0)+troops,
+          devils_tank:(inv.devils_tank||0)+devils1,
           uranium:(inv.uranium||0)+uranium,
           oil:(inv.oil||0)+oil,
         };
@@ -1657,7 +1664,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const vaultCount=(myInventory.buildings||[]).filter(b=>b==="vault").length;
     const vaultBonus=vaultCount*500;
     const total=DAILY_REWARD+vaultBonus;
-    const newInv={...myInventory,coins:myInventory.coins+total,lastDaily:todayStr(),_dailyCount:(myInventory._dailyCount||0)+1};
+    const newInv={...myInventory,coins:safeCoins(myInventory.coins+total),lastDaily:todayStr(),_dailyCount:(myInventory._dailyCount||0)+1};
     setMyInventory(newInv);
     await saveInv(newInv);
     setShowDaily(false);
@@ -1674,7 +1681,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(!pass||!pass.reward)return;
     const r=pass.reward;
     let newInv={...myInventory};
-    if(r.type==="coins")newInv={...newInv,coins:newInv.coins+r.amount};
+    if(r.type==="coins")newInv={...newInv,coins:safeCoins(newInv.coins+r.amount)};
     else newInv={...newInv,[r.type]:(newInv[r.type]||0)+r.amount};
     const next=[...claimedPassLevels,level];
     newInv={...newInv,_claimedPassLevels:next};
@@ -1700,7 +1707,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(myInventory.coins<price){flash("Not enough coins!","error");return;}
     if(item.oilCost&&(myInventory.oil||0)<item.oilCost){flash("Need "+item.oilCost+" Oil to buy "+item.label+"!","error");return;}
     if(item.id==="air_def"&&(myInventory.air_def||0)>=5){flash("Air Defence is maxed at 5!","error");return;}
-    const newInv={...myInventory,coins:myInventory.coins-price,[item.id]:(myInventory[item.id]||0)+1};
+    const newInv={...myInventory,coins:safeCoins(myInventory.coins-price),[item.id]:(myInventory[item.id]||0)+1};
     if(item.oilCost)newInv.oil=Math.max(0,(myInventory.oil||0)-item.oilCost);
     setMyInventory(newInv);
     await saveInv(newInv);
@@ -1721,7 +1728,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
       if((myInventory[mat]||0)<qty){flash("Not enough "+mat+"!","error");return;}
     }
     const newInv={...myInventory};
-    for(const[mat,qty]of Object.entries(cost))newInv[mat]=(newInv[mat]||0)-qty;
+    for(const[mat,qty]of Object.entries(cost)){if(mat==="coins"){newInv[mat]=safeCoins((newInv[mat]||0)-qty);}else{newInv[mat]=Math.max(0,(newInv[mat]||0)-qty);}}
     newInv.buildings=[...buildings,bld.id];
     setMyInventory(newInv);
     await saveInv(newInv);
@@ -1739,7 +1746,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
 
   const buyMaterial=async(matId,qty,cost)=>{
     if(myInventory.coins<cost){flash("Not enough coins!","error");return;}
-    const newInv={...myInventory,coins:myInventory.coins-cost,[matId]:(myInventory[matId]||0)+qty};
+    const newInv={...myInventory,coins:safeCoins(myInventory.coins-cost),[matId]:(myInventory[matId]||0)+qty};
     setMyInventory(newInv);
     await saveInv(newInv);
     flash("Bought "+qty+"x "+matId+"!","success");
@@ -1762,7 +1769,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(!attackPlan)return;
     const country=attackPlan.country;
     // Validate: can't deploy more than owned
-    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","mortar","stealth_bomber","droner_ghoster","hell_rainer","nuke_bomb","orbital_hi","dirty_bomb"];
+    const weaponKeys=["tank","bomb","plane","missile","bomber","artillery","drone","chem_bomb","emp","mortar","devils_tank","stealth_bomber","droner_ghoster","hell_rainer","nuke_bomb","orbital_hi","dirty_bomb"];
     for(const[id,qty]of Object.entries(deploy)){
       if(!weaponKeys.includes(id))continue;
       if(qty>0&&qty>(myInventory[id]||0)){
@@ -1845,7 +1852,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     if(hasStealthBomber&&!(myInventory.buildings||[]).includes("airbase")){
       flash("B-2 Stealth Bomber requires an Airbase to deploy!","error");return;
     }
-      const rawDamage=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.mortar||0,deploy.stealth_bomber||0,deploy.dirty_bomb||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);
+      const rawDamage=calcDamage(deploy);
     const damage=hasReactor?Math.round(rawDamage*1.5*10)/10:rawDamage;
     const embassyBonus=((myInventory.buildings||[]).includes("embassy"))?0.05:0;
     const defenderOwnerKey=ownership[country.id];
@@ -1954,11 +1961,11 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     setMissionProgress({});
     setClaimedMissions([]);
   }
-  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.mortar||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)+(deploy.hell_rainer||0)+(deploy.orbital_hi||0)>0;
+  const hasWeapons=(deploy.tank||0)+(deploy.bomb||0)+(deploy.plane||0)+(deploy.missile||0)+(deploy.bomber||0)+(deploy.artillery||0)+(deploy.drone||0)+(deploy.chem_bomb||0)+(deploy.emp||0)+(deploy.mortar||0)+(deploy.devils_tank||0)+(deploy.stealth_bomber||0)+(deploy.droner_ghoster||0)+(deploy.hell_rainer||0)+(deploy.orbital_hi||0)>0;
   const hasReactor=(myInventory.buildings||[]).includes("nuclear_reactor");
   const hasFortress=(myInventory.buildings||[]).includes("fortress");
   const stealthKit=(myInventory.stealth_kit||0)>0;
-  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy.tank||0,deploy.bomb||0,deploy.plane||0,deploy.missile||0,deploy.bomber||0,deploy.artillery||0,deploy.drone||0,deploy.chem_bomb||0,deploy.emp||0,deploy.mortar||0,deploy.stealth_bomber||0,deploy.droner_ghoster||0,deploy.hell_rainer||0,deploy.orbital_hi||0);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
+  const atkDamage=attackPlan?(()=>{const raw=calcDamage(deploy);return hasReactor?Math.round(raw*1.5*10)/10:raw;})():0;
   const defenderOwner=attackPlan?ownership[attackPlan.country.id]:null;
   const atkHasStealthBomber=attackPlan&&(deploy.stealth_bomber||0)>0;
   const atkEffectiveAirDef=atkHasStealthBomber?0:(myInventory.air_def||0);
@@ -2658,7 +2665,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         <button onClick={async()=>{
                           if(!costMet){flash("Not enough resources!","error");return;}
                           const n={...myInventory};
-                          Object.entries(w.cost).forEach(([res,amt])=>{n[res]=Math.max(0,(n[res]||0)-amt);});
+                          Object.entries(w.cost).forEach(([res,amt])=>{if(res==="coins"){n[res]=safeCoins((n[res]||0)-amt);}else{n[res]=Math.max(0,(n[res]||0)-amt);}});
                           setMyInventory(n);await saveInv(n);
                           const newW={...worldWondersRef.current,[w.id]:username};
                           setWorldWondersSync(newW);
@@ -2743,7 +2750,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         const next=[...claimedMissions,m.id];
                         setClaimedMissions(next);
                         setMissionProgress(p=>({...p}));
-                        setMyInventory(inv=>{const ni={...inv,coins:inv.coins+m.coins,_claimedMissions:next,_missionProgress:missionProgress};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
+                        setMyInventory(inv=>{const ni={...inv,coins:safeCoins(inv.coins+m.coins),_claimedMissions:next,_missionProgress:missionProgress};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
                         flash("Mission claimed: +"+m.coins+" coins!","success");
                       }} style={{width:"100%",padding:"6px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"7px",color:"#000",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif"}}>
                         Claim +{m.coins} coins
@@ -3088,6 +3095,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               {id:"chem_bomb",    label:"💣☣️ Chem Bomb", dmg:DMG.chem_bomb,   color:"#84cc16"},
               {id:"emp",          label:"⚡📡 EMP",  dmg:0,               color:"#f0abfc"},
               {id:"mortar",          label:"🌀🌫️💣 Fading Reboot Mortar",  dmg:DMG.mortar,               color:"#565051"},
+              {id:"devils_tank",          label:"😈🔥\u{1FA96} Devil's Troops",  dmg:DMG.devils_tank,               color:"#FF6A00"},
               {id:"droner_ghoster",    label:"🛰🔍❌ L.O.S.T Drone",    dmg:DMG.droner_ghoster,    color:"#A020F0"},
               {id:"hell_rainer",    label:"💣🌧😈🔥 H.E.L.L R.A.I.N. BOMBER",    dmg:DMG.hell_rainer,    color:"#880808"},
               {id:"stealth_bomber",label:"🖤🛦💣 B-2 Stealth Bomber",  dmg:DMG.stealth_bomber, color:"#c084fc"},
@@ -3175,7 +3183,15 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             {id:"plane",icon:"P",color:"#3b82f6"},{id:"missile",icon:"M",color:"#f97316"},
             {id:"artillery",icon:"A",color:"#e879f9"},{id:"drone",icon:"D",color:"#06b6d4"},
             {id:"bomber",icon:"X",color:"#dc2626"},{id:"air_def",icon:"AD",color:"#6366f1"},
-            {id:"spy",icon:"S",color:"#10b981"},{id:"satellite",icon:"SAT",color:"#a5b4fc"},
+            {id:"spy",icon:"S",color:"#10b981"},
+            {id:"emp",icon:"E",color:"#f0abfc"},
+            {id:"droner_ghoster",icon:"L",color:"#A020F0"},
+            {id:"devils_tank",icon:"D",color:"#FF6A00"},
+            {id:"stealth_bomber",icon:"SB",color:"#c084fc"},
+            {id:"chem_bomb",icon:"CB",color:"#84cc16"},
+            {id:"hell_rainer",icon:"HR",color:"#880808"},
+            {id:"mortar",icon:"FRM",color:"#565051"},
+            {id:"orbital_hi",icon:"ORB",color:"#0096FF"},
             {id:"nuke_bomb",icon:"N",color:"#22c55e"}].filter(w=>(myInventory[w.id]||0)>0).map(w=>(
             <div key={w.id} title={w.id} style={{display:"flex",alignItems:"center",gap:"2px",padding:"3px 6px",background:"rgba(255,255,255,.05)",borderRadius:"5px",border:"1px solid "+w.color+"33",flexShrink:0}}>
               <span style={{color:w.color,fontSize:"8px",fontWeight:"bold",letterSpacing:".5px"}}>{w.icon}</span>
