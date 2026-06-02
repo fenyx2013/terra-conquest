@@ -160,7 +160,7 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"event1",    name:"EVENT: Mays Gold Vault",     country:"angola",          bonus:{gold:3, coins:55,  label:"3 gold/min & 55 coins/sec"},   cost:{coins:35000},        color:"gold", desc:"Event changes each month!", special:true},
+  {id:"event2",    name:"EVENT: Junes Toy Box",     country:"sudan",          bonus:{troops:3, coins:15,  label:"3 tanks/min & 15 coins/sec"},   cost:{coins:35000},        color:"gold", desc:"Event changes each month!", special:true},
   {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:37000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
   {id:"ben",    name:"The Big Ben",     country:"uk",          bonus:{coins:100,  label:"+100 coins/sec"},   cost:{coins:50000,iron:8,gold:5},        color:"#D4AF37", desc:"The Tower that ticks gold"},
   {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:13000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
@@ -172,10 +172,12 @@ const WORLD_WONDERS=[
   {id:"cuba_statue",   name:"The Christ of Havana",country:"cuba",       bonus:{gold: 3, stone:2,    label:"+3 Gold/min & +2 Stone/min"},     cost:{coins:34000,gold:3,stone:11},        color:"#FFFFFF", desc:"Controls Cuba. Endless resources from God"},
   {id:"tokyo_tower",   name:"Tokyo Tower",country:"japan",       bonus:{iron: 5, coins:45,    label:"+5 Iron/min & +45 coins/sec"},     cost:{coins:35500,iron:15,gold:5},        color:"#FFB347", desc:"Controls Japan. Endless resources and coins from the Japan territory."},
   {id:"sydney   ",   name:"Sydney Opera House",country:"australia",       bonus:{coins:65,    label:"+65 coins/sec"},     cost:{coins:35750,iron:11,gold:5},        color:"#707372", desc:"Controls Australia. Endless coins from the Austalian territory."},
-  {id:"mt_olymp",   name:"Mount Olympus",country:"greece",       bonus:{stone:20, wood:10,    label:"+20 stone/min & +10 wood/min "},     cost:{coins:37000,stone:33,gold:5},        color:"#636363", desc:"The home of Gods.", special:true},
+  {id:"mt_olymp",   name:"Mount Olympus",country:"greece",       bonus:{stone:20, wood:10,    label:"+20 stone/min & +10 wood/min "},     cost:{coins:37000,stone:33,gold:5},        color:"#636363", desc:"The home of Gods."},
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:50000,stone:6,gold:5}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
   {id:"gates_of_hell",     name:"Gates of Hell",  country:"turkmenistan",      bonus:{coins:-66666666666666666666666666666666666, devils1:666,    label:"REMOVES ALL YOUR COINS! & +666 tanks/min"},cost:{coins:666666,stone:666,gold:666}, color:"#FF6A00", desc:"Devils bargain, Lose your wealth forever but get the devils troops", special:true},
-  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1,     label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min"},cost:{coins:52020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
+  {id:"nuclear_disaster",     name:"Cernobyl",  country:"ukraine",      bonus:{uranium:3, stone:20, coins:45,    label:" +3 Uranium/min, +20 stone/min & 45 coins/min "},cost:{coins:150000,stone:100,gold:75}, color:"#4CFC2B", desc:"A nuclear disaster....", special:true},
+  {id:"nasa_plant",     name:"N.A.S.A",  country:"usa",      bonus:{spy:2, missile:7, coins:55, oil:3,   label:" +2 Spy/day, +7 missile/min, 55 coins/min & +3 oil/min "},cost:{coins:350000,iron:200,gold:135}, color:"#0B3D91", desc:"EXPLORE SPACE!", special:true},
+  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1, missile:1, oil:1,    label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min +1 missile/min +1 oil/min"},cost:{coins:52020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -1407,7 +1409,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const matTick=setInterval(async()=>{
       setMyInventory(inv=>{
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
-        let wood=0,stone=0,iron=0,gold=0,troops=0,devils1=0,uranium=0,goldCost=0,oil=0;
+        let wood=0,stone=0,iron=0,gold=0,troops=0,devils1=0,missile=0,uranium=0,goldCost=0,oil=0;
         owned.forEach(id=>{
           const c=COUNTRIES.find(x=>x.id===id);
           if(!c?.bonus)return;
@@ -1416,8 +1418,10 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(c.bonus.iron)iron+=c.bonus.iron;
           if(c.bonus.gold)gold+=c.bonus.gold;
           if(c.bonus.oil)oil+=c.bonus.oil;
+          if(c.bonus.uranium)uranium+=c.bonus.uranium;
           if(c.bonus.troops)troops+=c.bonus.troops;
           if(c.bonus.devils1)devils1+=c.bonus.devils1;
+          if(c.bonus.missile)missile+=c.bonus.missile;
           const mines=(inv.buildings||[]).filter(b=>b==="mine").length;
           if(mines>0){iron+=mines;stone+=mines;}
         });
@@ -1433,10 +1437,12 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(!w)return;
           if(w.bonus.troops)troops+=w.bonus.troops;
           if(w.bonus.devils1)devils1+=w.bonus.devils1;
+          if(w.bonus.missile)missile+=w.bonus.missile;
           if(w.bonus.gold)gold+=w.bonus.gold;
            if(w.bonus.stone)stone+=w.bonus.stone;
           if(w.bonus.wood)wood+=w.bonus.wood;
           if(w.bonus.oil)oil+=w.bonus.oil;
+          if(w.bonus.uranium)uranium+=w.bonus.uranium;
            if(w.bonus.iron)iron+=w.bonus.iron;
           // Dracula's Castle: +3 spies every 8 hours
           if(w.id==="dracula"&&w.bonus.spy){
