@@ -176,8 +176,8 @@ const WORLD_WONDERS=[
   {id:"dracula",     name:"Dracula's Castle",  country:"romania",      bonus:{spy:3,     label:"+3 spies/day & -15% def"},cost:{coins:50000,stone:6,gold:5}, color:"#dc2626", desc:"Built on cursed ground — enemies fear it. Spy production surges and all attackers suffer -15% win chance against your territories.", special:true},
   {id:"gates_of_hell",     name:"Gates of Hell",  country:"turkmenistan",      bonus:{coins:-66666666666666666666666666666666666, devils1:666,    label:"REMOVES ALL YOUR COINS! & +666 tanks/min"},cost:{coins:666666,stone:666,gold:666}, color:"#FF6A00", desc:"Devils bargain, Lose your wealth forever but get the devils troops", special:true},
   {id:"nuclear_disaster",     name:"Cernobyl",  country:"ukraine",      bonus:{uranium:3, stone:20, coins:45,    label:" +3 Uranium/min, +20 stone/min & 45 coins/min "},cost:{coins:150000,stone:100,gold:75}, color:"#4CFC2B", desc:"A nuclear disaster....", special:true},
-  {id:"nasa_plant",     name:"N.A.S.A",  country:"usa",      bonus:{spy:2, missile:7, coins:55, oil:3,   label:" +2 Spy/day, +7 missile/min, 55 coins/min & +3 oil/min "},cost:{coins:350000,iron:200,gold:135}, color:"#0B3D91", desc:"EXPLORE SPACE!", special:true},
-  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1, missile:1, oil:1,    label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min +1 missile/min +1 oil/min"},cost:{coins:52020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
+  {id:"nasa_plant",     name:"N.A.S.A",  country:"usa",      bonus:{spy:2, missile1:7, coins:55, oil:3,   label:" +2 Spy/day, +7 missile/min, 55 coins/min & +3 oil/min "},cost:{coins:350000,iron:200,gold:135}, color:"#0B3D91", desc:"EXPLORE SPACE!", special:true},
+  {id:"generic_flower",     name:"Floralis Genérica",  country:"argentina",      bonus:{spy:1, coins:35, troops:1, gold:1, wood:1, stone:1, iron:1, missile1:1, oil:1,    label:"EVERYTHING!!  +1 spy/day, +35 coins/sec, +1 tank/min, +1 gold/min +1 wood/min +1 stone/min +1 iron/min +1 missile/min +1 oil/min"},cost:{coins:52020,iron:11 ,gold:5}, color:"#D3D3D3", desc:"Generic...  Everything!!", special:true},
 ];
 
 const CRISIS_EVENTS=[
@@ -1409,7 +1409,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
     const matTick=setInterval(async()=>{
       setMyInventory(inv=>{
         const owned=Object.keys(ownership).filter(id=>ownership[id]===username);
-        let wood=0,stone=0,iron=0,gold=0,troops=0,devils1=0,missile=0,uranium=0,goldCost=0,oil=0;
+        let wood=0,stone=0,iron=0,gold=0,troops=0,devils1=0,missile1=0,uranium=0,goldCost=0,oil=0;
         owned.forEach(id=>{
           const c=COUNTRIES.find(x=>x.id===id);
           if(!c?.bonus)return;
@@ -1421,7 +1421,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(c.bonus.uranium)uranium+=c.bonus.uranium;
           if(c.bonus.troops)troops+=c.bonus.troops;
           if(c.bonus.devils1)devils1+=c.bonus.devils1;
-          if(c.bonus.missile)missile+=c.bonus.missile;
+          if(c.bonus.missile1)missile1+=c.bonus.missile1;
           const mines=(inv.buildings||[]).filter(b=>b==="mine").length;
           if(mines>0){iron+=mines;stone+=mines;}
         });
@@ -1437,7 +1437,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           if(!w)return;
           if(w.bonus.troops)troops+=w.bonus.troops;
           if(w.bonus.devils1)devils1+=w.bonus.devils1;
-          if(w.bonus.missile)missile+=w.bonus.missile;
+          if(w.bonus.missile1)missile1+=w.bonus.missile1;
           if(w.bonus.gold)gold+=w.bonus.gold;
            if(w.bonus.stone)stone+=w.bonus.stone;
           if(w.bonus.wood)wood+=w.bonus.wood;
@@ -1454,7 +1454,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             }
           }
         });
-        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&devils1===0&&uranium===0&&oil===0)return inv;
+        if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&devils1===0&&missile1===0&&uranium===0&&oil===0)return inv;
         const next={...inv,
           wood:(inv.wood||0)+wood,
           stone:(inv.stone||0)+stone,
@@ -1462,6 +1462,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
           gold:(inv.gold||0)+gold-goldCost,
           tank:(inv.tank||0)+troops,
           devils_tank:(inv.devils_tank||0)+devils1,
+          missile:(inv.missile||0)+missile1,
           uranium:(inv.uranium||0)+uranium,
           oil:(inv.oil||0)+oil,
         };
