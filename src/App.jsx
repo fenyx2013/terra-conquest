@@ -88,7 +88,7 @@ const CLRS=[
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
 const DMG={tank:0.25,bomb:1,mortar:7,devils_tank:0.02,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
-const DAILY_REWARD=3000;
+const DAILY_REWARD=3000000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
@@ -160,8 +160,8 @@ const BLACK_MARKET_POOL=[
   {id:"bm_intel2",      label:"2 Intel Kits",   desc:"Spy on 2 enemies instantly",            cost:{coins:1800},             reward:{spy:2}}];
 
 const WORLD_WONDERS=[
-  {id:"event2",    name:"EVENT: Junes Toy Box",     country:"sudan",          bonus:{troops:3, coins:15,  label:"3 tanks/min & 15 coins/sec"},   cost:{coins:35000},        color:"gold", desc:"Event changes each month!", special:true},
-  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80,  label:"+80 coins/sec"},   cost:{coins:37000,iron:8,gold:5},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
+  {id:"event2",    name:"EVENT: Junes Toy Box",     country:"sudan",          bonus:{troops:3, coins:15,  label:"3 tanks/min & 15 coins/sec"},   cost:{coins:35000},        color:"gold", desc:"Event changes each month!", event:true},
+  {id:"pentagon",    name:"The Pentagon",     country:"usa",          bonus:{coins:80, stealth_bomber:1,  label:"+80 coins/sec & 1 Stealth Bomber/day"},   cost:{coins:137000,iron:35,gold:65},        color:"#3b82f6", desc:"Dominates North America. Massive coin income for its owner."},
   {id:"ben",    name:"The Big Ben",     country:"uk",          bonus:{coins:100,  label:"+100 coins/sec"},   cost:{coins:50000,iron:8,gold:5},        color:"#D4AF37", desc:"The Tower that ticks gold"},
   {id:"kremlin",     name:"The Kremlin",      country:"russia",       bonus:{troops:5,  label:"+5 tanks/min"},    cost:{coins:13000,stone:10,iron:6},      color:"#ef4444", desc:"Controls Eastern Europe & Asia. Your army grows extremely fast."},
   {id:"colosseum",     name:"The Colosseum",      country:"italy",       bonus:{troops:4, coins:20, label:"+4 tanks/min & +20 coins/sec"},    cost:{coins:33000,stone:10,iron:6},      color:"#8B0000", desc:"The Roman Empire never dies."},
@@ -193,28 +193,59 @@ const CRISIS_EVENTS=[
 ];
 
 const ALL_MISSIONS=[
-  {id:"m_win",     stat:"wins",         goal:1,  label:"Win 1 battle",           xp:50,  coins:500},
-  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories",  xp:75,  coins:800},
-  {id:"m_coins",   stat:"coinsEarned",  goal:5000,label:"Earn 5,000 coins",      xp:60,  coins:600},
-  {id:"m_build",   stat:"builds",       goal:2,  label:"Build 2 structures",     xp:80,  coins:700},
-  {id:"m_buy3",    stat:"weaponsBought",goal:3,  label:"Buy 3 weapons",          xp:50,  coins:500},
-  {id:"m_bomber",  stat:"bombersUsed",  goal:1,  label:"Use a Bomber",           xp:100, coins:1000},
-  {id:"m_spy",     stat:"spiesUsed",    goal:1,  label:"Use a Spy",              xp:80,  coins:800},
-  {id:"m_intel",   stat:"intelOps",     goal:1,  label:"Run an Intel operation", xp:90,  coins:900},
-  {id:"m_emp",     stat:"empsUsed",     goal:1,  label:"Deploy an EMP",          xp:120, coins:1200},
-  {id:"m_oil10",   stat:"oilGathered",  goal:10, label:"Collect 10 Oil",         xp:70,  coins:700}];
+  {id:"m_win",     stat:"wins",         goal:1,  label:"Win 1 battle",           xp:1000,  coins:2700},
+  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories",  xp:1500,  coins:20000},
+  {id:"m_coins",   stat:"coinsEarned",  goal:5000,label:"Earn 5,000 coins",      xp:1200,  coins:10000},
+  {id:"m_build",   stat:"builds",       goal:2,  label:"Build 2 structures",     xp:1600,  coins:3600},
+  {id:"m_buy3",    stat:"weaponsBought",goal:3,  label:"Buy 3 weapons",          xp:1000,  coins:5700},
+  {id:"m_bomber",  stat:"bombersUsed",  goal:1,  label:"Use a Bomber",           xp:1000, coins:1000},
+  {id:"m_intel",   stat:"intelOps",     goal:1,  label:"Run an Intel operation", xp:1800,  coins:9000},
+  {id:"m_emp",     stat:"empsUsed",     goal:1,  label:"Deploy an EMP",          xp:1200, coins:5200}];
 
 const TERRA_PASS=[
   {level:1,  xpNeeded:0,    label:"Rookie",      reward:null},
   {level:2,  xpNeeded:100,  label:"Scout",       reward:{type:"coins",  amount:500}},
-  {level:3,  xpNeeded:250,  label:"Soldier",     reward:{type:"bomb",   amount:3}},
-  {level:4,  xpNeeded:500,  label:"Sergeant",    reward:{type:"coins",  amount:1000}},
-  {level:5,  xpNeeded:900,  label:"Lieutenant",  reward:{type:"missile",amount:2}},
-  {level:6,  xpNeeded:1400, label:"Captain",     reward:{type:"gold",   amount:2}},
+  {level:3,  xpNeeded:250,  label:"Soldier",     reward:{type:"bomb",   amount:5}},
+  {level:4,  xpNeeded:500,  label:"Sergeant",    reward:{type:"oil",  amount:7}},
+  {level:5,  xpNeeded:900,  label:"Lieutenant",  reward:{type:"missile",amount:5}},
+  {level:6,  xpNeeded:1400, label:"Captain",     reward:{type:"gold",   amount:3}},
   {level:7,  xpNeeded:2000, label:"Major",       reward:{type:"coins",  amount:3000}},
-  {level:8,  xpNeeded:2800, label:"Colonel",     reward:{type:"bomber", amount:1}},
-  {level:9,  xpNeeded:3800, label:"General",     reward:{type:"iron",   amount:5}},
-  {level:10, xpNeeded:5000, label:"Commander",   reward:{type:"coins",  amount:10000}}];
+  {level:8,  xpNeeded:2800, label:"Colonel",     reward:{type:"bomber", amount:3}},
+  {level:9,  xpNeeded:3800, label:"General",     reward:{type:"iron",   amount:7}},
+  {level:10, xpNeeded:5000, label:"Commander",   reward:{type:"coins",  amount:10000}},
+  {level:11, xpNeeded:7500, label:"Supreme Captain",   reward:{type:"uranium",  amount:3}},
+  {level:12, xpNeeded:10000, label:"Admiral",   reward:{type:"artillery",  amount:7}},
+  {level:13, xpNeeded:12500, label:"Fleet Admiral",   reward:{type:"coins",  amount:50000}},
+  {level:14, xpNeeded:15000, label:"Conqueror Heart 1",   reward:{type:"mortar",  amount:7}},
+  {level:15, xpNeeded:17500, label:"Conqueror Heart 2",   reward:{type:"gold",  amount:10}},
+  {level:16, xpNeeded:20000, label:"Conqueror Heart 3",   reward:{type:"chem_bomb",  amount:9}},
+  {level:17, xpNeeded:22500, label:"Conqueror Heart 4",   reward:{type:"coins",  amount:75000}},
+  {level:18, xpNeeded:25000, label:"Conqueror Heart 5",   reward:{type:"droner_ghoster",  amount:3}},
+  {level:19, xpNeeded:27500, label:"Conqueror Heart 6",   reward:{type:"oil",  amount:30}},
+  {level:20, xpNeeded:30000, label:"Conqueror Heart 7",   reward:{type:"droner_ghoster",  amount:5}},
+  {level:21, xpNeeded:32500, label:"Conqueror Heart 8",   reward:{type:"coins",  amount:100000}},
+  {level:22, xpNeeded:35000, label:"Conqueror Heart 9",   reward:{type:"hell_rainer",  amount:1}},
+  {level:23, xpNeeded:37500, label:"Conqueror Heart 10",   reward:{type:"uranium",  amount:12}},
+  {level:24, xpNeeded:40000, label:"Conqueror Heart 11",   reward:{type:"tank",  amount:100}},
+  {level:25, xpNeeded:42500, label:"Conqueror Heart 12",   reward:{type:"coins",  amount:125000}},
+  {level:26, xpNeeded:45000, label:"Conqueror Heart 13",   reward:{type:"spy",  amount:3}},
+  {level:27, xpNeeded:47500, label:"Conqueror Heart 14",   reward:{type:"gold",  amount:30}},
+  {level:28, xpNeeded:50000, label:"Conqueror Heart 15",   reward:{type:"stealth_bomber",  amount:1}},
+  {level:29, xpNeeded:52500, label:"Conqueror Heart 16",   reward:{type:"iron",  amount:70}},
+  {level:30, xpNeeded:55000, label:"Conqueror Heart 17",   reward:{type:"hell_rainer",  amount:3}},
+  {level:31, xpNeeded:57500, label:"Conqueror Heart 18",   reward:{type:"coins",  amount:150000}},
+  {level:32, xpNeeded:60000, label:"Conqueror Heart 19",   reward:{type:"droner_ghoster",  amount:5}},
+  {level:33, xpNeeded:62500, label:"Conqueror Heart 20",   reward:{type:"uranium",  amount:15}},
+  {level:34, xpNeeded:65000, label:"Conqueror Heart 21",   reward:{type:"stealth_bomber",  amount:3}},
+  {level:35, xpNeeded:67500, label:"Conqueror Heart 22",   reward:{type:"coins",  amount:175000}},
+  {level:36, xpNeeded:70000, label:"Conqueror Heart 23",   reward:{type:"hell_rainer",  amount:7}},
+  {level:37, xpNeeded:72500, label:"Conqueror Heart 24",   reward:{type:"oil",  amount:35}},
+  {level:38, xpNeeded:75000, label:"Conqueror Heart 25",   reward:{type:"missile",  amount:30}},
+  {level:39, xpNeeded:77500, label:"Conqueror Heart 26",   reward:{type:"coins",  amount:200000}},
+  {level:40, xpNeeded:80000, label:"Conqueror Heart 27",   reward:{type:"spy",  amount:3}},
+  {level:41, xpNeeded:82500, label:"Conqueror Heart 28",   reward:{type:"gold",  amount:45}},
+  {level:42, xpNeeded:85000, label:"Conqueror Heart 29",   reward:{type:"coins",  amount:225000}},
+  {level:43, xpNeeded:87500, label:"Conqueror Heart 30",   reward:{type:"orbital_hi",  amount:1}}];
 
 const ACHIEVEMENTS=[
   {id:"first_blood", name:"First Blood",   desc:"Win your first battle",         xp:100,  emoji:"\uD83C\uDF96"},
@@ -223,7 +254,7 @@ const ACHIEVEMENTS=[
   {id:"conqueror50", name:"World Dominator",desc:"Own 50 territories",           xp:400,  emoji:"\uD83C\uDF0D"},
   {id:"rich",        name:"Filthy Rich",   desc:"Have 10,000 coins",             xp:100,  emoji:"\uD83D\uDCB0"},
   {id:"weapons10",   name:"Arms Dealer",   desc:"Buy 10 weapons",                xp:75,   emoji:"\uD83D\uDD2B"},
-  {id:"builder",     name:"Builder",       desc:"Build any structure",           xp:75,   emoji:"\uD83C\uDFD7"},
+  {id:"builder",     name:"Builder",       desc:"Build any structure",           xp:90000,   emoji:"\uD83C\uDFD7"},
   {id:"factory3",    name:"Industrialist", desc:"Own 3 Coin Factories",          xp:150,  emoji:"\uD83C\uDFED"},
   {id:"spy_used",    name:"Shadow Ops",    desc:"Use a spy in battle",           xp:100,  emoji:"\uD83D\uDD75"},
   {id:"bomber_used", name:"Carpet Bomb",   desc:"Use a bomber in battle",        xp:150,  emoji:"\uD83D\uDCA5"},
@@ -1451,9 +1482,21 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
             if(now-last>=8*60*60*1000){
               inv={...inv,spy:(inv.spy||0)+3,_lastDraculaSpy:now};
               flash("🧛 Dracula's Castle granted you 3 spies!","success");
+            
+                     // Pentagon bonus SB
+        if(w.id==="pentagon"&&w.bonus.stealth_bomber){
+            const now=Date.now();
+            const last=inv._lastPentagonBomber||0;
+            if(now-last>=8*60*60*1000){
+              inv={...inv,stealth_bomber:(inv.stealth_bomber||0)+1,_lastPentagonBomber:now};
+              flash("🏛 The Pentagon has granted you 1 B-2 Stealth Bomber!","success");
+            }
+          }
+        
             }
           }
         });
+
         if(wood===0&&stone===0&&iron===0&&gold===0&&troops===0&&devils1===0&&missile1===0&&uranium===0&&oil===0)return inv;
         const next={...inv,
           wood:(inv.wood||0)+wood,
@@ -2654,12 +2697,13 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
               const costMet=canBuild&&Object.entries(w.cost).every(([res,amt])=>(myInventory[res]||0)>=amt);
               const countryName=COUNTRIES.find(c=>c.id===w.country)?.name||w.country;
               return(
-                <div key={w.id} style={{background:w.special?"rgba(220,38,38,.06)":isMine?"rgba(245,200,66,.08)":"rgba(255,255,255,.03)",border:"1px solid "+(w.special?"rgba(220,38,38,.3)":isMine?"rgba(245,200,66,.35)":canBuild?"rgba(34,197,94,.3)":"rgba(255,255,255,.08)"),borderRadius:"14px",padding:"14px 16px",marginBottom:"10px"}}>
+                <div key={w.id} style={{background:w.special?"rgba(220,38,38,.06)":isMine?"rgba(245,200,66,.08)":"rgba(255,255,255,.03)",border:"1px solid "+(w.special?"rgba(220,38,38,.3)":isMine?"rgba(245,200,66,.35)":canBuild?"rgba(34,197,94,.3)":"rgba(255,255,255,.08)"),background:w.event?"rgba(128,0,128,.06)":isMine?"rgba(117, 12, 237,.08)":"rgba(255,255,255,.03)",border:"1px solid "+(w.event?"rgba(117, 12, 237,.3)":isMine?"rgba(117, 12, 237,.35)":canBuild?"rgba(117, 12, 237,.3)":"rgba(255,255,255,.08)"),borderRadius:"14px",padding:"14px 16px",marginBottom:"10px"}}>
                   <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:"6px"}}>
                     <div style={{flex:1}}>
                       <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"3px"}}>
                         <span style={{color:w.color,fontWeight:"bold",fontSize:"13px"}}>{w.name}</span>
                         {w.special&&<span style={{background:"rgba(220,38,38,.2)",border:"1px solid rgba(220,38,38,.4)",borderRadius:"10px",padding:"1px 8px",color:"#fca5a5",fontSize:"9px",fontWeight:"bold",letterSpacing:"1px"}}>SPECIAL</span>}
+                        {w.event&&<span style={{background:"rgba(128, 0, 128,.2)",border:"1px solid rgba(128, 0, 128,.4)",borderRadius:"10px",padding:"1px 8px",color:"#5D3FD3",fontSize:"9px",fontWeight:"bold",letterSpacing:"1px"}}>EVENT</span>}
                         {isMine&&<span style={{background:"rgba(245,200,66,.15)",border:"1px solid rgba(245,200,66,.3)",borderRadius:"10px",padding:"1px 8px",color:"#f5c842",fontSize:"9px",fontWeight:"bold"}}>YOURS</span>}
                         {owner&&!isMine&&<span style={{color:"rgba(255,255,255,.4)",fontSize:"9px"}}>{owner}</span>}
                       </div>
@@ -2757,6 +2801,7 @@ const newInv={...inv,academySpies:curSpies+1,lastAcademy:now};
                         const next=[...claimedMissions,m.id];
                         setClaimedMissions(next);
                         setMissionProgress(p=>({...p}));
+                        addXP(m.xp);
                         setMyInventory(inv=>{const ni={...inv,coins:safeCoins(inv.coins+m.coins),_claimedMissions:next,_missionProgress:missionProgress};(async()=>{try{await saveInv(ni);}catch(e){}})();return ni;});
                         flash("Mission claimed: +"+m.coins+" coins!","success");
                       }} style={{width:"100%",padding:"6px",background:"linear-gradient(135deg,#d4a017,#f5c842)",border:"none",borderRadius:"7px",color:"#000",fontSize:"11px",fontWeight:"bold",cursor:"pointer",fontFamily:"Georgia,serif"}}>
