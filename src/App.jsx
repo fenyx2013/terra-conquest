@@ -88,7 +88,7 @@ const CLRS=[
   {bg:"#65a30d",light:"#bef264",name:"Lime"}];
 
 const DMG={tank:0.25,bomb:1,mortar:7,devils_tank:0.02,plane:1.5,missile:3,bomber:5,artillery:2,drone:4,chem_bomb:6,emp:0,stealth_bomber:26.5,droner_ghoster: 8.5,hell_rainer:17.5,orbital_hi:75,dirty_bomb:4};
-const DAILY_REWARD=3000000;
+const DAILY_REWARD=3000;
 const COIN_FACTORY_YIELD=5;
 const COIN_FACTORY_INTERVAL_MS=1000;
 const BOT_NAMES=["DroneyAlpha","DroneyBeta","DroneyGamma","DroneyDelta"];
@@ -248,22 +248,22 @@ const TERRA_PASS=[
   {level:43, xpNeeded:87500, label:"Conqueror Heart 30",   reward:{type:"orbital_hi",  amount:1}}];
 
 const ACHIEVEMENTS=[
-  {id:"first_blood", name:"First Blood",   desc:"Win your first battle",         xp:100,  emoji:"\uD83C\uDF96"},
-  {id:"conqueror5",  name:"Expansionist",  desc:"Own 5 territories",             xp:75,   emoji:"\uD83C\uDFAF"},
-  {id:"conqueror20", name:"Conqueror",     desc:"Own 20 territories",            xp:150,  emoji:"\uD83C\uDDEE\uD83C\uDDF9"},
-  {id:"conqueror50", name:"World Dominator",desc:"Own 50 territories",           xp:400,  emoji:"\uD83C\uDF0D"},
-  {id:"rich",        name:"Filthy Rich",   desc:"Have 10,000 coins",             xp:100,  emoji:"\uD83D\uDCB0"},
-  {id:"weapons10",   name:"Arms Dealer",   desc:"Buy 10 weapons",                xp:75,   emoji:"\uD83D\uDD2B"},
-  {id:"builder",     name:"Builder",       desc:"Build any structure",           xp:90000,   emoji:"\uD83C\uDFD7"},
-  {id:"factory3",    name:"Industrialist", desc:"Own 3 Coin Factories",          xp:150,  emoji:"\uD83C\uDFED"},
-  {id:"spy_used",    name:"Shadow Ops",    desc:"Use a spy in battle",           xp:100,  emoji:"\uD83D\uDD75"},
-  {id:"bomber_used", name:"Carpet Bomb",   desc:"Use a bomber in battle",        xp:150,  emoji:"\uD83D\uDCA5"},
-  {id:"daily7",      name:"Loyal Player",  desc:"Claim 7 daily rewards",        xp:200,  emoji:"\uD83D\uDCC5"},
-  {id:"survived",    name:"Survivor",      desc:"Own territories after 1 hour",  xp:200,  emoji:"\uD83D\uDC9A"},
-  {id:"nuke_used",   name:"Nuclear Strike", desc:"Fire a nuclear bomb",           xp:300,  emoji:"\u2622\uFE0F"},
-  {id:"emp_used",    name:"Blackout",       desc:"Deploy an EMP",                 xp:150,  emoji:"\u26A1"},
-  {id:"intel_op",    name:"Shadow Agent",   desc:"Run an Intel operation",        xp:150,  emoji:"\uD83D\uDD75"},
-  {id:"oil_baron",   name:"Oil Baron",      desc:"Collect 50 Oil",                xp:200,  emoji:"\uD83D\uDEE2\uFE0F"}];
+  {id:"first_blood", name:"First Blood",   desc:"Win your first battle",         xp:3400,  emoji:"\uD83C\uDF96"},
+  {id:"conqueror5",  name:"Expansionist",  desc:"Own 5 territories",             xp:3275,   emoji:"\uD83C\uDFAF"},
+  {id:"conqueror20", name:"Conqueror",     desc:"Own 20 territories",            xp:2150,  emoji:"\uD83C\uDDEE\uD83C\uDDF9"},
+  {id:"conqueror50", name:"World Dominator",desc:"Own 50 territories",           xp:1000,  emoji:"\uD83C\uDF0D"},
+  {id:"rich",        name:"Filthy Rich",   desc:"Have 10,000 coins",             xp:3700,  emoji:"\uD83D\uDCB0"},
+  {id:"weapons10",   name:"Arms Dealer",   desc:"Buy 10 weapons",                xp:3475,   emoji:"\uD83D\uDD2B"},
+  {id:"builder",     name:"Builder",       desc:"Build any structure",           xp:1900,   emoji:"\uD83C\uDFD7"},
+  {id:"factory3",    name:"Industrialist", desc:"Own 3 Coin Factories",          xp:2750,  emoji:"\uD83C\uDFED"},
+  {id:"spy_used",    name:"Shadow Ops",    desc:"Use a spy in battle",           xp:3100,  emoji:"\uD83D\uDD75"},
+  {id:"bomber_used", name:"Carpet Bomb",   desc:"Use a bomber in battle",        xp:2150,  emoji:"\uD83D\uDCA5"},
+  {id:"daily7",      name:"Loyal Player",  desc:"Claim 7 daily rewards",        xp:6200,  emoji:"\uD83D\uDCC5"},
+  {id:"survived",    name:"Survivor",      desc:"Own territories after 1 hour",  xp:3200,  emoji:"\uD83D\uDC9A"},
+  {id:"nuke_used",   name:"Nuclear Strike", desc:"Fire a nuclear bomb",           xp:5300,  emoji:"\u2622\uFE0F"},
+  {id:"emp_used",    name:"Blackout",       desc:"Deploy an EMP",                 xp:1150,  emoji:"\u26A1"},
+  {id:"intel_op",    name:"Shadow Agent",   desc:"Run an Intel operation",        xp:3150,  emoji:"\uD83D\uDD75"},
+  {id:"oil_baron",   name:"Oil Baron",      desc:"Collect 50 Oil",                xp:2200,  emoji:"\uD83D\uDEE2\uFE0F"}];
 
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
