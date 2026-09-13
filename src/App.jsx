@@ -193,14 +193,14 @@ const CRISIS_EVENTS=[
 ];
 
 const ALL_MISSIONS=[
-  {id:"m_win",     stat:"wins",         goal:1,  label:"Win 1 battle",           xp:1000,  coins:2700},
-  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories",  xp:1500,  coins:20000},
-  {id:"m_coins",   stat:"coinsEarned",  goal:5000,label:"Earn 5,000 coins",      xp:1200,  coins:10000},
-  {id:"m_build",   stat:"builds",       goal:2,  label:"Build 2 structures",     xp:1600,  coins:3600},
-  {id:"m_buy3",    stat:"weaponsBought",goal:3,  label:"Buy 3 weapons",          xp:1000,  coins:5700},
-  {id:"m_bomber",  stat:"bombersUsed",  goal:1,  label:"Use a Bomber",           xp:1000, coins:1000},
-  {id:"m_intel",   stat:"intelOps",     goal:1,  label:"Run an Intel operation", xp:1800,  coins:9000},
-  {id:"m_emp",     stat:"empsUsed",     goal:1,  label:"Deploy an EMP",          xp:1200, coins:5200}];
+  {id:"m_win",     stat:"wins",         goal:3,  label:"Win 3 battle",           xp:2500,  coins:2700},
+  {id:"m_arsenal",     stat:"bomberUsed",         goal:7,  label:"Use 7 Bombers",           xp:4500,  coins:5700},
+  {id:"m_conq5",   stat:"conquests",    goal:5,  label:"Conquer 5 territories",  xp:2500,  coins:20000},
+  {id:"m_coins",   stat:"coinsEarned",  goal:50000,label:"Earn 50,000 coins",      xp:3700,  coins:10000},
+  {id:"m_build",   stat:"builds",       goal:4,  label:"Build 4 buildings",     xp:2100,  coins:3600},
+  {id:"m_buy3",    stat:"weaponsBought",goal:25,  label:"Buy 25 weapons",          xp:5500,  coins:15700},
+  {id:"m_intel",   stat:"intelOps",     goal:1,  label:"Run an Intel operation", xp:2800,  coins:9000},
+  {id:"m_emp",     stat:"empsUsed",     goal:1,  label:"Deploy an EMP",          xp:2200, coins:5200}];
 
 const TERRA_PASS=[
   {level:1,  xpNeeded:0,    label:"Rookie",      reward:null},
@@ -915,6 +915,7 @@ export default function EarthConquest(){
     {id:"trade_chat", emoji:"🤝", label:"Trade?? 🤝", msg:"Who wants to trade?? 🤝"},
     {id:"gamblingme", emoji:"🎰", label:"Love gambling 🎰🎰🎰", msg:"I LOVE GAMBLING!!!!! 🎰🎰🎰"},
     {id:"b_2_bomberrr", emoji:"🖤🛦💣", label:"🖤🛦💣 B-2 Bomber", msg:"A shadow in the sky, and you die. 🖤🛦💣"},
+    {id:"HELL", emoji:"🧨🎣🛰️", label:"🧨🎣🛰️ Orbital Strike Cannon", msg:"Purple's man right hand... ORBITAL STRIKE 🧨🎣🛰️"},
   ];
 
 
